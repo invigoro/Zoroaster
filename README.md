@@ -77,6 +77,41 @@ regenerate locally, don't commit) and `src/ingest/` for the current pieces:
   It downloads the dump to `data/raw/` (skipped if already present) and
   writes labeled revisions to `data/processed/simplewiki_test_revert_labels.parquet`.
 
+- `src/features/bursts.py` — per-page edit-rate burst detection and
+  cross-page "co-burst" counts (how many *other* pages are also bursting the
+  same day), the endogenous stand-in for an external news signal. Only
+  meaningful on retained, non-bot revisions — bot maintenance runs and AWB
+  mass edits otherwise dominate the "burst" signal.
+- `src/ingest/sampling.py` — stratifies pages by edit-frequency bucket and
+  historical burst activity (popularity/pageview-based stratification is
+  deferred until we're ready to pull that dump), and draws a reproducible
+  per-stratum random sample.
+- `scripts/build_test_features.py` — runs the above against the existing
+  `simplewiki_test_revert_labels.parquet` (no new downloads). Run it with:
+
+  ```bash
+  python scripts/build_test_features.py
+  ```
+
+  Writes `data/processed/simplewiki_test_activity_features.parquet` and
+  `data/processed/simplewiki_test_sample_manifest.json`.
+
+  **Known limitation from this test run**: on the small Simple Wikipedia
+  corpus, the highest-ranked "co-burst" days are dominated by a single
+  editor doing a long editing session on one page, coincidentally
+  overlapping with other unrelated single-editor sessions on the same
+  calendar day — not genuine multi-editor reactions to a shared real-world
+  event. This may simply be a low-edit-volume-project artifact; it needs
+  re-checking once this points at English Wikipedia, where breaking-news
+  editing is a well-documented multi-editor, multi-page phenomenon.
+
+- `src/ingest/fetch_diffs.py` — fetches a revision's wikitext plus its
+  parent's via the MediaWiki API and computes the added/removed text
+  between them. This is the per-revision fetch path used once a sample is
+  chosen; it is **not yet invoked against live Wikipedia** (only offline,
+  mocked-response checks so far) since running it for real means pulling
+  actual content for every sampled revision.
+
 ## Dependencies
 
 - [`requests`](https://pypi.org/project/requests/) — HTTP client used to call
