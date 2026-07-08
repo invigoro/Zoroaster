@@ -216,3 +216,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Downloaded Wikimedia dumps and derived datasets (regenerate via scripts/)
+data/
