@@ -52,6 +52,9 @@ python main.py "Albert Einstein" --lang de
 
 ## Edit-prediction pipeline (in progress)
 
+See [`PLAN.md`](PLAN.md) for full status, decisions made, validation
+findings, and next steps — read that first if you're resuming this work.
+
 This repo is being expanded into a pipeline that trains a model to predict
 which Wikipedia pages will be edited next and what content the edit will add,
 using only edits that were not later reverted. See `data/` (git-ignored —
