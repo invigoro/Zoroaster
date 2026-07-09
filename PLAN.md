@@ -6,7 +6,7 @@ been built and validated so far, the findings from that validation, and the
 concrete next steps. Read this before doing anything else if you're picking
 this up cold.
 
-Last updated: 2026-07-08.
+Last updated: 2026-07-08 (fetch_diffs.py validated live, see §5/§6).
 
 ## 1. Goal
 
@@ -65,13 +65,15 @@ src/
     stub_stream.py      # streams a stub-meta-history dump -> mainspace RevisionRecord dicts
     revert_detect.py    # identity-revert detection (15-rev/90-day window)
     sampling.py          # stratified page sampling (edit-frequency x had_burst)
-    fetch_diffs.py        # per-revision diff fetch via MediaWiki API — NOT YET RUN LIVE
+    fetch_diffs.py        # per-revision diff fetch via MediaWiki API — validated live, see §5
   features/
     bursts.py             # per-page burst detection + cross-page co-burst counts
 scripts/
   download_dump.py        # generic Wikimedia dump downloader (User-Agent-policy compliant)
   build_test_revert_labels.py  # orchestrates: download simplewiki dump -> parse -> revert-detect -> parquet
   build_test_features.py       # orchestrates: burst/co-burst features + stratified sample -> parquet + manifest
+  build_test_diffs.py          # orchestrates: sampled pages' retained revisions -> live fetch_diffs.py calls -> parquet
+                                # takes an optional `max_revisions` arg to cap a run short of the full sample
 main.py                    # original Wikipedia-summary CLI (unchanged behavior, now imports USER_AGENT from src.common)
 requirements.txt           # requests, mwxml, pyarrow
 ```
@@ -103,9 +105,13 @@ the pipeline cheaply before committing to the 25GB English Wikipedia corpus
 
 3. `src/ingest/fetch_diffs.py` was written (fetches a revision + its parent's
    wikitext via the MediaWiki API, computes added/removed text via
-   `difflib`) but **has only been validated offline with mocked HTTP
-   responses** — it has never been run against live Wikipedia. This is the
-   next real piece of work (see §5).
+   `difflib`). Originally validated only offline with mocked HTTP responses;
+   **now also validated live** (see §5) via `scripts/build_test_diffs.py`
+   against the first 300 of the 4,076 retained revisions across the 125
+   sampled pages — 300/300 fetched, 0 failures. The full 4,076-revision run
+   (~2+ hours at the polite 1 req/sec rate) has **not** been run yet; that
+   was deliberately deferred pending a decision (see §6) since it's a much
+   longer live-network job than the original "a few hundred calls" estimate.
 
 ## 4. Data state — important for resuming on a new machine
 
@@ -171,14 +177,35 @@ confidence in this heuristic as implemented.
    for at this scale. Re-evaluate once real English Wikipedia data is in
    play.
 
+### fetch_diffs.py — validated live, but full-sample scope is bigger than planned
+
+Ran `scripts/build_test_diffs.py 300` against real `simple.wikipedia.org`:
+300/300 retained revisions fetched, 0 failures, output written to
+`data/processed/simplewiki_test_diffs.parquet`. Spot-checked the content —
+added/removed text is sane wikitext (page-creation text, interwiki links,
+`{{msg:stub}}` template additions correctly showing as added-only diffs with
+no removed text). One false alarm during review: a page title containing
+"ü" (`Baden-Württemberg`) printed as `�` in the terminal — checked the raw
+codepoints and UTF-8 bytes directly, confirmed this is a Windows console
+codepage display artifact only, not a data-encoding bug.
+
+**Scope correction**: the plan's original "a few hundred network calls"
+estimate for the 125-page sample was wrong. The actual count is **4,076
+retained revisions**, which at the polite 1 req/sec rate (with ~2 HTTP
+calls per revision — the revision itself plus its parent) is **~2+ hours**
+of continuous live-network runtime, not a quick validation step. The 300-row
+cap was used instead to keep the validation pass small; the full run was
+deliberately not started pending a decision on whether to just run it, or
+fold it into whatever sample gets pulled for the real corpus (see §6).
+
 ## 6. Next steps, in order
 
-1. **Wire up and run `fetch_diffs.py` for real**, but only for the 125
-   already-sampled test pages (small, deliberate scope) — pull actual
-   diff text for their retained revisions, to validate the diff-extraction
-   step end-to-end before committing to it at scale. This requires live
-   network calls (a few hundred, respecting `REQUEST_DELAY_SECONDS`), which
-   is a step up from everything so far but still small.
+1. Decide whether to run the full 4,076-revision fetch against the Simple
+   Wikipedia sample (~2+ hours live, `python scripts/build_test_diffs.py`
+   with no cap arg) purely to finish validating this test corpus end-to-end,
+   or skip straight to sampling English Wikipedia and only ever run
+   `fetch_diffs.py` at full scale there — running it twice (once per wiki)
+   is extra live-network load for a test corpus that's otherwise done.
 2. Decide whether to keep prototyping on Simple Wikipedia a while longer, or
    move to a real (budget-limited, stratified) sample of **English**
    Wikipedia — this is the point where the "≤25GB" real corpus actually
@@ -200,4 +227,7 @@ confidence in this heuristic as implemented.
 - Whether the current bot-detection heuristic (`"bot" in username`) is good
   enough, or whether it's worth pulling actual user-group data — deferred,
   revisit if bot mass-edits keep leaking into signal at larger scale.
+- Whether to spend the full 4,076-revision / ~2+ hour live fetch on the
+  Simple Wikipedia test sample or skip it now that the mechanism is proven
+  (§5/§6.1).
 - Everything in §6 is unstarted; pick up there.
