@@ -18,8 +18,11 @@ Last updated: 2026-09-28.
     Wikipedia, and nothing on Simple Wikipedia.
   - Site-wide co-burst adds nothing on either, although on English
     Wikipedia its top days are plainly real events.
-- Next candidate: link-neighbor bursts on English Wikipedia (§6 step 6),
-  which needs a go-ahead for 11 GB of link tables.
+- On English Wikipedia, link-neighbor bursts add a small, consistent gain
+  (+1.6% relative AP in total).
+- Stage 2's first run works: fine-tuning cuts inserted-text perplexity
+  15.6 → 6.6. Trigger text helps only on edits whose linked pages were
+  bursting (−0.010 nats/token, t ≈ 2.5). Next steps are in §6 step 8.
 
 ## 1. Goal
 
@@ -134,6 +137,10 @@ src/
     features.py           # nested feature sets (habits / +burst / +co_burst) + context columns
     baselines.py          # heuristic rankings (yesterday's edits, recency, ...)
     metrics.py            # per-day ranking metrics (precision@k, recall@k, average precision)
+  stage2/
+    diff.py               # whitespace-word diffs with merged spans + the changed blocks
+    fetch.py              # batched revision text from the MediaWiki API (50/request, maxlag, retries)
+    examples.py           # edit context (section + marked window) and prompts with/without triggers
 scripts/
   download_dump.py        # generic Wikimedia dump downloader (User-Agent-policy compliant)
   build_test_revert_labels.py  # orchestrates: simplewiki dump -> parse -> revert-detect -> parquet
@@ -147,6 +154,10 @@ scripts/
   build_enwiki_labels.py       # per bucket: revert_detect on content hashes + editor-day counts
   build_enwiki_features.py     # per bucket: sampled panel, full-day eval set, co-burst, site totals
   train_stage1.py              # Stage 1 harness: baselines + LightGBM ablation (--corpus simplewiki|enwiki)
+  build_enwiki_links.py        # 20260901 SQL tables (~11GB) -> links touching the 20% page sample
+  build_stage2_targets.py      # Stage 2 examples: kept edits with their Stage 1 signals + bursting neighbors
+  fetch_stage2_diffs.py        # revision text via the API -> word diffs + context (resumable)
+  train_stage2.py              # QLoRA fine-tune (context vs context+triggers) + test NLL + samples
   build_test_diffs.py          # orchestrates: sampled pages' retained revisions -> live fetch_diffs.py calls -> parquet
                                 # takes an optional `max_revisions` arg to cap a run short of the full sample
 tests/
@@ -159,6 +170,7 @@ tests/
   test_mediawiki_history.py    # history TSV parsing, filtering, flags
   test_sampling.py             # hash page sample: rate, independence from buckets, nesting
   test_download_dump.py        # downloads are atomic and size-checked (against a local server)
+  test_stage2_*.py             # word diffs, API fetch (fake server), prompts, label/logit alignment
 CLAUDE.md                  # working SOP for Claude sessions (commit/push as you go, tests alongside code)
 main.py                    # original Wikipedia-summary CLI (unchanged behavior, now imports USER_AGENT from src.common)
 requirements.txt           # requests, mwxml, pyarrow, numpy, lightgbm
@@ -291,6 +303,15 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
       took about 2.5 minutes per burst definition, over 1.87M receiving
       pages.
     - Results are in §5, "English Wikipedia link-neighbor results".
+14. **Stage 2, first run (2026-09-29)**:
+    - `build_stage2_targets.py`: 16,000 targets. 40% name a linked page
+      that was bursting the day before.
+    - `fetch_stage2_diffs.py`: 21 minutes of sequential API fetching, 50
+      revisions per request. That gave 14,760 examples: 11,012 train, 939
+      validation, 2,809 test. 1,229 targets only removed text and 11 were
+      unavailable. The median insertion is 44 characters.
+    - `train_stage2.py`: 38 and 32 minutes per variant, 1 epoch.
+    - Results are in §5, "Stage 2 results".
 
 ## 4. Data state — important for resuming on a new machine
 
@@ -319,6 +340,17 @@ python scripts/build_enwiki_revisions.py       # months -> page buckets, paralle
 python scripts/build_enwiki_labels.py          # revert labels per bucket
 python scripts/build_enwiki_features.py        # panel, eval set, co-burst, site totals
 python scripts/train_stage1.py --corpus enwiki
+```
+
+Stage 2 (on top of the English Wikipedia steps; needs a CUDA GPU):
+
+```bash
+pip install torch --index-url https://download.pytorch.org/whl/cu128
+pip install -r requirements-stage2.txt
+python scripts/build_enwiki_links.py       # ~22 min, 11GB of SQL tables
+python scripts/build_stage2_targets.py     # ~30s
+python scripts/fetch_stage2_diffs.py       # ~21 min of sequential API requests
+python scripts/train_stage2.py             # ~75 min on an RTX 3070
 ```
 
 To re-run revert detection after changing it, use `--from-parquet` on the
@@ -718,6 +750,50 @@ What this means:
 - **Still optimistic:** the link snapshot is from 2026-09-01, after the test
   window (§5 "Step 4 results").
 
+### Stage 2 results (2026-09-29, English Wikipedia)
+
+The task: given the page, date, section, and parent text around the change,
+write the text a kept edit inserted. The test set is 2,809 edits from the
+Stage 1 test days (Dec 2025–Jun 2026), after the base model's training
+data. The score is NLL per inserted-text token:
+
+| model | test NLL/token | perplexity |
+|---|---|---|
+| Qwen2.5-0.5B untuned, context prompt | 2.750 | 15.6 |
+| untuned, context + triggers | 2.767 | 15.9 |
+| QLoRA-tuned, context | 1.893 | 6.6 |
+| QLoRA-tuned, context + triggers | 1.894 | 6.6 |
+
+Paired per-example differences in mean NLL/token, triggers minus context,
+both tuned:
+- **all test examples:** −0.0030 ± 0.0020 (better on 51.2%). Not
+  significant.
+- **with a bursting linked page (940):** **−0.0104 ± 0.0042** (better on
+  54.3%, t ≈ 2.5).
+- **without one (1,869):** +0.0007 ± 0.0021. No effect.
+
+For comparison, tuning vs untuned, both with the context prompt: −1.64 ±
+0.03 (better on 99.6%).
+
+What this means:
+- **Fine-tuning works.** Perplexity on inserted text drops from 15.6 to
+  6.6. Greedy samples reproduce edit types well: citations, wikilinks,
+  categories, "See also" entries, table rows. Some are exact, often by
+  copying from the surrounding context.
+- **Trigger text helps only where it has something to say.** It helps on
+  examples whose prompt names bursting linked pages, and not elsewhere.
+  That mirrors Stage 1: the "something is happening" signal is real but
+  small.
+- **Caveat: one training run per variant.** The paired SE covers variation
+  across examples, not across training runs. The effect being confined to
+  the subset where the triggers differ argues against a global fluke, but a
+  second seed would settle it.
+- **Triggers are underused.** One test edit added "Commissioner of Mental
+  Health under Mayor [[Wilson Fisk (Marvel Cinematic Universe)]]" while
+  that very page was a bursting neighbor, yet both variants wrote
+  "Murdock.". The trigger text carries only *titles*.
+- **Greedy decoding sometimes loops** ("2026, … 2026, …").
+
 ## 6. Next steps, in order
 
 Re-planned 2026-09-28 after the code review in §5, and again after the
@@ -828,8 +904,21 @@ old step 2 (move to English Wikipedia) is now step 5.
      burst signal is real but tiny.
 7. **Pageview-based popularity stratum.** Unchanged; deferred until ready
    to pull the pageviews dumps.
-8. **Stage 2 QLoRA fine-tuning** on the RTX 3070, only after Stage 1 shows
-   the burst/co-burst signal is predictive. Before any large diff fetch:
+8. **Stage 2 QLoRA fine-tuning** on the RTX 3070 (**first run done
+   2026-09-29**, see §3 item 14 and §5 "Stage 2 results"; started once the
+   Stage 1 burst and link signals proved real, if small). Next, in rough
+   order:
+   - Replicate with a second seed, to confirm the trigger effect on the
+     bursting-neighbor subset.
+   - Put *what changed* on the bursting linked pages into the triggers
+     (e.g. their recent inserted text), not just their titles. That's the
+     event content the model could actually use.
+   - Try Qwen2.5-1.5B; with QLoRA it should fit in 8GB.
+   - Use a repetition penalty or sampling for generations.
+
+   The pre-fetch checklist below is done (word-level diffs, bots and
+   reverts excluded, 50-revision batches, incremental output). Before any
+   large diff fetch:
    - switch to word-level diffs (keep line-level context separately if
      useful as conditioning);
    - exclude bot edits and reverts from targets;

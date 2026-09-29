@@ -196,6 +196,11 @@ Wikipedia, which is roughly 100× the test corpus.
   python scripts/train_stage2.py            # ~1 hour on an RTX 3070
   ```
 
+  First result, on 2,809 test edits from Dec 2025–Jun 2026: fine-tuning
+  cuts the perplexity of the inserted text from 15.6 to 6.6. Trigger text
+  helps only on edits whose linked pages were bursting (−0.010 nats per
+  token, t ≈ 2.5). Details are in `PLAN.md` §5.
+
 Run the tests (no network or data files needed) with:
 
 ```bash
