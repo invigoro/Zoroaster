@@ -927,6 +927,53 @@ old step 2 (move to English Wikipedia) is now step 5.
    - write output incrementally (`build_test_diffs.py` currently writes only
      at the end, so a crash loses the whole run).
 
+9. **Deployment: a static "predicted events for tomorrow" page** (planned
+   2026-09-29). Host on GitHub Pages only (free, static), not an app
+   hosting service.
+   - **Precompute, don't serve.** Tomorrow's prediction is the same for
+     every visitor. A daily batch job writes it as static JSON and the page
+     only displays it, so no inference server is needed. The model could run
+     in the browser (transformers.js, WebLLM), but every visitor would
+     download hundreds of MB for the same answer.
+   - **The daily job** is a scheduled GitHub Actions workflow, free on
+     standard runners for a public repo (2,000 minutes a month if private).
+     The local machine is the fallback. Steps:
+     1. Just after 00:00 UTC, pull day D−1's edits from the MediaWiki API
+        (`list=recentchanges`). English Wikipedia's ~100K edits a day take a
+        few hundred requests.
+     2. Update a rolling state of per-page daily counts.
+     3. Compute the Stage 1 features and score them with LightGBM. The model
+        is a few MB and cheap on CPU.
+     4. Optionally, write Stage 2 text for the top pages. The LoRA adapter is
+        merged into the base model and quantized for llama.cpp (~400 MB,
+        pulled from the Hugging Face Hub each run). That's a few dozen
+        short generations on CPU.
+     5. Deploy `predictions/YYYY-MM-DD.json` and the page to Pages
+        (`actions/deploy-pages`).
+   - **Limits:**
+     - Pages: sites up to 1 GB and 100 GB/month of bandwidth (soft). Git
+       rejects files over 100 MB.
+     - Runners: 4 CPUs, 16 GB RAM, ~14 GB of disk, 6-hour jobs.
+     - Scheduled workflows in public repos are disabled after 60 days
+       without repository activity. Check that the daily deploy counts as
+       activity.
+   - **Work needed first:**
+     - **Incremental ingestion.** The pipeline is built on monthly dumps.
+       Production needs a daily path from the API to the same point-in-time
+       features. `recentchanges` keeps only about 30 days, so the job must
+       carry its own state for the 90-day burst baseline and the 365-day
+       counts. That's a few hundred MB at most, kept as a release asset or
+       in the Actions cache.
+     - **Train/serve parity.** A test should compute features for the same
+       days through the dump path and the daily path, and check that they
+       match, like the point-in-time tests.
+     - **Link features.** The full English Wikipedia graph (1B+ links) is
+       too big for a free runner. Start without them, since they add only
+       +1.6% relative AP (§5), or refresh a trimmed graph monthly.
+     - **The target.** Stage 1's top pages are mostly ones edited out of
+       habit (ongoing lists, sports seasons). An events page should rank by
+       lift over habit, e.g. predicted bursts or the neighbor signal.
+
 ## 7. Open questions
 
 - Co-burst signal validity at Simple-Wikipedia scale (§5). Needs English
