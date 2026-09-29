@@ -1,5 +1,5 @@
 requests>=2.31,<3
 mwxml>=0.3,<0.4
-pyarrow>=16,<19
+pyarrow>=19,<26  # with 18.x, loading pyarrow first broke torch (Stage 2) on Windows: WinError 1114
 numpy>=1.26,<3
 lightgbm>=4.3,<5

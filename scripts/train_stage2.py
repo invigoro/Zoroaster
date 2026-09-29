@@ -42,8 +42,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-# torch before pyarrow: on Windows, loading pyarrow's native libraries first
-# can make torch's c10.dll fail to initialize (WinError 1114).
+# torch before pyarrow: with pyarrow 18.x on Windows, loading pyarrow first
+# made torch's c10.dll fail to initialize (WinError 1114).
 import torch  # isort: skip
 import torch.nn.functional as F  # isort: skip
 import numpy as np

@@ -106,7 +106,12 @@ def add_neighbor_columns_to(tables: list[pa.Table], neighbors: NeighborBursts, s
     pages = np.concatenate([pc.cast(t["page_id"], pa.int64()).to_numpy() for t in tables])
     days = np.concatenate([pc.cast(t["date"], pa.int32()).to_numpy() for t in tables])
     bounds = np.cumsum([0] + [t.num_rows for t in tables])
-    values = neighbors.features(pages, days, suffix)
+    # 32-bit columns: English Wikipedia's evaluation set has 25M rows, and
+    # feature_matrix converts to float32 anyway.
+    values = {
+        name: column.astype(np.float32 if column.dtype.kind == "f" else np.int32)
+        for name, column in neighbors.features(pages, days, suffix).items()
+    }
     out = []
     for i, table in enumerate(tables):
         for name, column in values.items():
