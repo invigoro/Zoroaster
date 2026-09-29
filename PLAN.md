@@ -6,11 +6,15 @@ been built and validated so far, the findings from that validation, and the
 concrete next steps. Read this before doing anything else if you're picking
 this up cold.
 
-Last updated: 2026-09-28. The code-vs-data review found five problems
-(§5). Revert labels and point-in-time features were rebuilt and validated
-(§3). The Stage 1 harness is built, with first results in §5: habits beat
-the heuristics, while burst and co-burst add nothing measurable. Next is a
-page-specific cross-page signal (§6).
+Last updated: 2026-09-28.
+- The code-vs-data review found five problems (§5).
+- Revert labels and point-in-time features were rebuilt and validated
+  (§3).
+- The Stage 1 harness is built. Results are in §5: habits beat the
+  heuristics, burst and co-burst add nothing measurable, and link-neighbor
+  bursts add only a sliver of deep recall.
+- Next is English Wikipedia (§6 step 5), which needs a go-ahead: about 20
+  GB of downloads.
 
 ## 1. Goal
 
@@ -96,9 +100,13 @@ src/
                         #   reverted_by_revision_id (15-rev/90-day window, §2)
     sampling.py          # stratified page sampling (edit-frequency x had_burst)
     fetch_diffs.py        # per-revision diff fetch via MediaWiki API — validated live, see §5
+    sql_dump.py           # streaming reader for MediaWiki SQL table dumps (*.sql.gz)
+    link_graph.py         # mainspace page->page links from page/redirect/linktarget/pagelinks
   features/
-    activity.py           # per-page daily channels + point-in-time Stage 1 features
+    activity.py           # per-page daily channels + point-in-time Stage 1 features;
+                          #   mass-editor days and the mass-editor-discounted burst definition
     bursts.py             # causal burst z-scores + cross-page co-burst counter
+    neighbors.py          # link-neighbor burst features (vectorized over CSR adjacency)
   stage1/
     panel.py              # the (page, day) row contract shared by the panel and eval builders
     splits.py             # train/validation/test windows with 90-day embargo gaps
@@ -112,6 +120,7 @@ scripts/
   build_test_features.py       # orchestrates: labels -> daily activity, co-burst, Stage 1 panel,
                                 # stratified sample manifest
   build_test_eval_days.py      # every existing page on 29 test days (exact per-day ranking metrics)
+  build_test_links.py          # downloads the 20260701 SQL tables (~154MB) -> link graph parquet
   train_stage1.py              # Stage 1 harness: baselines + LightGBM feature-set ablation
   build_test_diffs.py          # orchestrates: sampled pages' retained revisions -> live fetch_diffs.py calls -> parquet
                                 # takes an optional `max_revisions` arg to cap a run short of the full sample
@@ -120,6 +129,8 @@ tests/
   test_activity_features.py    # leakage test: features for day D computed from the full history must
                                 # equal features from a history cut off at midnight before D
   test_stage1.py               # splits/embargo, metrics, feature sets (no label columns), baselines
+  test_link_graph.py           # SQL dump parsing (tricky strings, fails loudly) + link resolution
+  test_neighbors.py            # neighbor-burst features, incl. a randomized point-in-time check
 CLAUDE.md                  # working SOP for Claude sessions (commit/push as you go, tests alongside code)
 main.py                    # original Wikipedia-summary CLI (unchanged behavior, now imports USER_AGENT from src.common)
 requirements.txt           # requests, mwxml, pyarrow, numpy, lightgbm
@@ -208,6 +219,23 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
      2024-01-04..2025-01-02 (824K), test 2025-04-03..2026-04-02.
    - Deterministic: two runs gave identical metrics.
    - Results and interpretation are in §5, "Stage 1 harness results".
+8. **Link graph (2026-09-28)**: `python scripts/build_test_links.py`.
+   - Downloaded 153.4MB in about a minute and built the graph in 45s.
+   - 12,879,453 unique mainspace links. The median page has 15 out-links
+     and 8 in-links.
+   - Every link endpoint is a page in the revision data.
+   - Top hubs are template-driven: *Geographic coordinate system* (35,534
+     in-links), *United States*, *Wayback Machine*.
+9. **Mass-editor discount (2026-09-28)**: rebuilt `build_test_features.py`
+   with a pre-pass.
+   - Adds `is_burst_excl_mass` / `editors_excl_mass` to the daily table
+     and `pages_bursting_excl_mass` to the co-burst table.
+   - 146,488 burst page-days once mass editing is excluded, vs 193,166.
+   - The panel, manifest and all existing columns are unchanged
+     (verified).
+10. **Step 4 ablation (2026-09-28)**: `python scripts/train_stage1.py`
+    again, now with the link-count and link-neighbor feature sets. Results
+    are in §5, "Step 4 results".
 
 ## 4. Data state — important for resuming on a new machine
 
@@ -222,7 +250,8 @@ pip install -r requirements.txt
 python scripts/build_test_revert_labels.py   # ~35 min parse time, ~900MB download
 python scripts/build_test_features.py         # ~3.5 min, runs against the local parquet, no download
 python scripts/build_test_eval_days.py        # ~3 min, full-day Stage 1 evaluation set
-python scripts/train_stage1.py                # Stage 1 baselines + LightGBM ablation
+python scripts/build_test_links.py            # ~2 min, ~154MB download, link graph
+python scripts/train_stage1.py                # ~4 min, Stage 1 baselines + LightGBM ablation
 python -m unittest discover -s tests          # ~5s, no network or data needed
 ```
 
@@ -443,6 +472,63 @@ But the harness is working, leak-free and reproducible, and the negative
 co-burst result is structural, not a Simple Wikipedia artifact: it would
 recur on English Wikipedia.
 
+### Step 4 results: link-neighbor bursts and the mass-editor discount (2026-09-28)
+
+**Mass editing is common.**
+- Editor-days with non-revert edits to more than 25 distinct pages are
+  only 1.6% of editor-days (16,189 of them, by 2,515 editors). But they
+  account for **41% of all human editor-page-days** (1.33M of 3.22M).
+- Excluding them removes 24% of burst page-days (193,166 → 146,488),
+  including all three maintenance days at the top of the co-burst list.
+- What's left at the top is a mix. Some are real events:
+  - 2022-08-01: *Ayman al-Zawahiri*, whose killing was announced that day;
+  - 2024-01-01: *2024 Noto earthquake*, the year pages *2023* and *2024*,
+    and *Cale Yarborough*, who had died the day before.
+
+  Others are diffuse busy days of unrelated pages. 2009-02-23, for
+  instance, is 97 general-topic pages (*Cat*, *Bicycle*, *Black hole*),
+  probably a class editing project.
+- On a small wiki, then, site-wide co-burst mostly measures busy days.
+
+**Link neighbors carry raw signal.** 0.82% of evaluation rows had a link
+neighbor bursting the day before. Those rows were positive 6.8× as often as
+average (6.4× with mass editing excluded).
+
+**But they add little beyond what the model already knows.** The link sets
+extend a control that has the page's own link counts, so the neighbor-burst
+effect is isolated. Paired per-day differences:
+
+| comparison | recall@10000 | P@100, P@1000, R@1000, AP |
+|---|---|---|
+| + link counts vs habits + burst | +0.0068 ± 0.0021 (t = 3.2) | no change |
+| + neighbor bursts vs link counts | +0.0045 ± 0.0022 (t = 2.0) | no change |
+| + neighbor bursts, mass editing excluded, vs link counts | +0.0055 ± 0.0019 (t = 2.9) | no change |
+| mass editing excluded vs not | +0.0010 ± 0.0011 | no change |
+
+What this means:
+- **The page-specific cross-page signal helps slightly**, in the direction
+  the hypothesis predicts, and only deep in the ranking: about half a
+  percentage point of recall within the top 10,000 pages. It doesn't
+  improve the model's top picks.
+- **Excluding mass editing cleans up the co-burst lists** but doesn't
+  measurably change the model.
+- **The page's own link counts help more than neighbor bursts, but that
+  gain is suspect.** The counts come from the July 2026 snapshot, so pages
+  edited heavily during the test year had grown links by then; `out_links`
+  took 29% of the gain. A point-in-time size measure would test whether the
+  gain is real: the byte size of the latest revision before D, which the
+  revision metadata already has (§6 step 5).
+- **Both link-based gains are optimistic**, because the link snapshot
+  postdates most of the data.
+- **Several metrics and comparisons were checked.** A t of 2 on one metric
+  is weak evidence on its own.
+
+Bottom line for Simple Wikipedia: next-day edits are predictable mainly
+from each page's own habits. "Something is happening" signals, whether
+site-wide or through links, add little. As §5 anticipated, that may be a
+property of a small, low-traffic wiki, so English Wikipedia is the real
+test.
+
 ## 6. Next steps, in order
 
 Re-planned 2026-09-28 after the code review in §5, and again after the
@@ -476,9 +562,11 @@ old step 2 (move to English Wikipedia) is now step 5.
    Result: a learned model on page habits clearly beats every heuristic.
    Neither burst nor co-burst features add measurable value, and co-burst
    *can't* help as defined (§5).
-4. **Page-specific cross-page signal** (**next**; needs go-ahead for a new
-   dump download). This is the real test of the "something is happening"
-   hypothesis: were pages *related to this one* bursting yesterday?
+4. **Page-specific cross-page signal** (**done 2026-09-28**, see §3 items
+   8–10 and §5 "Step 4 results"). Neighbor bursts add a small,
+   borderline-significant amount of deep recall and nothing at the top of
+   the ranking. The mass-editor discount doesn't change the model. As
+   planned:
    - Pull Simple Wikipedia's `pagelinks` dump, plus `linktarget` / `page`
      to resolve link targets to page ids. That's Wikipedia-internal data, so
      it's within the §2 scope decision. `categorylinks` is an optional
@@ -494,8 +582,31 @@ old step 2 (move to English Wikipedia) is now step 5.
      higher cost.
    - Also try the mass-editor discount from §5 in the burst definition,
      then rerun the ablation.
-5. **Move to English Wikipedia.** Get explicit go-ahead first, given the
-   scale jump. Evaluate Wikimedia's MediaWiki history dumps
+5. **Move to English Wikipedia** (**next**). Get explicit go-ahead first,
+   given the scale jump.
+
+   **Sizes, checked 2026-09-28:**
+   - MediaWiki history, 2026-08 snapshot: 309 English Wikipedia files,
+     137.9 GB for all history. The 24 months of 2024–2025 are 14.2 GB,
+     about 0.6 GB per month.
+   - Features need about a year of history before the first prediction
+     day, so a two-year evaluation setup means roughly three years of
+     files, around 20 GB.
+   - The link tables would add 11.15 GB (`pagelinks` alone is 7.13 GB).
+     Given how little links added here, start without them.
+
+   **Worth doing first, on Simple Wikipedia (cheap):**
+   - Add a point-in-time article size feature (bytes of the latest
+     revision before D). It should stand in for the leaky link counts and
+     strengthens the habits baseline.
+
+   **Needed for English Wikipedia:**
+   - Restrict any link graph to the pages being scored; it won't fit in
+     memory whole.
+   - Vectorize or sample pages in the feature build (pure Python took 3.5
+     minutes here; ~100× that is hours).
+
+   Evaluate Wikimedia's MediaWiki history dumps
    (https://dumps.wikimedia.org/other/mediawiki_history/readme.html) as the
    source instead of parsing ~25 years of stub XML:
    - English Wikipedia is split into monthly TSV.bz2 files (≲2GB each), so
@@ -528,10 +639,18 @@ old step 2 (move to English Wikipedia) is now step 5.
   2026-09-28 rewrite adds a "≥2 distinct editors" co-burst variant,
   targeting the single-editor-session failure mode from §5, as an extra
   feature rather than a replacement. After the rewrite, the top co-burst days
-  are mass maintenance by human accounts (§5). Candidate fix to test on
-  English Wikipedia: discount edits by editors who touch more than N
-  distinct pages that day, or use edit tags (e.g. AWB) where the source has
-  them.
+  are mass maintenance by human accounts (§5). **Tried 2026-09-28** (step
+  4): discounting editors who touch more than 25 pages in a day removes the
+  maintenance days, but leaves a mix of real events and diffuse busy days.
+  It didn't change the model on Simple Wikipedia. Worth re-testing on
+  English Wikipedia; edit tags (e.g. AWB) are an alternative where the
+  source has them.
+- How much of the link-based gains is snapshot leakage (§5 "Step 4
+  results")? Two ways to find out:
+  - a point-in-time article-size feature, for the link-count part (§6
+    step 5);
+  - links reconstructed as of each day from revision text, for the
+    neighbor-burst part (expensive).
 - Whether the bot heuristic (`"bot" in username`) is good enough. This goes
   away for English Wikipedia if the MediaWiki history dumps are adopted
   (`event_user_is_bot_by` is group-based). The name heuristic stays for the

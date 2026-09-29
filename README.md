@@ -141,6 +141,16 @@ Wikipedia, which is roughly 100× the test corpus.
     beats the best heuristic by about 29% on precision@100. Neither the
     page's own burst features nor the site-wide co-burst count add
     measurable value.
+- **Link-neighbor signal** (step 4).
+  - `scripts/build_test_links.py` downloads the July 2026 SQL tables
+    (~154MB) and builds the mainspace link graph
+    (`src/ingest/sql_dump.py`, `src/ingest/link_graph.py`).
+  - `src/features/neighbors.py` counts, for each page and day, how many of
+    its link neighbors were bursting.
+  - `src/features/activity.py` adds a second burst definition that ignores
+    mass-editing sessions (editors touching more than 25 pages in a day).
+  - Result: neighbor bursts add only a sliver of deep recall; details in
+    `PLAN.md` §5.
 
   ```bash
   pip install -r requirements.txt   # adds numpy + lightgbm
