@@ -65,6 +65,21 @@ Two-stage approach:
   rate dominates and would mask exactly the effect being tested. A 7-day
   variant is a cheap relabel from the daily activity table if it's wanted
   later.
+- **Stage 2 design (decided 2026-09-28)**:
+  - **Model:** QLoRA on Qwen2.5-0.5B (Apache-2.0): a 4-bit NF4 base with
+    LoRA r=16 on every attention/MLP projection, on the RTX 3070.
+  - **Examples:** random Stage 1 positive (page, day) rows on English
+    Wikipedia: 12,000 train, 1,000 validation, and 3,000 test (from the
+    Stage 1 test days, Dec 2025–Jun 2026, after the base model's training
+    data). The target is the page's first kept revision that day.
+  - **Target:** its inserted text from a whitespace-word diff against the
+    parent, with nearby changes merged.
+  - **Prompt:** page, date, section, and the parent text around the change,
+    marked where the edit goes.
+  - **Comparison:** the same model trained with and without *trigger text*:
+    the Stage 1 signals, including titles of linked pages bursting the day
+    before. It's scored by per-token NLL of the inserted text on the test
+    split, pairwise, and on the subset naming a bursting linked page.
 - **Streaming pipeline (decided 2026-09-28)**: pipeline code processes one
   page at a time and writes Parquet in row groups, so memory is bounded by
   the largest single page history rather than the corpus. The same code has
