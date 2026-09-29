@@ -26,7 +26,7 @@ from bisect import bisect_left, bisect_right
 from collections import Counter, defaultdict
 from datetime import date
 from itertools import accumulate
-from typing import Mapping
+from typing import Iterable, Mapping
 
 from src.common import is_bot_edit
 from src.features.bursts import baseline_window, burst_zscore, is_burst
@@ -56,6 +56,51 @@ def day_ordinal(timestamp: str) -> int:
     return date.fromisoformat(timestamp[:10]).toordinal()
 
 
+# An editor making non-revert edits to more pages than this in one UTC day is
+# running maintenance (AWB, category moves, template fixes) or mass page
+# creation, not reacting to events one page at a time (PLAN.md §5). A round
+# number chosen from the distribution, not tuned against the model.
+MASS_EDITOR_PAGES_PER_DAY = 25
+
+
+def editor_day_page_counts(pages: Iterable[list[dict]]) -> Counter[tuple[str, int]]:
+    """{(editor, day): distinct pages that non-bot editor made non-revert edits to that day}."""
+    counts: Counter[tuple[str, int]] = Counter()
+    for revisions in pages:
+        counts.update(
+            {
+                (r["user_text"], day_ordinal(r["timestamp"]))
+                for r in revisions
+                if r["user_text"] and not r["is_revert"] and not is_bot_edit(r["user_text"])
+            }
+        )
+    return counts
+
+
+def mass_editor_days(
+    counts: Mapping[tuple[str, int], int], max_pages: int = MASS_EDITOR_PAGES_PER_DAY
+) -> frozenset[tuple[str, int]]:
+    """(editor, day) pairs above `max_pages`. Each is known by the end of its
+    day, so filtering on them is point-in-time safe."""
+    return frozenset(key for key, pages in counts.items() if pages > max_pages)
+
+
+def _burst_days(counts: Mapping[int, int], first_day: int) -> set[int]:
+    series = DailySeries(counts)
+    squares = DailySeries({d: c * c for d, c in counts.items()})
+    return {d for d, c in counts.items() if is_burst(c, _zscore(series, squares, first_day, d))}
+
+
+def _zscore(series: DailySeries, squares: DailySeries, first_day: int, day: int) -> float:
+    start, end = baseline_window(first_day, day)
+    return burst_zscore(
+        series.window_sum(day, day),
+        series.window_sum(start, end),
+        squares.window_sum(start, end),
+        max(end - start + 1, 0),
+    )
+
+
 class DailySeries:
     """Sparse per-day counts (days as date ordinals) with O(log n) window sums."""
 
@@ -77,11 +122,19 @@ class DailySeries:
 class PageActivity:
     """One page's daily activity channels, burst days and editors."""
 
-    def __init__(self, revisions: list[dict]):
-        """`revisions`: one page's revisions, labeled by `detect_page_reverts`."""
+    def __init__(self, revisions: list[dict], mass_editor_days: frozenset[tuple[str, int]] = frozenset()):
+        """`revisions`: one page's revisions, labeled by `detect_page_reverts`.
+
+        `mass_editor_days` (see `mass_editor_days()`) only affects
+        `burst_days_excl_mass` and `editor_count_excl_mass`, a second burst
+        definition that ignores those editors' `edits`. Every channel and
+        feature is unchanged by it.
+        """
         timestamps = {r["revision_id"]: r["timestamp"] for r in revisions}
         counts: dict[str, Counter[int]] = {name: Counter() for name in CHANNELS}
         editors: defaultdict[int, set[str]] = defaultdict(set)
+        mass_edits: Counter[int] = Counter()
+        mass_editors: defaultdict[int, set[str]] = defaultdict(set)
 
         for r in revisions:
             day = day_ordinal(r["timestamp"])
@@ -97,6 +150,9 @@ class PageActivity:
                     counts["edits"][day] += 1
                     if r["user_text"]:
                         editors[day].add(r["user_text"])
+                    if (r["user_text"], day) in mass_editor_days:
+                        mass_edits[day] += 1
+                        mass_editors[day].add(r["user_text"])
                 if not r["is_reverted"]:
                     counts["kept_edits"][day] += 1
 
@@ -110,19 +166,19 @@ class PageActivity:
         self.burst_days = {d for d, c in counts["edits"].items() if is_burst(c, self.burst_zscore(d))}
         self._bursts = DailySeries(dict.fromkeys(self.burst_days, 1))
 
+        human = {d: c - mass_edits[d] for d, c in counts["edits"].items() if c > mass_edits[d]}
+        self.burst_days_excl_mass = _burst_days(human, self.first_day) if mass_edits else self.burst_days
+        self._mass_editors = dict(mass_editors)
+
     def burst_zscore(self, day: int) -> float:
         """z-score of `day`'s `edits` against its causal baseline."""
-        start, end = baseline_window(self.first_day, day)
-        edits = self.channels["edits"]
-        return burst_zscore(
-            edits.window_sum(day, day),
-            edits.window_sum(start, end),
-            self._edit_squares.window_sum(start, end),
-            max(end - start + 1, 0),
-        )
+        return _zscore(self.channels["edits"], self._edit_squares, self.first_day, day)
 
     def editor_count(self, day: int) -> int:
         return len(self.editors.get(day, ()))
+
+    def editor_count_excl_mass(self, day: int) -> int:
+        return len(self.editors.get(day, set()) - self._mass_editors.get(day, set()))
 
     def features(self, day: int) -> dict:
         """Point-in-time features for prediction day `day` (reads days < `day` only)."""

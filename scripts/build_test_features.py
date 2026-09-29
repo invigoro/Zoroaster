@@ -45,7 +45,14 @@ import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.parquet as pq
 
-from src.features.activity import CHANNELS, PageActivity, day_ordinal
+from src.features.activity import (
+    CHANNELS,
+    MASS_EDITOR_PAGES_PER_DAY,
+    PageActivity,
+    day_ordinal,
+    editor_day_page_counts,
+    mass_editor_days,
+)
 from src.features.bursts import CoBurstCounter
 from src.ingest.revert_detect import TIME_WINDOW
 from src.ingest.sampling import sample_pages, stratify, summarize_pages
@@ -74,12 +81,14 @@ DAILY_SCHEMA = pa.schema(
     [("page_id", pa.int64()), ("date", pa.date32())]
     + [(name, pa.int32()) for name in CHANNELS]
     + [("editors", pa.int32()), ("burst_z", pa.float64()), ("is_burst", pa.bool_())]
+    + [("is_burst_excl_mass", pa.bool_()), ("editors_excl_mass", pa.int32())]
 )
 CO_BURST_SCHEMA = pa.schema(
     [
         ("date", pa.date32()),
         ("pages_bursting", pa.int32()),
         ("pages_bursting_multi_editor", pa.int32()),
+        ("pages_bursting_excl_mass", pa.int32()),
     ]
 )
 
@@ -114,7 +123,19 @@ def main() -> int:
         f"labels final through {date.fromordinal(last_final_day)}"
     )
 
+    # Pre-pass: which editors were mass editing on which days (a global,
+    # per-day fact, so it needs every page before any page is scored).
+    editor_days = editor_day_page_counts(iter_pages(INPUT_PATH))
+    mass = mass_editor_days(editor_days)
+    print(
+        f"Mass editing (>{MASS_EDITOR_PAGES_PER_DAY} pages/day): {len(mass):,} of {len(editor_days):,} "
+        f"editor-days, by {len({user for user, _ in mass}):,} editors, covering "
+        f"{sum(editor_days[k] for k in mass):,} of {sum(editor_days.values()):,} editor-page-days"
+    )
+    del editor_days
+
     co_burst = CoBurstCounter()
+    co_burst_excl_mass: Counter[int] = Counter()
     summaries: dict[int, dict] = {}
     stats: Counter[str] = Counter()
     panel_tmp = PANEL_PATH.with_name(PANEL_PATH.stem + ".pass1.parquet")
@@ -123,7 +144,7 @@ def main() -> int:
         panel_tmp, PANEL_BASE_SCHEMA, ROW_GROUP_SIZE
     ) as panel_out:
         for revisions in iter_pages(INPUT_PATH):
-            page = PageActivity(revisions)
+            page = PageActivity(revisions, mass)
             page_id = page.page_id
 
             for day in page.days:
@@ -134,10 +155,14 @@ def main() -> int:
                     editors=page.editor_count(day),
                     burst_z=page.burst_zscore(day),
                     is_burst=day in page.burst_days,
+                    is_burst_excl_mass=day in page.burst_days_excl_mass,
+                    editors_excl_mass=page.editor_count_excl_mass(day),
                 )
                 daily_out.append(row)
             for day in page.burst_days:
                 co_burst.add(day, page.editor_count(day))
+            co_burst_excl_mass.update(page.burst_days_excl_mass)
+            stats["burst_days_excl_mass"] += len(page.burst_days_excl_mass)
 
             # Panel: prediction days after the page's first day, up to the
             # last complete day of the dump.
@@ -170,7 +195,8 @@ def main() -> int:
     print(
         f"{stats['pages']:,} pages: {daily_out.rows_written:,} page-days with activity, "
         f"{stats['burst_days']:,} burst page-days across {stats['pages_with_burst']:,} pages "
-        f"({stats['pages_with_burst_under_10_active_days']:,} of them with <10 active days)"
+        f"({stats['pages_with_burst_under_10_active_days']:,} of them with <10 active days); "
+        f"{stats['burst_days_excl_mass']:,} burst page-days excluding mass editing"
     )
 
     # Pass 2: co-burst (other pages bursting on D-1) needs every page's
@@ -197,20 +223,25 @@ def main() -> int:
         f"sampled negative of {stats['lifetime_days']:,} page-days) -> {PANEL_PATH}"
     )
 
-    days = sorted(co_burst.pages)
+    days = sorted(set(co_burst.pages) | set(co_burst_excl_mass))
     pq.write_table(
         pa.table(
             {
                 "date": [date.fromordinal(d) for d in days],
                 "pages_bursting": [co_burst.pages[d] for d in days],
                 "pages_bursting_multi_editor": [co_burst.multi_editor[d] for d in days],
+                "pages_bursting_excl_mass": [co_burst_excl_mass[d] for d in days],
             },
             schema=CO_BURST_SCHEMA,
         ),
         CO_BURST_PATH,
         compression="zstd",
     )
-    for label, counts in [("", co_burst.pages), (" with >=2 editors", co_burst.multi_editor)]:
+    for label, counts in [
+        ("", co_burst.pages),
+        (" with >=2 editors", co_burst.multi_editor),
+        (" excluding mass editing", co_burst_excl_mass),
+    ]:
         print(f"Top co-burst dates (pages bursting{label}):")
         for day, count in counts.most_common(10):
             print(f"  {date.fromordinal(day)}: {count} pages")

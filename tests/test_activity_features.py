@@ -2,7 +2,14 @@ import random
 import unittest
 from datetime import datetime, timedelta
 
-from src.features.activity import FEATURE_NAMES, PageActivity, day_ordinal
+from src.features.activity import (
+    FEATURE_NAMES,
+    MASS_EDITOR_PAGES_PER_DAY,
+    PageActivity,
+    day_ordinal,
+    editor_day_page_counts,
+    mass_editor_days,
+)
 from src.features.bursts import CoBurstCounter
 from src.ingest.revert_detect import detect_page_reverts
 
@@ -61,6 +68,18 @@ class PointInTimeTest(unittest.TestCase):
                 checked += 1
         self.assertGreater(checked, 5000)
 
+    def test_mass_editor_bursts_do_not_depend_on_the_future(self):
+        rng = random.Random(1)
+        for _ in range(20):
+            revisions = random_history(rng)
+            days = sorted({day_ordinal(r["timestamp"]) for r in revisions})
+            mass = frozenset((user, d) for d in rng.sample(days, len(days) // 3) for user in USERS[:2])
+            full = PageActivity(detect_page_reverts(revisions), mass)
+            for day in range(full.first_day + 1, full.days[-1] + 3):
+                cut = PageActivity(detect_page_reverts([r for r in revisions if day_ordinal(r["timestamp"]) < day]), mass)
+                self.assertEqual({d for d in full.burst_days_excl_mass if d < day}, cut.burst_days_excl_mass, day)
+                self.assertEqual(full.editor_count_excl_mass(day - 1), cut.editor_count_excl_mass(day - 1))
+
     def test_label_channel_does_depend_on_the_future(self):
         # Sanity check that the invariance test above could fail: rev 2 looks
         # kept until a revert two days later.
@@ -112,6 +131,32 @@ class BurstTest(unittest.TestCase):
         revisions += [revision(21 + i, spike_day + timedelta(minutes=i), f"t{i}", USERS[i % 3]) for i in range(4)]
         p = page(revisions)
         self.assertEqual(p.burst_days, {day_ordinal(spike_day.strftime("%Y-%m-%dT%H:%M:%SZ"))})
+
+    def test_mass_editor_edits_burst_only_in_the_regular_definition(self):
+        t = START + timedelta(days=100)
+        revisions = [revision(1, START, "s0", "Alice")]
+        revisions += [revision(2 + i, t + timedelta(minutes=i), f"m{i}", "Mass") for i in range(5)]
+        revisions += [revision(10 + i, t + timedelta(days=1, minutes=i), f"h{i}", USERS[i % 2]) for i in range(4)]
+        mass_day = day_ordinal(revisions[1]["timestamp"])
+        p = PageActivity(detect_page_reverts(revisions), frozenset({("Mass", mass_day)}))
+        self.assertEqual(p.burst_days, {mass_day, mass_day + 1})
+        self.assertEqual(p.burst_days_excl_mass, {mass_day + 1})
+        self.assertEqual((p.editor_count(mass_day), p.editor_count_excl_mass(mass_day)), (1, 0))
+        self.assertEqual(page(revisions).burst_days_excl_mass, p.burst_days)  # no mass set: identical
+
+    def test_mass_editor_days_counts_distinct_pages_of_human_non_revert_edits(self):
+        day = START.strftime("%Y-%m-%dT%H:%M:%SZ")
+        edit = {"timestamp": day, "is_revert": False}
+        pages = [[{**edit, "user_text": "Mass"}, {**edit, "user_text": "Mass"}] for _ in range(MASS_EDITOR_PAGES_PER_DAY + 1)]
+        pages += [[{**edit, "user_text": "Alice"}]]
+        pages += [[{**edit, "user_text": "FooBot"}]] * 40 + [[{**edit, "user_text": "Carol", "is_revert": True}]] * 40
+        counts = editor_day_page_counts(pages)
+        self.assertEqual(counts[("Mass", day_ordinal(day))], MASS_EDITOR_PAGES_PER_DAY + 1)  # distinct pages
+        self.assertEqual(counts[("Alice", day_ordinal(day))], 1)
+        self.assertNotIn(("FooBot", day_ordinal(day)), counts)
+        self.assertNotIn(("Carol", day_ordinal(day)), counts)
+        self.assertEqual(mass_editor_days(counts), frozenset({("Mass", day_ordinal(day))}))
+        self.assertEqual(mass_editor_days(counts, max_pages=100), frozenset())
 
     def test_co_burst_excludes_the_page_itself(self):
         counter = CoBurstCounter()
