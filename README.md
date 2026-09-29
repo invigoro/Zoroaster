@@ -158,6 +158,20 @@ Wikipedia, which is roughly 100× the test corpus.
   python scripts/train_stage1.py
   ```
 
+- **English Wikipedia** (step 5). This uses Wikimedia's MediaWiki history
+  dumps instead of stub XML: monthly TSV files with source bot flags, page
+  creation dates and content hashes (`src/ingest/mediawiki_history.py`).
+  The window is June 2023 through August 2026, about 22GB. Each step runs
+  in parallel and skips work already done:
+
+  ```bash
+  python scripts/download_enwiki_history.py     # ~50 min
+  python scripts/build_enwiki_revisions.py      # months -> 128 page buckets
+  python scripts/build_enwiki_labels.py         # same revert rule as Simple Wikipedia
+  python scripts/build_enwiki_features.py       # 20% page sample, 6-month windows
+  python scripts/train_stage1.py --corpus enwiki
+  ```
+
 Run the tests (no network or data files needed) with:
 
 ```bash
