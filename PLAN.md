@@ -333,6 +333,27 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
     - `train_stage2.py`: three prompt variants × two seeds, 1 epoch each:
       28.5, 31.6 and 33.5 minutes per run, 3.3 hours in all, with a 4.6 GB
       peak. Results are in §5, "Stage 2: seeds and change snippets".
+16. **Stage 2, relevance and model size (2026-09-29, running)**:
+    - **What the seeds run showed** (`scripts/analyze_stage2.py`):
+      - The trigger gain comes from edits whose inserted text names a
+        bursting neighbor: 40 test edits, −0.19 per token.
+      - The snippets shared no words with the answer for 75% of edits.
+    - **A mention filter alone is too thin to test.** Only 3.9% of test edits
+      with bursting neighbors have a neighbor whose new text links to the
+      page. `src/stage2/relevance.py` ranks all new neighbor sentences
+      instead. Its rules were chosen on train:
+      - Relevant text appears for 30% of edits with bursting neighbors, and
+        for 8% using another edit's neighbors (chance).
+      - 14.5% of shown texts share a quarter of the answer's words, against
+        about 4% for the old snippets and 4.9% for chance.
+    - `build_stage2_neighbor_changes.py` now covers all shown neighbors (up
+      to 8): 3,559 more page-days, 13,464 in all, 8,905 with a prose
+      snippet.
+    - **Runs**, launched as a one-off Windows scheduled task so they survive
+      a disconnect. Logs are in `data/processed/enwiki/stage2/logs/`.
+      1. Qwen2.5-0.5B: +triggers vs +relevant, 2 seeds.
+      2. Qwen2.5-1.5B: context, +triggers and +relevant, 2 seeds. It takes
+         6.4 s/step at micro-batch 8, with a 5.7 GB peak.
 
 ## 4. Data state — important for resuming on a new machine
 
@@ -375,6 +396,7 @@ python scripts/build_stage2_neighbor_changes.py  # ~21 min of API requests: what
 python scripts/build_stage2_titles.py      # ~4 min: titles at the time, from the history dumps
 python scripts/train_stage2.py             # ~3.3 h on an RTX 3070: 3 prompt variants x 2 seeds
 python scripts/analyze_stage2.py           # ~1 min: the §5 comparisons, from results.json
+python scripts/train_stage2.py --model Qwen/Qwen2.5-1.5B --variants context context+triggers context+triggers+relevant --out data/processed/enwiki/stage2/qwen2.5-1.5b  # ~8 h
 ```
 
 To re-run revert detection after changing it, use `--from-parquet` on the
