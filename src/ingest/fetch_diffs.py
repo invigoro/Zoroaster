@@ -6,10 +6,11 @@ page/revision sample has been chosen (`sampling.py`), this is what pulls
 actual content for just those revisions, rather than downloading the
 multi-terabyte full-text dump.
 
-Not wired into any script yet. Building the training corpus this way means
-one (or two) HTTP round trips per sampled revision against real Wikipedia
-infrastructure and real local storage growth, so it's deliberately not
-invoked until we're ready to actually build that corpus.
+Used by `scripts/build_test_diffs.py`, which validated it live on 300
+revisions of the Simple Wikipedia sample. Building the training corpus this
+way means one (or two) HTTP round trips per sampled revision against real
+Wikipedia infrastructure, so before any large run it should batch revision
+ids (up to 50 per request) and diff at word level; see PLAN.md §6.
 """
 
 from __future__ import annotations

@@ -6,7 +6,9 @@ been built and validated so far, the findings from that validation, and the
 concrete next steps. Read this before doing anything else if you're picking
 this up cold.
 
-Last updated: 2026-07-08 (fetch_diffs.py validated live, see §5/§6).
+Last updated: 2026-09-28 (code-vs-data review found five problems, see §5;
+revert labels and point-in-time features rebuilt and validated, see §3; the
+Stage 1 harness is next, see §6).
 
 ## 1. Goal
 
@@ -32,6 +34,23 @@ Two-stage approach:
   days, whichever is tighter** — has a `sha1` matching an earlier revision's
   content. Both the undone revision and the mechanical revert itself are
   excluded from training targets (the revert doesn't add new content).
+  Precisely (clarified 2026-09-28, see §5): a revert restores the *most
+  recent* earlier revision with its `sha1`, and it undoes the revisions
+  strictly between that one and itself. The revert is flagged `is_revert`
+  whatever the window. The undone revisions it reaches within the window
+  are flagged `is_reverted`.
+- **Point-in-time framing (confirmed 2026-09-28)**: for a prediction day D,
+  the target is D's edits, and every input feature uses only information
+  knowable by the end of day D−1. Note that the final `is_reverted` flag is
+  *not* knowable then, because a revert can land up to 90 days later. So
+  inputs only drop edits that were reverted by the end of the day they were
+  made, while labels use the final flags. Consequence: labels for the last
+  90 days before a dump aren't final, so evaluation windows must end at
+  least 90 days before the dump date.
+- **Streaming pipeline (decided 2026-09-28)**: pipeline code processes one
+  page at a time and writes Parquet in row groups, so memory is bounded by
+  the largest single page history rather than the corpus. The same code has
+  to run on English Wikipedia, which is roughly 100× the test corpus.
 - **No exogenous news data.** "Current events" signal comes only from
   Wikipedia's own activity (edit-rate bursts per page, and how many *other*
   pages are bursting simultaneously — "co-burst"), not an external news
@@ -61,22 +80,36 @@ itself (see §4 — it's regenerable, not committed).
 ```
 src/
   common.py            # USER_AGENT constant + is_bot_edit() heuristic (shared)
+  parquet_io.py        # RowGroupWriter: streaming Parquet output in row groups, atomic replace
   ingest/
     stub_stream.py      # streams a stub-meta-history dump -> mainspace RevisionRecord dicts
-    revert_detect.py    # identity-revert detection (15-rev/90-day window)
+    revert_detect.py    # identity reverts, one page at a time: is_revert, is_reverted,
+                        #   reverted_by_revision_id (15-rev/90-day window, §2)
     sampling.py          # stratified page sampling (edit-frequency x had_burst)
     fetch_diffs.py        # per-revision diff fetch via MediaWiki API — validated live, see §5
   features/
-    bursts.py             # per-page burst detection + cross-page co-burst counts
+    activity.py           # per-page daily channels + point-in-time Stage 1 features
+    bursts.py             # causal burst z-scores + cross-page co-burst counter
 scripts/
   download_dump.py        # generic Wikimedia dump downloader (User-Agent-policy compliant)
-  build_test_revert_labels.py  # orchestrates: download simplewiki dump -> parse -> revert-detect -> parquet
-  build_test_features.py       # orchestrates: burst/co-burst features + stratified sample -> parquet + manifest
+  build_test_revert_labels.py  # orchestrates: simplewiki dump -> parse -> revert-detect -> parquet
+                                # (--from-parquet re-labels an existing file in ~2 min, no re-parse)
+  build_test_features.py       # orchestrates: labels -> daily activity, co-burst, Stage 1 panel,
+                                # stratified sample manifest
   build_test_diffs.py          # orchestrates: sampled pages' retained revisions -> live fetch_diffs.py calls -> parquet
                                 # takes an optional `max_revisions` arg to cap a run short of the full sample
+tests/
+  test_revert_detect.py        # revert semantics, incl. the repeated-vandalism case the old code got wrong
+  test_activity_features.py    # leakage test: features for day D computed from the full history must
+                                # equal features from a history cut off at midnight before D
 main.py                    # original Wikipedia-summary CLI (unchanged behavior, now imports USER_AGENT from src.common)
 requirements.txt           # requests, mwxml, pyarrow
 ```
+
+Everything under `src/` and `scripts/` streams one page at a time (§2), so
+memory is bounded by the largest single page history. Run the tests with
+`python -m unittest discover -s tests` from the repo root. They need no
+network and no data files.
 
 ### Pipeline run so far (test scale, Simple English Wikipedia only)
 
@@ -113,6 +146,40 @@ the pipeline cheaply before committing to the 25GB English Wikipedia corpus
    was deliberately deferred pending a decision (see §6) since it's a much
    longer live-network job than the original "a few hundred calls" estimate.
 
+Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
+`data/processed/v1_2026-07-08/` when they were superseded:
+
+4. **Re-label (2026-09-28)**: `python scripts/build_test_revert_labels.py
+   --from-parquet data/processed/v1_2026-07-08/simplewiki_test_revert_labels.parquet`
+   took 112s, streaming.
+   - Same 6,953,329 revisions and 397,196 pages.
+   - **819,543 reverted (11.79%)** and **607,603 reverts (8.74%)**, of which
+     101,321 are both (revert wars). 5,627,504 revisions carry neither flag.
+   - Every difference from v1 is accounted for:
+     - 170,803 v1 flags were on reverts;
+     - 3,633 were on null revisions (page moves), which are neither;
+     - 152 revisions are newly flagged, all on the 186 pages whose
+       timestamps run out of order. There the new pairwise 90-day check
+       reaches a revert that v1's stop-at-first-late-revision scan missed.
+   - Parsing straight from the dump gives identical labels (checked on the
+     first 30K revisions).
+5. **Features (2026-09-28)**: `python scripts/build_test_features.py` took
+   199s, streaming.
+   - **193,166 burst page-days across 124,405 pages**. 76,060 of those
+     pages have fewer than 10 active days; v1 made that impossible.
+   - **Panel: 8,837,634 rows, 0.80GB in memory.** That's all 2,190,870
+     positive (page, day) rows, plus 6,646,764 negatives sampled at 0.5% of
+     the 1.33B negative page-days (`sample_weight` 200).
+     - 68% of positive days follow zero human edits in the prior 30 days.
+     - Labels are final through 2026-04-02.
+   - Validation:
+     - the panel's positives equal the daily table's kept-edit days exactly;
+     - the leakage check (features from the full history vs. a history cut
+       at midnight before D) passed on 21,283 (page, day) pairs from 2,000
+       random real pages.
+   - New stratified sample: 6 strata (`low`+burst now exists) × 25 = 150
+     pages, with 4,140 diff targets (38.6% bot edits).
+
 ## 4. Data state — important for resuming on a new machine
 
 `data/` is **git-ignored** (see `.gitignore`) — it does not travel with the
@@ -124,8 +191,14 @@ python -m venv .venv
 # then activate it (see README.md for OS-specific activation commands)
 pip install -r requirements.txt
 python scripts/build_test_revert_labels.py   # ~35 min parse time, ~900MB download
-python scripts/build_test_features.py         # runs against the local parquet, no download
+python scripts/build_test_features.py         # ~3.5 min, runs against the local parquet, no download
+python -m unittest discover -s tests          # ~5s, no network or data needed
 ```
+
+To re-run revert detection after changing it, use `--from-parquet` on the
+existing labels file (~2 min) instead of re-parsing the dump. The
+superseded v1 outputs (2026-07-08) are in `data/processed/v1_2026-07-08/`
+for comparison. They're safe to delete.
 
 Caveat: `build_test_revert_labels.py` downloads
 `simplewiki-latest-stub-meta-history.xml.gz`, i.e. **whatever the current
@@ -137,7 +210,7 @@ directory like `/simplewiki/20260701/` instead of `/simplewiki/latest/`).
 
 ## 5. Findings from validation (worth knowing before continuing)
 
-### Revert detection — validated, looks correct
+### Revert detection — hand-validated (see the 2026-09-28 correction below)
 
 Hand-checked 5 small pages (Animals, Muslim, Hallucinations, Full English,
 Jewish) by reading their real edit-comment history. **Every single revision
@@ -145,6 +218,10 @@ flagged `is_reverted=True` was immediately followed by a revision whose
 comment literally said "Reverted N edit(s) by ..."**, and the mechanical
 revert revision itself was correctly *not* flagged as reverted. High
 confidence in this heuristic as implemented.
+
+**Correction (2026-09-28):** that confidence was misplaced for pages with
+repeated vandalize/restore cycles, which none of the five small hand-checked
+pages had. See "Code review against the data" below.
 
 ### Burst/co-burst detection — works as coded, but two real limitations found
 
@@ -181,7 +258,9 @@ confidence in this heuristic as implemented.
 
 Ran `scripts/build_test_diffs.py 300` against real `simple.wikipedia.org`:
 300/300 retained revisions fetched, 0 failures, output written to
-`data/processed/simplewiki_test_diffs.parquet`. Spot-checked the content —
+`data/processed/simplewiki_test_diffs.parquet` (now in
+`data/processed/v1_2026-07-08/`, since the sample it was drawn from has been
+superseded). Spot-checked the content —
 added/removed text is sane wikitext (page-creation text, interwiki links,
 `{{msg:stub}}` template additions correctly showing as added-only diffs with
 no removed text). One false alarm during review: a page title containing
@@ -198,36 +277,171 @@ cap was used instead to keep the validation pass small; the full run was
 deliberately not started pending a decision on whether to just run it, or
 fold it into whatever sample gets pulled for the real corpus (see §6).
 
+### Code review against the data (2026-09-28)
+
+I re-checked the code against the local test corpus after a ~12-week
+break. Every headline count above reproduces from the files on disk (the
+burst tally was off by 2 of 54K, which doesn't matter). But the check found
+five problems. None of them break the plumbing, but each gets much more
+expensive once it's baked into an English Wikipedia corpus. Items 1, 2, 3
+and 5 were fixed the same day (§3 items 4–5). Item 4 stays open until the
+Stage 2 fetch is reworked (§6 step 6).
+
+1. **The revert rule from §2 wasn't implemented as decided.**
+   - Nothing flagged the revert revisions themselves. So **335,488 identity
+     reverts** (5.63% of the revisions not flagged `is_reverted`) counted as
+     retained: they fed burst detection and were eligible as Stage 2
+     targets.
+   - `revert_detect.py` stored the *earliest* index at which each `sha1`
+     appeared, not the most recent. On pages that are vandalized and
+     restored repeatedly, each intermediate restore got flagged as reverted
+     by the next one. **174,439 of the 993,827 `is_reverted` flags (17.55%)**
+     sat on revisions that are themselves reverts, e.g. "Reverted 1 edit by
+     … identified as vandalism" on *April*. The true rate of undone edits is
+     ~11.8%, not 14.29%.
+2. **The burst features used future data.** `compute_page_bursts` used each
+   page's whole history, including later days and the day itself, as its
+   baseline. Any forecaster trained on those features would be seeing the
+   future.
+3. **Pages with fewer than 10 active days could never burst.** The z-score
+   was a population z-score over active days only. By Samuelson's
+   inequality, one value's z-score can't exceed √(n−1), so reaching z ≥ 3
+   takes at least 10 active days. **318,601 pages (81%)** couldn't burst at
+   all, including 102 with 50+ edits in a single day, which is exactly what
+   a breaking-news article looks like.
+4. **The Stage 2 diff targets are noisy.**
+   - Of the 4,076-revision fetch target set, **1,381 (33.9%) are bot edits**
+     (nothing filters bots from Stage 2 targets) and 263 (6.5%) are reverts
+     (see 1).
+   - Diffs are line-level, and a wikitext paragraph is one line, so a
+     one-word fix records the whole paragraph as added. On the 200 fetched
+     diffs that modify existing text, `added_text` had **3.6× the words
+     actually inserted** (median 2.9× per diff, p90 25×). That inflates both
+     the Stage 2 targets and the storage math behind the 25GB budget.
+5. **The scripts don't scale.** Every script loaded the whole dataset into
+   memory (`list(...)`, `to_pylist()`). That's fine for 7M revisions but not
+   for English Wikipedia, at roughly 100× that.
+
+Two more findings came up while designing the fixes:
+
+- **A point-in-time trap in the revert flags.** `is_reverted` depends on
+  revisions up to 90 days *later*. So even features built only from days
+  before the target day leak if they filter on the final flag. The rule
+  adopted is in §2.
+- **Most edits land on dormant pages.** Of the 2.82M page-days with a
+  non-bot, non-reverted edit, only 17% follow any human edit to that page
+  in the previous 7 days. That rises to 30% with a 30-day lookback and 44%
+  with 90 days (these figures use the old revert flags). So a Stage 1
+  candidate set of "recently active pages" would miss most of the target.
+  The panel has to cover every page's lifetime, keeping all positive days
+  and sampling negative days with weights.
+
+### Top co-burst days after the rewrite (2026-09-28)
+
+With the causal burst definition, the top co-burst days are dominated by
+**mass editing from human accounts**, which the name-based bot filter can't
+catch, rather than by coincident single-page sessions:
+
+- **2019-02-27** (278 pages): one editor made 929 "fix template param case"
+  edits across 272 of the pages.
+- **2012-02-04** (169 pages): two separate maintenance runs overlapped on the
+  same ice-hockey biographies (AWB category sorting plus a category
+  removal).
+- **2023-01-01** (149 pages): a category-move run.
+- **2021-02-13 and 2010-01-05**: batches of new pages (74 and 72 created
+  that day), plus new-page patrol.
+
+The "≥2 distinct editors" variant drops the 2019 day (7 of 278 pages qualify)
+but is fooled when two maintenance runs overlap (2012-02-04: 149 of 169
+qualify). Only a sliver of the top days is news: 2010-01-05 includes
+*Casey Johnson*, who had died the day before, and *Deaths in 2010*.
+
+The natural next filter is to discount editors who touch many distinct
+pages in one day, since a single human can't react to that many separate
+events. Per the rule above, it's recorded as an open question (§7) rather
+than tuned here.
+
 ## 6. Next steps, in order
 
-1. Decide whether to run the full 4,076-revision fetch against the Simple
-   Wikipedia sample (~2+ hours live, `python scripts/build_test_diffs.py`
-   with no cap arg) purely to finish validating this test corpus end-to-end,
-   or skip straight to sampling English Wikipedia and only ever run
-   `fetch_diffs.py` at full scale there — running it twice (once per wiki)
-   is extra live-network load for a test corpus that's otherwise done.
-2. Decide whether to keep prototyping on Simple Wikipedia a while longer, or
-   move to a real (budget-limited, stratified) sample of **English**
-   Wikipedia — this is the point where the "≤25GB" real corpus actually
-   starts getting built, and is a bigger, more deliberate data-acquisition
-   step than anything done so far. Get explicit go-ahead before starting it
-   given the scale jump.
-3. Build the pageview-based popularity stratum (currently deferred — see
-   §2/§5 of the earlier plan discussion) once ready to pull the pageviews
-   dumps.
-4. Build the Stage 1 LightGBM baseline forecaster on the metadata + burst
-   features (CPU-only, doable on any machine).
-5. Only after Stage 1 shows the burst/co-burst signal is actually
-   predictive: move to Stage 2 QLoRA fine-tuning on the RTX 3070 machine.
+Re-planned 2026-09-28 after the code review in §5. The old step 1 (run
+the full 4,076-revision Simple Wikipedia diff fetch) is **skipped**. Stage 1
+needs no diff text, and the fetch method needs the changes listed in step 6
+before any large run. The old step 2 (move to English Wikipedia) is now
+step 4.
+
+1. **Fix the revert labels** (**done 2026-09-28**, see §3 item 4). Split them into `is_reverted`
+   (most-recent-match semantics), `reverted_by_revision_id` (when the revert
+   happened, which point-in-time features need) and `is_revert`. Exclude
+   both kinds of revision from targets. Recompute from the existing labels
+   parquet, with no dump re-parse.
+2. **Point-in-time features** (**done 2026-09-28**, see §3 item 5):
+   - a causal burst baseline over calendar days, with zero-edit days
+     included and new pages able to burst;
+   - raw activity features: edits in the last 1/7/30/365 days, days since
+     the last edit, page age, distinct editors;
+   - co-burst counts from the causal burst flags.
+
+   Build a Stage 1 panel that keeps every positive (page, day) and samples
+   negative days across each page's whole lifetime, with weights (see
+   "most edits land on dormant pages" in §5).
+3. **Stage 1 harness on Simple Wikipedia** (**next**). The input is
+   `simplewiki_test_stage1_panel.parquet`.
+   - Pin down the task (horizon, metrics).
+   - Weight rows by `sample_weight`, and evaluate only rows with
+     `label_is_final`.
+   - Split by time, with evaluation ending ≥90 days before the dump.
+   - Compare naive baselines (recency, trailing rate) against LightGBM
+     with and without the burst/co-burst features. This is the first real
+     test of the project's hypothesis.
+
+   The goal here is a working, leak-free harness, not co-burst tuning (see
+   §5). The same harness then reruns on English Wikipedia. CPU-only.
+4. **Move to English Wikipedia.** Get explicit go-ahead first, given the
+   scale jump. Evaluate Wikimedia's MediaWiki history dumps
+   (https://dumps.wikimedia.org/other/mediawiki_history/readme.html) as the
+   source instead of parsing ~25 years of stub XML:
+   - English Wikipedia is split into monthly TSV.bz2 files (≲2GB each), so
+     you can pull only the window Stage 1 needs.
+   - Each revision already has `revision_text_sha1`,
+     `revision_is_identity_revert`, `revision_is_identity_reverted`,
+     `revision_seconds_to_identity_revert` and `event_user_is_bot_by`
+     (`name` or `group`, i.e. real bot user-group membership).
+   - The dumps document no revert window, so apply the §2 rule on top, or
+     rerun `revert_detect.py` on the sha1 column so both wikis use one
+     definition.
+   - Records change retroactively between monthly snapshots (renames,
+     reverts, moves), so take every month from a single snapshot.
+5. **Pageview-based popularity stratum.** Unchanged; deferred until ready
+   to pull the pageviews dumps.
+6. **Stage 2 QLoRA fine-tuning** on the RTX 3070, only after Stage 1 shows
+   the burst/co-burst signal is predictive. Before any large diff fetch:
+   - switch to word-level diffs (keep line-level context separately if
+     useful as conditioning);
+   - exclude bot edits and reverts from targets;
+   - batch up to 50 revision ids per API request (a revision's parent is
+     usually the previous revision already being fetched);
+   - write output incrementally (`build_test_diffs.py` currently writes only
+     at the end, so a crash loses the whole run).
 
 ## 7. Open questions
 
-- Co-burst signal validity at Simple-Wikipedia scale (§5) — needs English
-  Wikipedia data to resolve, not further tuning on the current corpus.
-- Whether the current bot-detection heuristic (`"bot" in username`) is good
-  enough, or whether it's worth pulling actual user-group data — deferred,
-  revisit if bot mass-edits keep leaking into signal at larger scale.
-- Whether to spend the full 4,076-revision / ~2+ hour live fetch on the
-  Simple Wikipedia test sample or skip it now that the mechanism is proven
-  (§5/§6.1).
-- Everything in §6 is unstarted; pick up there.
+- Co-burst signal validity at Simple-Wikipedia scale (§5). Needs English
+  Wikipedia data to resolve, not more tuning on the current corpus. The
+  2026-09-28 rewrite adds a "≥2 distinct editors" co-burst variant,
+  targeting the single-editor-session failure mode from §5, as an extra
+  feature rather than a replacement. After the rewrite, the top co-burst days
+  are mass maintenance by human accounts (§5). Candidate fix to test on
+  English Wikipedia: discount edits by editors who touch more than N
+  distinct pages that day, or use edit tags (e.g. AWB) where the source has
+  them.
+- Whether the bot heuristic (`"bot" in username`) is good enough. This goes
+  away for English Wikipedia if the MediaWiki history dumps are adopted
+  (`event_user_is_bot_by` is group-based). The name heuristic stays for the
+  Simple Wikipedia test corpus.
+- Should Stage 2 targets exclude bot edits? Recommended yes: 34% of the v1
+  target set and 39% of the current one are bot maintenance (interwiki
+  links, stub tags), not reactions to events.
+- Stage 1 task details: horizon (next day vs next 7 days), metrics (PR-AUC,
+  precision@k per day with sample weights), and how to treat the majority
+  of edits that land on dormant pages (§5). Page-level history can't
+  anticipate those; only cross-page signals could.
