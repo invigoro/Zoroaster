@@ -1,3 +1,5 @@
 requests>=2.31,<3
 mwxml>=0.3,<0.4
 pyarrow>=16,<19
+numpy>=1.26,<3
+lightgbm>=4.3,<5

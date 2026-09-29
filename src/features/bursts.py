@@ -26,6 +26,7 @@ from __future__ import annotations
 
 from collections import Counter
 from math import sqrt
+from typing import Iterable
 
 BURST_Z_THRESHOLD = 3.0
 MIN_BURST_DAY_COUNT = 2
@@ -64,6 +65,15 @@ class CoBurstCounter:
     def __init__(self) -> None:
         self.pages: Counter[int] = Counter()
         self.multi_editor: Counter[int] = Counter()
+
+    @classmethod
+    def from_counts(cls, counts: Iterable[tuple[int, int, int]]) -> CoBurstCounter:
+        """Rebuild from saved (day, pages, multi-editor pages) totals."""
+        counter = cls()
+        for day, pages, multi_editor in counts:
+            counter.pages[day] = pages
+            counter.multi_editor[day] = multi_editor
+        return counter
 
     def add(self, day: int, editors: int) -> None:
         self.pages[day] += 1
