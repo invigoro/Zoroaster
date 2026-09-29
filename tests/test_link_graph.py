@@ -53,6 +53,25 @@ class SqlDumpTest(unittest.TestCase):
         self.assertEqual(np.concatenate(batches).tolist(), [[4, 1], [-5, 2], [9, 7]])
         self.assertEqual([[int(v) for v in r] for r in iter_rows(path, ("c", "a"))], [[4, 1], [-5, 2], [9, 7]])
 
+    def test_one_row_per_line_layout(self):
+        # English Wikipedia's dumps: a bare INSERT line, then one row per line.
+        path = self.dir / "multi.sql.gz"
+        text = (
+            "CREATE TABLE `t` (\n  `a` int(8) NOT NULL,\n  `b` varbinary(9) NOT NULL,\n"
+            "  PRIMARY KEY (`a`)\n) ENGINE=InnoDB;\n"
+            "INSERT INTO `t` VALUES\n(1,'x;'),\n(2,'y),'),\n(3,'z');\n"
+            "INSERT INTO `t` VALUES\n(4,'w');\n"
+        )
+        with gzip.open(path, "wb") as f:
+            f.write(text.encode())
+        self.assertEqual(read_columns(path), ["a", "b"])
+        self.assertEqual([r[0] for r in iter_rows(path, ("a", "b"))], [b"1", b"2", b"3", b"4"])
+        self.assertEqual(sql_str(list(iter_rows(path, ("b",)))[1][0]), b"y),")
+        ints = self.dir / "ints.sql.gz"
+        with gzip.open(ints, "wb") as f:
+            f.write(b"CREATE TABLE `p` (\n  `a` int,\n  `b` int\n);\nINSERT INTO `p` VALUES\n(1,2),\n(3,4);\n")
+        self.assertEqual(np.concatenate(list(iter_int_batches(ints, ("b", "a")))).tolist(), [[2, 1], [4, 3]])
+
     def test_integer_fast_path_rejects_strings_and_nulls(self):
         for values in ["(1,'x',3)", "(1,NULL,3)"]:
             path = write_dump(self.dir, "t", ["a", "b", "c"], [values])

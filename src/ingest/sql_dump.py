@@ -24,7 +24,38 @@ import numpy as np
 
 _VALUE = rb"NULL|'(?:[^'\\]|\\.)*'|[-+0-9.eE]+"
 _COLUMN = re.compile(rb"^\s+`([^`]+)`")
-_VALUES_KEYWORD = b" VALUES "
+_VALUES_KEYWORD = b" VALUES"
+
+
+_INSERT = b"\nINSERT INTO `"
+_BLOCK_BYTES = 1 << 24
+
+
+def _insert_bodies(f) -> Iterator[bytes]:
+    """Each INSERT statement's rows as one `(..),(..),...;` bytes object.
+
+    Dumps put a statement on one line (Simple Wikipedia) or one row per
+    line after a bare `INSERT INTO ... VALUES` line (English Wikipedia).
+    MySQL escapes newlines inside strings, so raw newlines only ever fall
+    between rows (safe to drop) and `;\\n` only ever ends a statement.
+    Works on 16MB blocks with C-level searches rather than line by line:
+    on one-row-per-line dumps, per-line Python work dominated.
+    """
+    buffer, pos = b"\n", 0
+    while True:
+        start = buffer.find(_INSERT, pos)
+        end = buffer.find(b";\n", start) if start >= 0 else -1
+        if end < 0:
+            block = f.read(_BLOCK_BYTES)
+            if not block:
+                return
+            buffer, pos = buffer[pos if start < 0 else start :] + block, 0
+            if start < 0:
+                pos = max(len(buffer) - len(block) - len(_INSERT), 0)
+            continue
+        values = buffer.index(_VALUES_KEYWORD, start) + len(_VALUES_KEYWORD)
+        yield buffer[values : end + 1].replace(b"\n", b"").strip()
+        pos = end + 1
 
 
 def read_columns(path: Path) -> list[str]:
@@ -50,18 +81,16 @@ def iter_rows(path: Path, columns: Sequence[str]) -> Iterator[tuple[bytes | None
     index = [all_columns.index(c) for c in columns]
     row = re.compile(rb"\(" + b",".join([b"(" + _VALUE + b")"] * len(all_columns)) + rb"\)")
     with gzip.open(path, "rb") as f:
-        for line in f:
-            if not line.startswith(b"INSERT INTO"):
-                continue
-            pos = line.index(_VALUES_KEYWORD) + len(_VALUES_KEYWORD)
-            for match in row.finditer(line, pos):
+        for body in _insert_bodies(f):
+            pos = 0
+            for match in row.finditer(body):
                 if match.start() != pos:
-                    raise ValueError(f"unparsable row in {path} at byte {pos}: {line[pos:pos + 120]!r}")
+                    raise ValueError(f"unparsable row in {path} at byte {pos}: {body[pos:pos + 120]!r}")
                 values = match.groups()
                 yield tuple(None if values[i] == b"NULL" else values[i] for i in index)
                 pos = match.end() + 1  # skip the ',' between rows
-            if line[pos - 1 : pos] != b";":
-                raise ValueError(f"unparsable row in {path} at byte {pos - 1}: {line[pos - 1:pos + 120]!r}")
+            if body[pos - 1 : pos] != b";":
+                raise ValueError(f"unparsable row in {path} at byte {pos - 1}: {body[pos - 1:pos + 120]!r}")
 
 
 _SEPARATORS = bytes.maketrans(b"(),", b"   ")
@@ -78,10 +107,8 @@ def iter_int_batches(path: Path, columns: Sequence[str]) -> Iterator[np.ndarray]
     all_columns = read_columns(path)
     index = [all_columns.index(c) for c in columns]
     with gzip.open(path, "rb") as f:
-        for line in f:
-            if not line.startswith(b"INSERT INTO"):
-                continue
-            body = line[line.index(_VALUES_KEYWORD) + len(_VALUES_KEYWORD) :].rstrip(b";\r\n")
+        for body in _insert_bodies(f):
+            body = body.rstrip(b";")
             if b"'" in body or b"N" in body:
                 raise ValueError(f"{path}: not an all-integer table: {body[:120]!r}")
             values = np.fromstring(body.translate(_SEPARATORS), dtype=np.int64, sep=" ")
