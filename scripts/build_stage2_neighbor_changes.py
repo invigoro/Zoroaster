@@ -10,8 +10,16 @@ start of D-1 (the parent of its first revision that day) and at its end
 - A page created that day contributes its opening text, since it's diffed
   against nothing. That's typical of breaking news.
 
-The snippet kept is the longest inserted span, whitespace-collapsed and
-cut to SNIPPET_CHARS.
+The snippet is the day's longest new prose (`src.stage2.wikitext.prose`),
+cut to SNIPPET_CHARS:
+- Citations, infobox rows and tables are dropped. A first try took the
+  longest inserted span as it was, and 59% of its snippets held such markup.
+- Text already in the start-of-day text was moved or copied, not added.
+  That covers a whole span found there, and any whole line found there as a
+  line: a line diff can report a moved paragraph as deleted and reinserted
+  next to new text, in the same span.
+The new text of each span is stored too (capped), so snippets can be
+re-derived without refetching.
 
 Writes `data/processed/enwiki/stage2/neighbor_changes/part-NNNNN.parquet`,
 resumable like `fetch_stage2_diffs.py`.
@@ -22,7 +30,6 @@ Usage:
 
 from __future__ import annotations
 
-import re
 import sys
 import time
 from datetime import timedelta
@@ -41,21 +48,45 @@ from scripts.build_stage2_targets import OUT_DIR
 from scripts.fetch_stage2_diffs import EXAMPLES_DIR
 from src.stage2.diff import word_diff
 from src.stage2.fetch import fetch_contents
+from src.stage2.wikitext import prose
 
 CHANGES_DIR = OUT_DIR / "neighbor_changes"
 MAX_NEIGHBORS = 3
 SNIPPET_CHARS = 150
+MIN_SNIPPET_CHARS = 25  # shorter prose is mostly a fixed word or leftover markup
+MAX_SPAN_CHARS, MAX_SPANS_CHARS = 20_000, 50_000  # raw spans kept per page-day
 PAIRS_PER_PART = 500
+SCHEMA = pa.schema([
+    ("title", pa.string()), ("date", pa.date32()), ("start_revision", pa.int64()), ("end_revision", pa.int64()),
+    ("snippet", pa.string()), ("inserted_chars", pa.int64()), ("created_that_day", pa.bool_()),
+    ("spans", pa.list_(pa.string())),
+])
 
 
-def snippet(start: str | None, end: str) -> tuple[str | None, int]:
-    """The day's longest inserted span (collapsed, cut short), and total inserted chars."""
-    diff = word_diff(start, end)
-    if not diff.inserted:
-        return None, 0
-    longest = re.sub(r"\s+", " ", max(diff.inserted, key=len)).strip()
-    cut = longest if len(longest) <= SNIPPET_CHARS else longest[:SNIPPET_CHARS].rsplit(" ", 1)[0] + " …"
-    return cut, sum(len(s) for s in diff.inserted)
+def snippet(start: str | None, end: str) -> tuple[str | None, int, list[str]]:
+    """The day's longest new prose (cut short) or None, the total inserted
+    chars, and each span's new text, where long enough to hold a snippet."""
+    inserted = word_diff(start, end).inserted
+    old_lines = {line.strip() for line in start.split("\n")} if start else set()
+    spans = []
+    for s in inserted:
+        if start and s in start:
+            continue
+        new = "\n".join(line for line in s.split("\n") if line.strip() not in old_lines).strip()
+        if len(new) >= MIN_SNIPPET_CHARS:
+            spans.append(new)
+    best = max((p for s in spans for p in prose(s)), key=len, default="")
+    if len(best) < MIN_SNIPPET_CHARS:
+        best = None
+    elif len(best) > SNIPPET_CHARS:
+        best = best[:SNIPPET_CHARS].rsplit(" ", 1)[0] + " …"
+    kept, total = [], 0
+    for s in spans:
+        if total >= MAX_SPANS_CHARS:
+            break
+        kept.append(s[:MAX_SPAN_CHARS])
+        total += len(kept[-1])
+    return best, sum(len(s) for s in inserted), kept
 
 
 def day_bounds(titles: list[str], days: list) -> list[dict]:
@@ -101,12 +132,14 @@ def main() -> int:
             start = texts.get(b["start_revision"]) if b["start_revision"] else None
             if end is None or (b["start_revision"] and start is None):
                 continue
-            text, inserted = snippet(start, end)
-            rows.append(b | {"snippet": text, "inserted_chars": inserted, "created_that_day": not b["start_revision"]})
+            text, inserted, spans = snippet(start, end)
+            rows.append(b | {"snippet": text, "inserted_chars": inserted, "created_that_day": not b["start_revision"],
+                             "spans": spans})
         tmp = CHANGES_DIR / f"part-{n:05d}.parquet.tmp"
-        pq.write_table(pa.Table.from_pylist(rows), tmp)
+        pq.write_table(pa.Table.from_pylist(rows, schema=SCHEMA), tmp)
         tmp.replace(CHANGES_DIR / f"part-{n:05d}.parquet")
-        print(f"  part {n}: {len(rows)}/{len(chunk)} ({time.monotonic() - start_time:,.0f}s)", flush=True)
+        print(f"  part {n}: {len(rows)}/{len(chunk)}, {sum(r['snippet'] is not None for r in rows)} with a snippet "
+              f"({time.monotonic() - start_time:,.0f}s)", flush=True)
     total = pq.read_table(CHANGES_DIR)
     with_text = pc.sum(pc.invert(pc.is_null(total["snippet"]))).as_py()
     print(f"Done: {total.num_rows:,} pairs, {with_text:,} with a snippet, "

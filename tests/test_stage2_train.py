@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 import torch
 
-from scripts.train_stage2 import attach_changes, collate, paired, pooled, target_nll
+from scripts.train_stage2 import attach_changes, collate, paired, point_in_time_titles, pooled, target_nll
 
 VOCAB = 50
 
@@ -58,6 +58,29 @@ class PooledAndChangesTest(unittest.TestCase):
             rows = [{"date": date(2025, 1, 2), "bursting_neighbors": ["A", "B", "C"]}]
             attach_changes(rows, Path(tmp))
         self.assertEqual(rows[0]["neighbor_changes"], {"A": "day 1", "B": None, "C": None})
+
+    def test_point_in_time_titles(self):
+        import tempfile
+        from datetime import date
+        from pathlib import Path
+        import pyarrow as pa
+        import pyarrow.parquet as pq
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "titles.parquet"
+            pq.write_table(pa.table({
+                "kind": ["page", "neighbor", "neighbor", "neighbor"],
+                "title": ["P_now", "N_now", "N_now", "M"],
+                "date": [date(2025, 1, 2), date(2025, 1, 1), date(2025, 1, 2), date(2025, 1, 1)],
+                "revision_id": [7, 8, 9, 10],
+                "title_then": ["P_then", "N_then", "N_later", "M"],
+            }), path)
+            rows = [{"revision_id": 7, "page_title": "P_now", "date": date(2025, 1, 2),
+                     "bursting_neighbors": ["N_now", "M", "Q"], "neighbor_changes": {"N_now": "s", "M": None, "Q": None}}]
+            renamed = point_in_time_titles(rows, path)
+        self.assertEqual(renamed, {"pages": 1, "neighbors": 1})
+        self.assertEqual(rows[0]["page_title"], "P_then")
+        self.assertEqual(rows[0]["bursting_neighbors"], ["N_then", "M", "Q"])  # the day before's title, not the day's
+        self.assertEqual(rows[0]["neighbor_changes"], {"N_then": "s", "M": None, "Q": None})
 
 
 class PairedTest(unittest.TestCase):

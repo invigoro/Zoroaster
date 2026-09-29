@@ -15,6 +15,7 @@ from __future__ import annotations
 import re
 
 EDIT_MARK = "⟦EDIT⟧"
+MAX_NEIGHBORS_SHOWN = 8
 _HEADING = re.compile(r"^(=+)\s*(.*?)\s*\1\s*$", re.MULTILINE)
 
 
@@ -35,7 +36,7 @@ def edit_context(old: str, offset: int, before: int = 600, after: int = 200) -> 
 def trigger_text(
     features: dict,
     bursting_neighbors: list[str],
-    max_neighbors: int = 8,
+    max_neighbors: int = MAX_NEIGHBORS_SHOWN,
     changes: dict[str, str | None] | None = None,
     max_changes: int = 3,
 ) -> str:

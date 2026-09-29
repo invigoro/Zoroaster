@@ -23,6 +23,9 @@ log-likelihood of the inserted-text tokens:
 The untuned base model is scored as a floor, and a few generations are
 saved for inspection.
 
+Pages are named as they were titled then (`build_stage2_titles.py`), not
+as of the dump snapshot, which would leak later renames.
+
 The prompt budget (MAX_PROMPT_TOKENS) is large enough that trigger text
 doesn't crowd out context. Truncation is counted and reported: at 384
 tokens, the first run trimmed the triggers variant's context more often.
@@ -65,6 +68,7 @@ from src.stage2.examples import build_prompt, trigger_text
 BASE_MODEL = "Qwen/Qwen2.5-0.5B"
 EXAMPLES_DIR = Path("data/processed/enwiki/stage2/examples")
 CHANGES_DIR = Path("data/processed/enwiki/stage2/neighbor_changes")
+TITLES_PATH = Path("data/processed/enwiki/stage2/titles.parquet")
 OUT_DIR = Path("data/processed/enwiki/stage2")
 VARIANTS = ("context", "context+triggers", "context+triggers+changes")
 SEEDS = (1234, 2345)
@@ -106,6 +110,30 @@ def attach_changes(rows: list[dict], changes_dir: Path) -> None:
     for row in rows:
         prev = row["date"] - timedelta(days=1)
         row["neighbor_changes"] = {t: changes.get((t, prev)) for t in row["bursting_neighbors"]}
+
+
+def point_in_time_titles(rows: list[dict], titles_path: Path) -> dict[str, int]:
+    """Rename pages to their titles at the time (`build_stage2_titles.py`):
+    each example's page as of its edit, each bursting neighbor as of the day
+    before. Runs after `attach_changes`, whose keys it renames too. Returns
+    how many titles changed."""
+    renamed = {"pages": 0, "neighbors": 0}
+    if not titles_path.exists():
+        print(f"No {titles_path}: prompts use the snapshot's titles")
+        return renamed
+    table = pq.read_table(titles_path).to_pylist()
+    page = {r["revision_id"]: r["title_then"] for r in table if r["kind"] == "page" and r["title_then"]}
+    neighbor = {(r["title"], r["date"]): r["title_then"] for r in table if r["kind"] == "neighbor" and r["title_then"]}
+    for row in rows:
+        then = page.get(row["revision_id"], row["page_title"])
+        renamed["pages"] += then != row["page_title"]
+        row["page_title"] = then
+        prev = row["date"] - timedelta(days=1)
+        names = {t: neighbor.get((t, prev), t) for t in row["bursting_neighbors"]}
+        renamed["neighbors"] += sum(t != n for t, n in names.items())
+        row["bursting_neighbors"] = [names[t] for t in row["bursting_neighbors"]]
+        row["neighbor_changes"] = {names[t]: s for t, s in row["neighbor_changes"].items()}
+    return renamed
 
 
 def collate(pairs: list[tuple[list[int], list[int]]], pad_id: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, int]:
@@ -237,10 +265,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--max-train", type=int, default=None, help="cap training examples (smoke runs)")
     parser.add_argument("--examples", type=Path, default=EXAMPLES_DIR)
     parser.add_argument("--changes", type=Path, default=CHANGES_DIR)
+    parser.add_argument("--titles", type=Path, default=TITLES_PATH)
     parser.add_argument("--out", type=Path, default=OUT_DIR)
     args = parser.parse_args(argv)
     rows = pq.read_table(args.examples).to_pylist()
     attach_changes(rows, args.changes)
+    renamed = point_in_time_titles(rows, args.titles)
+    print("titles that differed from the snapshot's:", renamed)
     by_split = {s: [r for r in rows if r["split"] == s] for s in ("train", "validation", "test")}
     if args.max_train:
         by_split = {s: v[: args.max_train if s == "train" else max(args.max_train // 4, 8)] for s, v in by_split.items()}
@@ -264,11 +295,12 @@ def main(argv: list[str] | None = None) -> int:
     rng = random.Random(args.seeds[0])
     shown = [r for r, has in zip(test, subsets["changes shown"]) if has]
     showcase = rng.sample(shown, min(N_GENERATIONS // 2, len(shown)))
-    showcase += rng.sample([r for r in test if not r["bursting_neighbors"]], min(N_GENERATIONS // 2, len(test) - len(shown)))
+    quiet = [r for r in test if not r["bursting_neighbors"]]
+    showcase += rng.sample(quiet, min(N_GENERATIONS // 2, len(quiet)))
 
     results: dict = {"base_model": BASE_MODEL, "seeds": args.seeds, "examples": {s: len(v) for s, v in by_split.items()},
                      "subset_sizes": {k: (sum(v) if v else len(test)) for k, v in subsets.items()},
-                     "truncation": truncation, "scores": {}, "training": {}, "peak_gpu_gb": {}}
+                     "truncation": truncation, "renamed": renamed, "scores": {}, "training": {}, "peak_gpu_gb": {}}
     base = load_model(adapters=False)
     for v in args.variants:
         results["scores"][f"base / {v}"] = score(base, encoded[v]["test"], pad_id)
@@ -276,6 +308,7 @@ def main(argv: list[str] | None = None) -> int:
     torch.cuda.empty_cache()
 
     generations: dict[str, list[str]] = {}
+    args.out.mkdir(parents=True, exist_ok=True)
     for seed in args.seeds:
         for v in args.variants:
             name = f"{v} / seed {seed}"
@@ -289,6 +322,7 @@ def main(argv: list[str] | None = None) -> int:
             if seed == args.seeds[0]:
                 generations[v] = generate(model, tokenizer, showcase, v)
             model.save_pretrained(str(args.out / "adapters" / f"{v.replace('+', '_')}_seed{seed}"))
+            (args.out / "results.partial.json").write_text(json.dumps(results, default=str))  # in case of a crash
             del model
             torch.cuda.empty_cache()
 
@@ -313,7 +347,6 @@ def main(argv: list[str] | None = None) -> int:
          **{v: generations[v][i] for v in generations}}
         for i, r in enumerate(showcase)
     ]
-    args.out.mkdir(parents=True, exist_ok=True)
     (args.out / "results.json").write_text(json.dumps(results, indent=2, default=str))
     print("Test NLL per inserted-text token (perplexity):")
     for name, nll in results["test_token_nll"].items():
