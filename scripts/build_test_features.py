@@ -45,11 +45,12 @@ import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.parquet as pq
 
-from src.features.activity import CHANNELS, FEATURE_NAMES, PageActivity, day_ordinal
+from src.features.activity import CHANNELS, PageActivity, day_ordinal
 from src.features.bursts import CoBurstCounter
 from src.ingest.revert_detect import TIME_WINDOW
 from src.ingest.sampling import sample_pages, stratify, summarize_pages
 from src.parquet_io import RowGroupWriter
+from src.stage1.panel import PANEL_BASE_SCHEMA, PANEL_SCHEMA, panel_row
 
 INPUT_PATH = Path("data/processed/simplewiki_test_revert_labels.parquet")
 DAILY_PATH = Path("data/processed/simplewiki_test_daily_activity.parquet")
@@ -80,21 +81,6 @@ CO_BURST_SCHEMA = pa.schema(
         ("pages_bursting", pa.int32()),
         ("pages_bursting_multi_editor", pa.int32()),
     ]
-)
-FEATURE_TYPES = {"days_since_last_edit": pa.int32(), "burst_z_1d": pa.float64(), "is_burst_1d": pa.bool_()}
-PANEL_BASE_SCHEMA = pa.schema(
-    [
-        ("page_id", pa.int64()),
-        ("date", pa.date32()),
-        ("y", pa.bool_()),
-        ("kept_edits", pa.int32()),
-        ("sample_weight", pa.float64()),
-        ("label_is_final", pa.bool_()),
-    ]
-    + [(name, FEATURE_TYPES.get(name, pa.int32())) for name in FEATURE_NAMES]
-)
-PANEL_SCHEMA = PANEL_BASE_SCHEMA.append(pa.field("co_burst_1d", pa.int32())).append(
-    pa.field("co_burst_multi_editor_1d", pa.int32())
 )
 
 
@@ -161,16 +147,8 @@ def main() -> int:
             rng = random.Random(f"{PANEL_SEED}:{page_id}")
             negatives = [d for d in sample_days(rng, first, last, NEGATIVE_SAMPLE_RATE) if d not in kept]
             for day in sorted(positives + negatives):
-                row = page.features(day)
-                row.update(
-                    page_id=page_id,
-                    date=date.fromordinal(day),
-                    y=day in kept,
-                    kept_edits=kept[day],
-                    sample_weight=1.0 if day in kept else 1.0 / NEGATIVE_SAMPLE_RATE,
-                    label_is_final=day <= last_final_day,
-                )
-                panel_out.append(row)
+                weight = 1.0 if day in kept else 1.0 / NEGATIVE_SAMPLE_RATE
+                panel_out.append(panel_row(page, day, weight, last_final_day))
 
             stats["pages"] += 1
             stats["lifetime_days"] += max(last - first + 1, 0)
