@@ -33,6 +33,24 @@ class NeighborBurstsTest(unittest.TestCase):
         f = self.bursts.features(np.array([B]), np.array([11]), suffix="_x")
         self.assertEqual(set(f), set(DEGREE_FEATURES) | {n + "_x" for n in NEIGHBOR_BURST_FEATURES})
 
+    def test_receivers_restriction_keeps_receivers_features_exact(self):
+        rng = np.random.default_rng(1)
+        source, target = rng.integers(0, 80, 600), rng.integers(0, 80, 600)
+        keep = source != target
+        source, target = source[keep], target[keep]
+        pages, days, editors = rng.integers(0, 80, 400), rng.integers(100, 130, 400), rng.integers(1, 4, 400)
+        receivers = np.zeros(80, dtype=bool)
+        receivers[rng.choice(80, 16, replace=False)] = True
+        # Only links touching a receiver are passed, as build_link_graph(keep=...) would.
+        touching = receivers[source] | receivers[target]
+        full = NeighborBursts(LinkGraph(source, target), pages, days, editors)
+        limited = NeighborBursts(LinkGraph(source[touching], target[touching], receivers), pages, days, editors)
+        query_pages = np.repeat(np.flatnonzero(receivers), 30)
+        query_days = np.tile(np.arange(100, 130), receivers.sum())
+        a, b = full.features(query_pages, query_days), limited.features(query_pages, query_days)
+        for name in a:
+            np.testing.assert_array_equal(a[name], b[name], err_msg=name)
+
     def test_features_ignore_bursts_on_or_after_the_prediction_day(self):
         rng = np.random.default_rng(0)
         source, target = rng.integers(0, 60, 400), rng.integers(0, 60, 400)

@@ -56,7 +56,7 @@ from src.stage1.features import (
     FEATURE_SET_PARENTS,
     FEATURE_SETS,
     add_context_columns,
-    add_neighbor_columns,
+    add_neighbor_columns_to,
     feature_matrix,
     site_edit_totals,
 )
@@ -83,9 +83,9 @@ CORPORA = {
         models=Path("data/processed/models"),
     ),
     "enwiki": Corpus(
-        panel=enwiki.PANEL_DIR, eval=enwiki.EVAL_DIR, meta=enwiki.META_PATH, site=enwiki.SITE_PATH, links=None,
-        daily=None, split_days=enwiki.SPLIT_DAYS, results=enwiki.OUT / "stage1_results.json",
-        models=enwiki.OUT / "models",
+        panel=enwiki.PANEL_DIR, eval=enwiki.EVAL_DIR, meta=enwiki.META_PATH, site=enwiki.SITE_PATH,
+        links=enwiki.LINKS_PATH, daily=enwiki.BURST_DIR, split_days=enwiki.SPLIT_DAYS,
+        results=enwiki.OUT / "stage1_results.json", models=enwiki.OUT / "models",
     ),
 }
 
@@ -128,10 +128,18 @@ def neighbor_bursts(graph: LinkGraph, daily: pa.Table, flag: str, editors: str) 
     )
 
 
-def with_neighbors(table: pa.Table, variants: dict[str, NeighborBursts]) -> pa.Table:
-    for suffix, neighbors in variants.items():
-        table = add_neighbor_columns(table, neighbors, suffix)
-    return table
+def link_graph_for(path: Path, tables: list[pa.Table]) -> LinkGraph:
+    """The link graph, with the pages in `tables` as receivers: bursting pages
+    only fan out to pages whose features are needed."""
+    links = pq.read_table(path)
+    source, target = links["source"].to_numpy(), links["target"].to_numpy()
+    pages = np.unique(np.concatenate([pc.cast(t["page_id"], pa.int64()).to_numpy() for t in tables]))
+    receivers = np.zeros(int(max(source.max(), target.max(), pages.max())) + 1, dtype=bool)
+    receivers[pages] = True
+    start = time.monotonic()
+    graph = LinkGraph(source, target, receivers)
+    print(f"  link graph: {len(source):,} links, {len(pages):,} receiving pages ({time.monotonic() - start:,.0f}s)")
+    return graph
 
 
 def load(path: Path, site_totals: dict[int, int]) -> pa.Table:
@@ -179,21 +187,22 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{name:>10}: {window.start} .. {window.end}")
 
     site_totals = site_edit_totals(pq.read_table(corpus.site, columns=["date", "edits"]))
-    variants: dict[str, NeighborBursts] = {}
+    train, validation = split_panel(load(corpus.panel, site_totals), splits)
+    evaluation = load(corpus.eval, site_totals)
+    variants: list[str] = []
     if corpus.links is not None:
+        tables = [train, validation, evaluation]
+        graph = link_graph_for(corpus.links, tables)
         daily = pq.read_table(
             corpus.daily, columns=["page_id", "date", "is_burst", "editors", "is_burst_excl_mass", "editors_excl_mass"]
         )
-        links = pq.read_table(corpus.links)
-        graph = LinkGraph(links["source"].to_numpy(), links["target"].to_numpy())
-        variants = {
-            "": neighbor_bursts(graph, daily, "is_burst", "editors"),
-            EXCL_MASS_SUFFIX: neighbor_bursts(graph, daily, "is_burst_excl_mass", "editors_excl_mass"),
-        }
-        del daily, links
-    train, validation = split_panel(load(corpus.panel, site_totals), splits)
-    train, validation = with_neighbors(train, variants), with_neighbors(validation, variants)
-    evaluation = with_neighbors(load(corpus.eval, site_totals), variants)
+        for suffix, flag, editors in (("", "is_burst", "editors"), (EXCL_MASS_SUFFIX, "is_burst_excl_mass", "editors_excl_mass")):
+            start = time.monotonic()
+            tables = add_neighbor_columns_to(tables, neighbor_bursts(graph, daily, flag, editors), suffix)
+            variants.append(suffix)
+            print(f"  neighbor features{suffix}: {time.monotonic() - start:,.0f}s")
+        train, validation, evaluation = tables
+        del graph, daily, tables
     feature_sets = {n: cols for n, cols in FEATURE_SETS.items() if set(cols) <= set(evaluation.schema.names)}
     comparisons_to_run = [(b, c) for b, c in COMPARISONS if c in feature_sets and (b in feature_sets or b in BASELINES)]
     y_eval = labels(evaluation)

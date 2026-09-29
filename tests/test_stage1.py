@@ -19,6 +19,7 @@ from src.stage1.features import (
     LINK_FEATURES_EXCL_MASS,
     add_context_columns,
     add_neighbor_columns,
+    add_neighbor_columns_to,
     feature_matrix,
     site_edit_totals,
 )
@@ -124,6 +125,10 @@ class FeatureSetsTest(unittest.TestCase):
         self.assertEqual(table["in_nbrs_multi_editor_bursting_1d" + EXCL_MASS_SUFFIX].to_pylist(), [1, 0])
         self.assertEqual(table["in_links"].to_pylist(), [2, 2])
         self.assertEqual(table.schema.names.count("in_links"), 1)
+        # Several tables at once give the same columns as one at a time.
+        one, two = add_neighbor_columns_to([table.select(["page_id", "date"]).slice(0, 1),
+                                            table.select(["page_id", "date"]).slice(1, 1)], bursts)
+        self.assertEqual(one["in_nbrs_bursting_1d"].to_pylist() + two["in_nbrs_bursting_1d"].to_pylist(), [2, 0])
 
     def test_context_columns_use_the_previous_day(self):
         daily = pa.table(

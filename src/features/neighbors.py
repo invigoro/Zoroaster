@@ -42,6 +42,13 @@ NEIGHBOR_FEATURES = DEGREE_FEATURES + NEIGHBOR_BURST_FEATURES
 _DAY_BITS = 16  # days since the epoch fit in 16 bits until 2149
 
 
+def _in_mask(mask: np.ndarray, ids: np.ndarray) -> np.ndarray:
+    inside = ids < len(mask)
+    out = np.zeros(len(ids), dtype=bool)
+    out[inside] = mask[ids[inside]]
+    return out
+
+
 def _csr(rows: np.ndarray, cols: np.ndarray, size: int) -> tuple[np.ndarray, np.ndarray]:
     order = np.argsort(rows, kind="stable")
     indptr = np.zeros(size + 1, dtype=np.int64)
@@ -58,16 +65,27 @@ def _expand(indptr: np.ndarray, indices: np.ndarray, pages: np.ndarray, days: np
 
 
 class LinkGraph:
-    """Page-id adjacency in both directions, in CSR form."""
+    """Page-id adjacency in both directions, in CSR form.
 
-    def __init__(self, source: np.ndarray, target: np.ndarray):
-        source = np.asarray(source, dtype=np.int64)
-        target = np.asarray(target, dtype=np.int64)
+    `receivers` (a boolean mask over page ids) limits the adjacency to what
+    features for those pages need. A bursting page then only fans out to
+    receiving pages, which keeps English Wikipedia's graph and burst
+    expansion in memory. Degrees stay exact for receivers, provided every
+    link touching a receiver is in `source`/`target`.
+    """
+
+    def __init__(self, source: np.ndarray, target: np.ndarray, receivers: np.ndarray | None = None):
+        # Page ids fit in int32, which halves memory on English Wikipedia's links.
+        source = np.asarray(source, dtype=np.int32)
+        target = np.asarray(target, dtype=np.int32)
         self.size = int(max(source.max(initial=0), target.max(initial=0))) + 1
         self.out_degree = np.bincount(source, minlength=self.size)
         self.in_degree = np.bincount(target, minlength=self.size)
-        self.links_to = _csr(source, target, self.size)  # page -> pages it links to
-        self.linked_from = _csr(target, source, self.size)  # page -> pages linking to it
+        to_receiver = slice(None) if receivers is None else _in_mask(receivers, target)
+        from_receiver = slice(None) if receivers is None else _in_mask(receivers, source)
+        # page -> receiving pages it links to; page -> receiving pages linking to it
+        self.links_to = _csr(source[to_receiver], target[to_receiver], self.size)
+        self.linked_from = _csr(target[from_receiver], source[from_receiver], self.size)
 
     def degrees(self, pages: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """(in-degree, out-degree) per page; 0 for pages not in the graph."""
@@ -99,31 +117,45 @@ class NeighborBursts:
         """One entry per burst page-day: the page, the day, and its distinct editors."""
         self.graph = graph
         known = burst_pages < graph.size
-        pages, days, multi = burst_pages[known], burst_days[known], burst_editors[known] >= 2
-        # A bursting page counts toward the "in" neighbors of every page it
-        # links to, and the "out" neighbors of every page linking to it.
-        self._in = _DayCounts(*_expand(*graph.links_to, pages, days))
-        self._out = _DayCounts(*_expand(*graph.linked_from, pages, days))
-        self._in_multi = _DayCounts(*_expand(*graph.links_to, pages[multi], days[multi]))
-        self._out_multi = _DayCounts(*_expand(*graph.linked_from, pages[multi], days[multi]))
+        self._pages, self._days = burst_pages[known], burst_days[known]
+        self._multi = burst_editors[known] >= 2
+
+    def _counts(self, csr: tuple[np.ndarray, np.ndarray], use: np.ndarray) -> _DayCounts:
+        return _DayCounts(*_expand(*csr, self._pages[use], self._days[use]))
 
     def features(self, pages: np.ndarray, days: np.ndarray, suffix: str = "") -> dict[str, np.ndarray]:
         """Features for prediction days `days`, reading bursts from earlier days
         only. `suffix` is appended to the burst features' names (not the
-        degrees), to tell burst definitions apart."""
+        degrees), to tell burst definitions apart.
+
+        Each count table is built, queried and freed in turn, and only from
+        bursts on the days these rows read. Pass every row needed in one call
+        rather than calling repeatedly.
+        """
         pages = np.asarray(pages, dtype=np.int64)
-        prev = np.asarray(days, dtype=np.int64) - 1
+        days = np.asarray(days, dtype=np.int64)
+        prev = days - 1
         week_start = prev - 6
+        needed = np.isin(self._days, (np.unique(days)[:, None] - np.arange(1, 8)).ravel())
         in_links, out_links = self.graph.degrees(pages)
-        in_1d = self._in.window_sum(pages, prev, prev)
-        out_1d = self._out.window_sum(pages, prev, prev)
+        # A bursting page counts toward the "in" neighbors of every page it
+        # links to, and the "out" neighbors of every page linking to it.
+        counts = self._counts(self.graph.links_to, needed)
+        in_1d, in_7d = counts.window_sum(pages, prev, prev), counts.window_sum(pages, week_start, prev)
+        counts = self._counts(self.graph.linked_from, needed)
+        out_1d, out_7d = counts.window_sum(pages, prev, prev), counts.window_sum(pages, week_start, prev)
+        counts = self._counts(self.graph.links_to, needed & self._multi)
+        in_multi = counts.window_sum(pages, prev, prev)
+        counts = self._counts(self.graph.linked_from, needed & self._multi)
+        out_multi = counts.window_sum(pages, prev, prev)
+        del counts
         bursts = {
             "in_nbrs_bursting_1d": in_1d,
             "out_nbrs_bursting_1d": out_1d,
-            "in_nbrs_bursting_7d": self._in.window_sum(pages, week_start, prev),
-            "out_nbrs_bursting_7d": self._out.window_sum(pages, week_start, prev),
-            "in_nbrs_multi_editor_bursting_1d": self._in_multi.window_sum(pages, prev, prev),
-            "out_nbrs_multi_editor_bursting_1d": self._out_multi.window_sum(pages, prev, prev),
+            "in_nbrs_bursting_7d": in_7d,
+            "out_nbrs_bursting_7d": out_7d,
+            "in_nbrs_multi_editor_bursting_1d": in_multi,
+            "out_nbrs_multi_editor_bursting_1d": out_multi,
             "in_frac_bursting_1d": in_1d / np.maximum(in_links, 1),
             "out_frac_bursting_1d": out_1d / np.maximum(out_links, 1),
         }

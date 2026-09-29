@@ -3,8 +3,10 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import numpy as np
+
 from src.ingest.link_graph import build_link_graph
-from src.ingest.sql_dump import iter_rows, read_columns, sql_str
+from src.ingest.sql_dump import iter_int_batches, iter_rows, read_columns, sql_str
 
 
 def write_dump(directory: Path, table: str, columns: list[str], inserts: list[str]) -> Path:
@@ -44,6 +46,18 @@ class SqlDumpTest(unittest.TestCase):
             [(b"1", rb"'O\'Brien'", None), (b"2", rb"'A,_(b)_\\'", b"'en'"), (b"3", b"''", None)],
         )
         self.assertEqual(sql_str(rows[0][1]), rb"O\'Brien")
+
+    def test_integer_fast_path_matches_the_regex_reader(self):
+        path = write_dump(self.dir, "pl", ["a", "b", "c"], ["(1,0,4),(2,0,-5)", "(7,14,9)"])
+        batches = list(iter_int_batches(path, ("c", "a")))
+        self.assertEqual(np.concatenate(batches).tolist(), [[4, 1], [-5, 2], [9, 7]])
+        self.assertEqual([[int(v) for v in r] for r in iter_rows(path, ("c", "a"))], [[4, 1], [-5, 2], [9, 7]])
+
+    def test_integer_fast_path_rejects_strings_and_nulls(self):
+        for values in ["(1,'x',3)", "(1,NULL,3)"]:
+            path = write_dump(self.dir, "t", ["a", "b", "c"], [values])
+            with self.assertRaises(ValueError):
+                list(iter_int_batches(path, ("a",)))
 
     def test_unparsable_row_raises_instead_of_resynchronizing(self):
         # A hex literal isn't a supported value; the row must not be skipped silently.
@@ -89,7 +103,11 @@ class BuildLinkGraphTest(unittest.TestCase):
                 ],
             )
             source, target = build_link_graph(page, redirect, linktarget, pagelinks)
+            keep = np.zeros(8, dtype=bool)
+            keep[7] = True  # only O'Brien is "sampled": keep links touching it
+            kept = build_link_graph(page, redirect, linktarget, pagelinks, keep=keep)
         self.assertEqual(list(zip(source.tolist(), target.tolist())), [(1, 2), (1, 3), (3, 7)])
+        self.assertEqual(list(zip(*(a.tolist() for a in kept))), [(3, 7)])
 
 
 if __name__ == "__main__":

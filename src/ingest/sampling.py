@@ -12,6 +12,8 @@ import random
 from collections import defaultdict
 from typing import Iterable
 
+import numpy as np
+
 from src.common import is_bot_edit
 
 
@@ -20,6 +22,12 @@ def hash_sampled(page_id: int, rate: float) -> bool:
     into 32 bits. The high bits decide, so the sample is independent of
     `page_id % n` bucketing."""
     return (page_id * 2654435761) % 2**32 < rate * 2**32
+
+
+def hash_sample_mask(size: int, rate: float) -> np.ndarray:
+    """`hash_sampled` for every page id below `size`, as a boolean array."""
+    ids = np.arange(size, dtype=np.int64)
+    return ((ids * 2654435761) & 0xFFFFFFFF) < rate * 2**32
 
 
 def _edit_frequency_bucket(edit_count: int) -> str:

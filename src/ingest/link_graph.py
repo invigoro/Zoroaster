@@ -13,22 +13,30 @@ redirect's only link is its own target), self-links and red links (targets
 that don't exist) are dropped, and duplicates are removed.
 
 Titles are matched as raw dump bytes (see `sql_dump`). The edge list is
-built in memory: fine for Simple Wikipedia (millions of links), but
-English Wikipedia (1B+ links) would need restricting to the pages being
-scored, or an out-of-core build.
+built in memory. That's fine for Simple Wikipedia (millions of links). For
+English Wikipedia (1B+ links), pass `keep` to restrict it to links touching
+the pages being scored.
 """
 
 from __future__ import annotations
 
+from array import array
 from pathlib import Path
 
 import numpy as np
 
-from src.ingest.sql_dump import iter_rows, sql_str
+from src.ingest.sql_dump import iter_int_batches, iter_rows, sql_str
 
 MAINSPACE = b"0"
 MAX_REDIRECT_HOPS = 2
-_CHUNK = 1_000_000
+
+
+def _lookup(mask: np.ndarray, ids: np.ndarray) -> np.ndarray:
+    """`mask[ids]`, False for ids past the end of the mask."""
+    inside = ids < len(mask)
+    out = np.zeros(len(ids), dtype=bool)
+    out[inside] = mask[ids[inside]]
+    return out
 
 
 def load_pages(path: Path) -> tuple[dict[bytes, int], set[int]]:
@@ -69,8 +77,7 @@ def load_link_targets(
     path: Path, title_to_id: dict[bytes, int], redirects: set[int], redirect_targets: dict[int, int]
 ) -> np.ndarray:
     """Dense array: linktarget id -> final mainspace page id, or -1."""
-    ids: list[int] = []
-    pages: list[int] = []
+    ids, pages = array("q"), array("q")  # compact: English Wikipedia has tens of millions
     for lt_id, namespace, title in iter_rows(path, ("lt_id", "lt_namespace", "lt_title")):
         if namespace != MAINSPACE:
             continue
@@ -80,43 +87,40 @@ def load_link_targets(
         if page is not None:
             ids.append(int(lt_id))
             pages.append(page)
-    target_of = np.full(max(ids, default=0) + 1, -1, dtype=np.int64)
-    target_of[ids] = pages
+    ids_np, pages_np = np.frombuffer(ids, dtype=np.int64), np.frombuffer(pages, dtype=np.int64)
+    target_of = np.full(int(ids_np.max(initial=0)) + 1, -1, dtype=np.int64)
+    target_of[ids_np] = pages_np
     return target_of
 
 
-def _edge_keys(sources: list[int], target_ids: list[int], target_of: np.ndarray, redirects: np.ndarray) -> np.ndarray:
-    source = np.array(sources, dtype=np.int64)
-    target_id = np.array(target_ids, dtype=np.int64)
-    target = np.full(len(source), -1, dtype=np.int64)
-    known = target_id < len(target_of)
-    target[known] = target_of[target_id[known]]
-    keep = (target >= 0) & (target != source) & ~np.isin(source, redirects)
-    return (source[keep] << 32) | target[keep]
-
-
 def build_link_graph(
-    page_path: Path, redirect_path: Path, linktarget_path: Path, pagelinks_path: Path
+    page_path: Path,
+    redirect_path: Path,
+    linktarget_path: Path,
+    pagelinks_path: Path,
+    keep: np.ndarray | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """(source, target) page-id arrays of unique mainspace links, sorted by source."""
+    """(source, target) page-id arrays of unique mainspace links, sorted by
+    source. `keep` (a boolean mask over page ids) restricts them to links
+    with at least one kept end, which is all that features for the kept
+    pages need."""
     title_to_id, redirects = load_pages(page_path)
     redirect_targets = load_redirect_targets(redirect_path, title_to_id, redirects)
     target_of = load_link_targets(linktarget_path, title_to_id, redirects, redirect_targets)
-    del title_to_id
-    redirect_ids = np.array(sorted(redirects), dtype=np.int64)
+    is_redirect = np.zeros(max(title_to_id.values(), default=0) + 1, dtype=bool)
+    is_redirect[list(redirects)] = True
+    del title_to_id, redirects, redirect_targets
 
     chunks: list[np.ndarray] = []
-    sources: list[int] = []
-    target_ids: list[int] = []
-    for pl_from, from_namespace, target_id in iter_rows(
-        pagelinks_path, ("pl_from", "pl_from_namespace", "pl_target_id")
-    ):
-        if from_namespace == MAINSPACE:
-            sources.append(int(pl_from))
-            target_ids.append(int(target_id))
-            if len(sources) >= _CHUNK:
-                chunks.append(_edge_keys(sources, target_ids, target_of, redirect_ids))
-                sources, target_ids = [], []
-    chunks.append(_edge_keys(sources, target_ids, target_of, redirect_ids))
-    keys = np.unique(np.concatenate(chunks))
+    for batch in iter_int_batches(pagelinks_path, ("pl_from", "pl_from_namespace", "pl_target_id")):
+        batch = batch[batch[:, 1] == 0]
+        source, target_id = batch[:, 0], batch[:, 2]
+        target = np.full(len(source), -1, dtype=np.int64)
+        known = target_id < len(target_of)
+        target[known] = target_of[target_id[known]]
+        ok = (target >= 0) & (target != source) & ~_lookup(is_redirect, source)
+        if keep is not None:
+            ok &= _lookup(keep, source) | _lookup(keep, np.maximum(target, 0))
+        chunks.append((source[ok] << 32) | target[ok])
+    keys = np.unique(np.concatenate(chunks)) if chunks else np.empty(0, dtype=np.int64)
     return keys >> 32, keys & 0xFFFFFFFF

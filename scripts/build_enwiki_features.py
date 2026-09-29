@@ -69,6 +69,7 @@ CO_BURST_PATH = OUT / "co_burst.parquet"
 SITE_PATH = OUT / "site_edits.parquet"
 META_PATH = OUT / "stage1_panel.json"
 MASS_PATH = OUT / "mass_editor_days.parquet"
+LINKS_PATH = OUT / "links.parquet"  # written by build_enwiki_links.py
 
 PAGE_SAMPLE_RATE = 0.2
 NEGATIVE_SAMPLE_RATE = 0.005

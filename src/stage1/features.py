@@ -97,12 +97,23 @@ def add_context_columns(table: pa.Table, site_totals: Mapping[int, int]) -> pa.T
 def add_neighbor_columns(table: pa.Table, neighbors: NeighborBursts, suffix: str = "") -> pa.Table:
     """Add link-neighbor burst features for each (page_id, date) row; the
     degree columns are added only once across calls."""
-    pages = pc.cast(table["page_id"], pa.int64()).to_numpy()
-    days = pc.cast(table["date"], pa.int32()).to_numpy()
-    for name, values in neighbors.features(pages, days, suffix).items():
-        if name not in table.schema.names:
-            table = table.append_column(name, pa.array(values))
-    return table
+    return add_neighbor_columns_to([table], neighbors, suffix)[0]
+
+
+def add_neighbor_columns_to(tables: list[pa.Table], neighbors: NeighborBursts, suffix: str = "") -> list[pa.Table]:
+    """`add_neighbor_columns` for several tables in one `features` call, which
+    builds each count table once instead of once per table."""
+    pages = np.concatenate([pc.cast(t["page_id"], pa.int64()).to_numpy() for t in tables])
+    days = np.concatenate([pc.cast(t["date"], pa.int32()).to_numpy() for t in tables])
+    bounds = np.cumsum([0] + [t.num_rows for t in tables])
+    values = neighbors.features(pages, days, suffix)
+    out = []
+    for i, table in enumerate(tables):
+        for name, column in values.items():
+            if name not in table.schema.names:
+                table = table.append_column(name, pa.array(column[bounds[i] : bounds[i + 1]]))
+        out.append(table)
+    return out
 
 
 def feature_matrix(table: pa.Table, columns: Sequence[str]) -> np.ndarray:
