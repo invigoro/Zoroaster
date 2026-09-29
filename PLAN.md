@@ -102,6 +102,7 @@ src/
     fetch_diffs.py        # per-revision diff fetch via MediaWiki API — validated live, see §5
     sql_dump.py           # streaming reader for MediaWiki SQL table dumps (*.sql.gz)
     link_graph.py         # mainspace page->page links from page/redirect/linktarget/pagelinks
+    mediawiki_history.py  # parser for the 78-column MediaWiki history TSV (English Wikipedia)
   features/
     activity.py           # per-page daily channels + point-in-time Stage 1 features;
                           #   mass-editor days and the mass-editor-discounted burst definition
@@ -121,7 +122,11 @@ scripts/
                                 # stratified sample manifest
   build_test_eval_days.py      # every existing page on 29 test days (exact per-day ranking metrics)
   build_test_links.py          # downloads the 20260701 SQL tables (~154MB) -> link graph parquet
-  train_stage1.py              # Stage 1 harness: baselines + LightGBM feature-set ablation
+  download_enwiki_history.py   # English Wikipedia MediaWiki history, 2023-06..2026-09 (~22GB)
+  build_enwiki_revisions.py    # months in parallel -> page-bucketed Parquet (128 buckets)
+  build_enwiki_labels.py       # per bucket: revert_detect on content hashes + editor-day counts
+  build_enwiki_features.py     # per bucket: sampled panel, full-day eval set, co-burst, site totals
+  train_stage1.py              # Stage 1 harness: baselines + LightGBM ablation (--corpus simplewiki|enwiki)
   build_test_diffs.py          # orchestrates: sampled pages' retained revisions -> live fetch_diffs.py calls -> parquet
                                 # takes an optional `max_revisions` arg to cap a run short of the full sample
 tests/
@@ -131,6 +136,9 @@ tests/
   test_stage1.py               # splits/embargo, metrics, feature sets (no label columns), baselines
   test_link_graph.py           # SQL dump parsing (tricky strings, fails loudly) + link resolution
   test_neighbors.py            # neighbor-burst features, incl. a randomized point-in-time check
+  test_mediawiki_history.py    # history TSV parsing, filtering, flags
+  test_sampling.py             # hash page sample: rate, independence from buckets, nesting
+  test_download_dump.py        # downloads are atomic and size-checked (against a local server)
 CLAUDE.md                  # working SOP for Claude sessions (commit/push as you go, tests alongside code)
 main.py                    # original Wikipedia-summary CLI (unchanged behavior, now imports USER_AGENT from src.common)
 requirements.txt           # requests, mwxml, pyarrow, numpy, lightgbm
@@ -253,6 +261,17 @@ python scripts/build_test_eval_days.py        # ~3 min, full-day Stage 1 evaluat
 python scripts/build_test_links.py            # ~2 min, ~154MB download, link graph
 python scripts/train_stage1.py                # ~4 min, Stage 1 baselines + LightGBM ablation
 python -m unittest discover -s tests          # ~5s, no network or data needed
+```
+
+English Wikipedia (about 22GB of downloads and roughly 10GB of Parquet;
+each step skips work that's already done):
+
+```bash
+python scripts/download_enwiki_history.py      # ~50 min at ~7 MB/s, two files at a time
+python scripts/build_enwiki_revisions.py       # months -> page buckets, parallel
+python scripts/build_enwiki_labels.py          # revert labels per bucket
+python scripts/build_enwiki_features.py        # panel, eval set, co-burst, site totals
+python scripts/train_stage1.py --corpus enwiki
 ```
 
 To re-run revert detection after changing it, use `--from-parquet` on the
@@ -529,6 +548,23 @@ site-wide or through links, add little. As §5 anticipated, that may be a
 property of a small, low-traffic wiki, so English Wikipedia is the real
 test.
 
+### Point-in-time page size (2026-09-28)
+
+`page_bytes` (the page's size at the end of D−1, from the revision
+metadata) was added to the habits features. It's point-in-time, unlike the
+link counts. The tables above predate it. With it:
+
+- **It's the model's top feature,** with 35% of the gain. Validation AUC
+  for habits rises from 0.787 to 0.807, and recall@10000 from 0.351 to
+  0.357. Precision@100 is unchanged (0.187).
+- **Most of what looked like a link-count effect was article size.**
+  `out_links`' share of the gain falls from 29% to 4.7%. Link counts still
+  add recall@10000 +0.0052 ± 0.0015 (t = 3.4), down from +0.0068. That
+  remainder is either centrality or the snapshot leak.
+- **Neighbor bursts are unchanged:** +0.0054 ± 0.0019 recall@10000 over
+  link counts (t = 2.9), or +0.0035 ± 0.0017 with mass editing excluded,
+  and nothing at the top of the ranking.
+
 ## 6. Next steps, in order
 
 Re-planned 2026-09-28 after the code review in §5, and again after the
@@ -595,10 +631,9 @@ old step 2 (move to English Wikipedia) is now step 5.
    - The link tables would add 11.15 GB (`pagelinks` alone is 7.13 GB).
      Given how little links added here, start without them.
 
-   **Worth doing first, on Simple Wikipedia (cheap):**
-   - Add a point-in-time article size feature (bytes of the latest
-     revision before D). It should stand in for the leaky link counts and
-     strengthens the habits baseline.
+   **Done first, on Simple Wikipedia:** the point-in-time article size
+   feature `page_bytes` (§5, "Point-in-time page size"). It absorbed most
+   of the link counts' apparent value and strengthened the habits baseline.
 
    **Needed for English Wikipedia:**
    - Restrict any link graph to the pages being scored; it won't fit in
