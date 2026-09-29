@@ -127,6 +127,27 @@ Wikipedia, which is roughly 100× the test corpus.
   Wikipedia, where breaking-news editing is a well-documented multi-editor,
   multi-page phenomenon.
 
+- **Stage 1 harness** (`src/stage1/`, next-day horizon). The task: for
+  each day D, rank every existing page by how likely it is to get a kept
+  edit on D, using only information from before D.
+  - `scripts/build_test_eval_days.py` scores every page on 29 test days,
+    which makes the per-day ranking metrics exact.
+  - `scripts/train_stage1.py` compares heuristic baselines with LightGBM on
+    three nested feature sets: page habits, then the page's own bursts, then
+    co-burst. It uses a time-based split with 90-day embargo gaps.
+  - Results go to `data/processed/simplewiki_test_stage1_results.json` and
+    are summarized in `PLAN.md` §5.
+  - First results on Simple Wikipedia: a LightGBM model on page habits
+    beats the best heuristic by about 29% on precision@100. Neither the
+    page's own burst features nor the site-wide co-burst count add
+    measurable value.
+
+  ```bash
+  pip install -r requirements.txt   # adds numpy + lightgbm
+  python scripts/build_test_eval_days.py
+  python scripts/train_stage1.py
+  ```
+
 Run the tests (no network or data files needed) with:
 
 ```bash
