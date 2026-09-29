@@ -1,4 +1,4 @@
-"""Stage 1 harness: next-day edit forecasting on the Simple Wikipedia test corpus.
+"""Stage 1 harness: next-day edit forecasting.
 
 For each prediction day D, rank every existing page by how likely it is to
 get a kept edit on D (non-bot, not a revert, never reverted), using only
@@ -6,27 +6,33 @@ information from before D.
 
 - Heuristic baselines (`src.stage1.baselines`): yesterday's edits, the last
   30 days' edits, recency, last year's edits.
-- LightGBM on three nested feature sets (`src.stage1.features`): page
-  habits, then the page's own bursts, then co-burst. Each is trained on the
-  panel's train window and early-stopped on the validation window.
+- LightGBM on the feature sets of `src.stage1.features`: page habits, then
+  the page's own bursts, then co-burst or link features. Each is trained on
+  the panel's train window and early-stopped on the validation window.
   Training is unweighted: the panel is a case-control sample, and sample
   weights would mostly shift the intercept, which per-day ranking ignores.
-- Everything is scored on the full-day evaluation set (every page on 29 test
-  days) with per-day ranking metrics (`src.stage1.metrics`).
+- Everything is scored on the full-day evaluation set with per-day ranking
+  metrics (`src.stage1.metrics`).
 
-Needs `build_test_features.py` and `build_test_eval_days.py` to have run.
-Writes `data/processed/simplewiki_test_stage1_results.json` and saves the
-models to `data/processed/models/`.
+Corpora (`--corpus`):
+- `simplewiki`, the default: `build_test_features.py`,
+  `build_test_eval_days.py` and `build_test_links.py`.
+- `enwiki`: `build_enwiki_features.py`, a 20% page sample with 6-month
+  windows. It has no link graph, so the link feature sets are skipped.
+
+Writes a results JSON and the models next to the corpus's data.
 
 Usage:
-    python scripts/train_stage1.py
+    python scripts/train_stage1.py [--corpus simplewiki|enwiki]
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 import time
+from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
@@ -38,6 +44,7 @@ import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.parquet as pq
 
+from scripts import build_enwiki_features as enwiki
 from scripts.build_test_eval_days import OUTPUT_PATH as EVAL_PATH
 from scripts.build_test_features import DAILY_PATH, PANEL_META_PATH, PANEL_PATH
 from scripts.build_test_links import OUTPUT_PATH as LINKS_PATH
@@ -56,8 +63,31 @@ from src.stage1.features import (
 from src.stage1.metrics import METRIC_NAMES, average, paired_difference, per_day_metrics
 from src.stage1.splits import Splits, make_splits
 
-RESULTS_PATH = Path("data/processed/simplewiki_test_stage1_results.json")
-MODEL_DIR = Path("data/processed/models")
+@dataclass(frozen=True)
+class Corpus:
+    panel: Path
+    eval: Path
+    meta: Path
+    site: Path  # any table with `date` and `edits` (per page-day or per day)
+    links: Path | None  # link graph, if the corpus has one
+    daily: Path | None  # per page-day burst flags, for link-neighbor features
+    split_days: dict
+    results: Path
+    models: Path
+
+
+CORPORA = {
+    "simplewiki": Corpus(
+        panel=PANEL_PATH, eval=EVAL_PATH, meta=PANEL_META_PATH, site=DAILY_PATH, links=LINKS_PATH, daily=DAILY_PATH,
+        split_days={}, results=Path("data/processed/simplewiki_test_stage1_results.json"),
+        models=Path("data/processed/models"),
+    ),
+    "enwiki": Corpus(
+        panel=enwiki.PANEL_DIR, eval=enwiki.EVAL_DIR, meta=enwiki.META_PATH, site=enwiki.SITE_PATH, links=None,
+        daily=None, split_days=enwiki.SPLIT_DAYS, results=enwiki.OUT / "stage1_results.json",
+        models=enwiki.OUT / "models",
+    ),
+}
 
 SEED = 1234
 PARAMS = {
@@ -138,27 +168,34 @@ def train_model(name: str, columns: tuple[str, ...], train: pa.Table, validation
     return booster
 
 
-def main() -> int:
-    meta = json.loads(PANEL_META_PATH.read_text())
-    splits = make_splits(date.fromisoformat(meta["labels_final_through"]))
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--corpus", choices=sorted(CORPORA), default="simplewiki")
+    corpus = CORPORA[parser.parse_args(argv).corpus]
+    meta = json.loads(corpus.meta.read_text())
+    splits = make_splits(date.fromisoformat(meta["labels_final_through"]), **corpus.split_days)
     for name in ("train", "validation", "test"):
         window = getattr(splits, name)
         print(f"{name:>10}: {window.start} .. {window.end}")
 
-    daily = pq.read_table(
-        DAILY_PATH, columns=["page_id", "date", "edits", "is_burst", "editors", "is_burst_excl_mass", "editors_excl_mass"]
-    )
-    site_totals = site_edit_totals(daily)
-    links = pq.read_table(LINKS_PATH)
-    graph = LinkGraph(links["source"].to_numpy(), links["target"].to_numpy())
-    variants = {
-        "": neighbor_bursts(graph, daily, "is_burst", "editors"),
-        EXCL_MASS_SUFFIX: neighbor_bursts(graph, daily, "is_burst_excl_mass", "editors_excl_mass"),
-    }
-    del daily, links
-    train, validation = split_panel(load(PANEL_PATH, site_totals), splits)
+    site_totals = site_edit_totals(pq.read_table(corpus.site, columns=["date", "edits"]))
+    variants: dict[str, NeighborBursts] = {}
+    if corpus.links is not None:
+        daily = pq.read_table(
+            corpus.daily, columns=["page_id", "date", "is_burst", "editors", "is_burst_excl_mass", "editors_excl_mass"]
+        )
+        links = pq.read_table(corpus.links)
+        graph = LinkGraph(links["source"].to_numpy(), links["target"].to_numpy())
+        variants = {
+            "": neighbor_bursts(graph, daily, "is_burst", "editors"),
+            EXCL_MASS_SUFFIX: neighbor_bursts(graph, daily, "is_burst_excl_mass", "editors_excl_mass"),
+        }
+        del daily, links
+    train, validation = split_panel(load(corpus.panel, site_totals), splits)
     train, validation = with_neighbors(train, variants), with_neighbors(validation, variants)
-    evaluation = with_neighbors(load(EVAL_PATH, site_totals), variants)
+    evaluation = with_neighbors(load(corpus.eval, site_totals), variants)
+    feature_sets = {n: cols for n, cols in FEATURE_SETS.items() if set(cols) <= set(evaluation.schema.names)}
+    comparisons_to_run = [(b, c) for b, c in COMPARISONS if c in feature_sets and (b in feature_sets or b in BASELINES)]
     y_eval = labels(evaluation)
     eval_days = pc.cast(evaluation["date"], pa.int32()).to_numpy()
     positives = pc.filter(evaluation, evaluation["y"])
@@ -197,11 +234,11 @@ def main() -> int:
         per_day = per_day_metrics(score(evaluation), y_eval, eval_days, SEED)
         results[name] = {"kind": "baseline", "metrics": average(per_day), "per_day": per_day}
 
-    MODEL_DIR.mkdir(parents=True, exist_ok=True)
+    corpus.models.mkdir(parents=True, exist_ok=True)
     print("Training LightGBM:")
-    for name, columns in FEATURE_SETS.items():
+    for name, columns in feature_sets.items():
         booster = train_model(name, columns, train, validation)
-        booster.save_model(str(MODEL_DIR / f"stage1_{name.replace('+', '_')}.txt"))
+        booster.save_model(str(corpus.models / f"stage1_{name.replace('+', '_')}.txt"))
         scores = booster.predict(feature_matrix(evaluation, columns), num_iteration=booster.best_iteration)
         per_day = per_day_metrics(scores, y_eval, eval_days, SEED)
         gain = booster.feature_importance("gain")
@@ -218,9 +255,9 @@ def main() -> int:
         f"{candidate} vs {baseline}": {
             m: paired_difference(results[baseline]["per_day"], results[candidate]["per_day"], m) for m in METRIC_NAMES
         }
-        for baseline, candidate in COMPARISONS
+        for baseline, candidate in comparisons_to_run
     }
-    RESULTS_PATH.write_text(json.dumps({"context": context, "results": results, "comparisons": comparisons}, indent=2))
+    corpus.results.write_text(json.dumps({"context": context, "results": results, "comparisons": comparisons}, indent=2))
 
     header = ["model"] + list(METRIC_NAMES)
     print("\n| " + " | ".join(header) + " |\n|" + "---|" * len(header))
@@ -234,7 +271,7 @@ def main() -> int:
             if m in ("precision@100", "average_precision")
         ]
         print(f"  {label}: " + "; ".join(cells))
-    print(f"\nWrote {RESULTS_PATH}")
+    print(f"\nWrote {corpus.results}")
     return 0
 
 
