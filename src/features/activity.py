@@ -35,6 +35,7 @@ CHANNELS = ("edits", "reverted_edits", "reverts", "bot_edits", "kept_edits")
 
 FEATURE_NAMES = (
     "page_age_days",
+    "page_bytes",
     "days_since_last_edit",
     "edits_1d",
     "edits_7d",
@@ -63,17 +64,28 @@ def day_ordinal(timestamp: str) -> int:
 MASS_EDITOR_PAGES_PER_DAY = 25
 
 
+def is_bot(revision: dict) -> bool:
+    """The revision's own bot flag when the source has one (the MediaWiki
+    history dumps flag bots by user group or name), else the username
+    heuristic in `src.common`."""
+    flag = revision.get("is_bot")
+    return is_bot_edit(revision["user_text"]) if flag is None else flag
+
+
+def page_editor_days(revisions: Iterable[dict]) -> set[tuple[str, int]]:
+    """(editor, day) pairs with a non-bot, non-revert edit to this page."""
+    return {
+        (r["user_text"], day_ordinal(r["timestamp"]))
+        for r in revisions
+        if r["user_text"] and not r["is_revert"] and not is_bot(r)
+    }
+
+
 def editor_day_page_counts(pages: Iterable[list[dict]]) -> Counter[tuple[str, int]]:
     """{(editor, day): distinct pages that non-bot editor made non-revert edits to that day}."""
     counts: Counter[tuple[str, int]] = Counter()
     for revisions in pages:
-        counts.update(
-            {
-                (r["user_text"], day_ordinal(r["timestamp"]))
-                for r in revisions
-                if r["user_text"] and not r["is_revert"] and not is_bot_edit(r["user_text"])
-            }
-        )
+        counts.update(page_editor_days(revisions))
     return counts
 
 
@@ -122,13 +134,23 @@ class DailySeries:
 class PageActivity:
     """One page's daily activity channels, burst days and editors."""
 
-    def __init__(self, revisions: list[dict], mass_editor_days: frozenset[tuple[str, int]] = frozenset()):
+    def __init__(
+        self,
+        revisions: list[dict],
+        mass_editor_days: frozenset[tuple[str, int]] = frozenset(),
+        created_day: int | None = None,
+    ):
         """`revisions`: one page's revisions, labeled by `detect_page_reverts`.
 
         `mass_editor_days` (see `mass_editor_days()`) only affects
         `burst_days_excl_mass` and `editor_count_excl_mass`, a second burst
         definition that ignores those editors' `edits`. Every channel and
         feature is unchanged by it.
+
+        `created_day` is the page's creation day, when the revisions don't
+        reach back that far (the English Wikipedia history window). It only
+        feeds `page_age_days`. Everything else still starts at the first
+        revision in the data (`first_day`).
         """
         timestamps = {r["revision_id"]: r["timestamp"] for r in revisions}
         counts: dict[str, Counter[int]] = {name: Counter() for name in CHANNELS}
@@ -140,7 +162,7 @@ class PageActivity:
             day = day_ordinal(r["timestamp"])
             if r["is_revert"]:
                 counts["reverts"][day] += 1
-            elif is_bot_edit(r["user_text"]):
+            elif is_bot(r):
                 counts["bot_edits"][day] += 1
             else:
                 reverted_by = r["reverted_by_revision_id"]
@@ -158,6 +180,7 @@ class PageActivity:
 
         self.page_id: int = revisions[0]["page_id"]
         self.first_day = min(day_ordinal(r["timestamp"]) for r in revisions)
+        self.created_day = self.first_day if created_day is None else min(created_day, self.first_day)
         self.days = sorted(set().union(*counts.values()))  # days with any revision
         self.counts = counts
         self.channels = {name: DailySeries(c) for name, c in counts.items()}
@@ -169,6 +192,20 @@ class PageActivity:
         human = {d: c - mass_edits[d] for d, c in counts["edits"].items() if c > mass_edits[d]}
         self.burst_days_excl_mass = _burst_days(human, self.first_day) if mass_edits else self.burst_days
         self._mass_editors = dict(mass_editors)
+
+        # The page's size at the end of each day with a revision: the last
+        # revision that day with a known size, in revision order.
+        size_on_day: dict[int, int] = {}
+        for r in revisions:
+            if r.get("byte_size") is not None:
+                size_on_day[day_ordinal(r["timestamp"])] = r["byte_size"]
+        self._size_days = sorted(size_on_day)
+        self._sizes = [size_on_day[d] for d in self._size_days]
+
+    def size_before(self, day: int) -> int | None:
+        """The page's size in bytes at the end of `day - 1`, if known."""
+        i = bisect_left(self._size_days, day)
+        return self._sizes[i - 1] if i > 0 else None
 
     def burst_zscore(self, day: int) -> float:
         """z-score of `day`'s `edits` against its causal baseline."""
@@ -186,7 +223,8 @@ class PageActivity:
         edits = self.channels["edits"]
         last_edit = edits.last_day_before(day)
         return {
-            "page_age_days": day - self.first_day,
+            "page_age_days": day - self.created_day,
+            "page_bytes": self.size_before(day),
             "days_since_last_edit": day - last_edit if last_edit is not None else None,
             "edits_1d": edits.window_sum(prev, prev),
             "edits_7d": edits.window_sum(day - 7, prev),

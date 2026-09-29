@@ -73,7 +73,7 @@ SAMPLE_SEED = 1234
 ROW_GROUP_SIZE = 500_000
 
 INPUT_COLUMNS = [
-    "page_id", "page_title", "revision_id", "timestamp", "user_text", "is_anon",
+    "page_id", "page_title", "revision_id", "timestamp", "user_text", "is_anon", "byte_size",
     "is_reverted", "reverted_by_revision_id", "is_revert",
 ]
 

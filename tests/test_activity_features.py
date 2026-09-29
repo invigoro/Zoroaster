@@ -9,6 +9,7 @@ from src.features.activity import (
     day_ordinal,
     editor_day_page_counts,
     mass_editor_days,
+    page_editor_days,
 )
 from src.features.bursts import CoBurstCounter
 from src.ingest.revert_detect import detect_page_reverts
@@ -49,6 +50,7 @@ def random_history(rng, days=150):
                 sha1 = f"s{rev_id}"
                 states.append(sha1)
             revisions.append(revision(rev_id, when, sha1, rng.choice(USERS)))
+            revisions[-1]["byte_size"] = rng.choice([None, rng.randint(0, 50_000)])
     return revisions
 
 
@@ -113,6 +115,40 @@ class ChannelTest(unittest.TestCase):
         f = p.features(d0 + 3)
         self.assertEqual((f["edits_1d"], f["edits_7d"], f["reverted_edits_7d"], f["reverts_7d"]), (1, 2, 1, 1))
         self.assertEqual((f["days_since_last_edit"], f["page_age_days"]), (1, 3))
+
+
+class HistorySourceTest(unittest.TestCase):
+    """Behavior specific to the MediaWiki history dumps (English Wikipedia)."""
+
+    def test_the_sources_bot_flag_overrides_the_name_heuristic(self):
+        revisions = [
+            revision(1, START, "a", "FooBot") | {"is_bot": False},  # a human despite the name
+            revision(2, START + timedelta(hours=1), "b", "Alice") | {"is_bot": True},  # a bot account
+        ]
+        p = page(revisions)
+        self.assertEqual((p.counts["edits"][p.first_day], p.counts["bot_edits"][p.first_day]), (1, 1))
+        self.assertEqual(page_editor_days(detect_page_reverts(revisions)), {("FooBot", p.first_day)})
+
+    def test_page_age_uses_the_creation_day_when_given(self):
+        revisions = [revision(1, START + timedelta(days=500), "a", "Alice")]
+        first = day_ordinal(revisions[0]["timestamp"])
+        self.assertEqual(page(revisions).features(first + 10)["page_age_days"], 10)
+        created = PageActivity(detect_page_reverts(revisions), created_day=first - 400)
+        self.assertEqual(created.features(first + 10)["page_age_days"], 410)
+        self.assertEqual(created.first_day, first)  # existence still starts with the data
+
+
+class PageBytesTest(unittest.TestCase):
+    def test_size_is_the_last_known_size_before_the_day(self):
+        revisions = [
+            revision(1, START, "a", "Alice") | {"byte_size": 100},
+            revision(2, START + timedelta(hours=5), "b", "Bob") | {"byte_size": 250},  # same day: last wins
+            revision(3, START + timedelta(days=2), "c", "Carol") | {"byte_size": None},  # unknown: keep 250
+            revision(4, START + timedelta(days=3), "d", "Dave") | {"byte_size": 90},
+        ]
+        p = page(revisions)
+        d0 = p.first_day
+        self.assertEqual([p.features(d)["page_bytes"] for d in (d0, d0 + 1, d0 + 3, d0 + 4)], [None, 250, 250, 90])
 
 
 class BurstTest(unittest.TestCase):

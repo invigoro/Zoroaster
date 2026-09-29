@@ -30,6 +30,7 @@ from src.stage1.panel import CO_BURST_COLUMNS
 
 HABIT_FEATURES = (
     "page_age_days",
+    "page_bytes",
     "days_since_last_edit",
     "edits_1d",
     "edits_7d",
