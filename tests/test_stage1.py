@@ -9,10 +9,16 @@ from src.features.activity import PageActivity, day_ordinal
 from src.features.bursts import CoBurstCounter
 from src.ingest.revert_detect import detect_page_reverts
 from src.stage1.baselines import BASELINES, lexicographic_score
+from src.features.neighbors import LinkGraph, NeighborBursts
 from src.stage1.features import (
     CATEGORICAL_FEATURES,
+    EXCL_MASS_SUFFIX,
+    FEATURE_SET_PARENTS,
     FEATURE_SETS,
+    LINK_FEATURES,
+    LINK_FEATURES_EXCL_MASS,
     add_context_columns,
+    add_neighbor_columns,
     feature_matrix,
     site_edit_totals,
 )
@@ -96,14 +102,28 @@ class FeatureSetsTest(unittest.TestCase):
         for name, columns in FEATURE_SETS.items():
             self.assertFalse(set(columns) & set(LABEL_COLUMNS), name)
 
-    def test_feature_sets_are_nested_and_known(self):
-        known = set(PANEL_SCHEMA.names) | {"day_of_week", "site_edits_1d"}
-        previous: set[str] = set()
-        for columns in FEATURE_SETS.values():
-            self.assertTrue(set(columns) <= known)
-            self.assertTrue(previous < set(columns))
-            previous = set(columns)
-        self.assertTrue(set(CATEGORICAL_FEATURES) <= previous)
+    def test_each_feature_set_extends_its_parent(self):
+        self.assertEqual(set(FEATURE_SET_PARENTS) | {"habits"}, set(FEATURE_SETS))
+        for child, parent in FEATURE_SET_PARENTS.items():
+            self.assertTrue(set(FEATURE_SETS[parent]) < set(FEATURE_SETS[child]), child)
+
+    def test_feature_set_columns_are_known(self):
+        known = set(PANEL_SCHEMA.names) | {"day_of_week", "site_edits_1d"} | set(LINK_FEATURES) | set(LINK_FEATURES_EXCL_MASS)
+        for name, columns in FEATURE_SETS.items():
+            self.assertTrue(set(columns) <= known, name)
+            self.assertTrue(set(CATEGORICAL_FEATURES) <= set(columns), name)
+
+    def test_add_neighbor_columns(self):
+        graph = LinkGraph(np.array([1, 3]), np.array([2, 2]))  # 1 -> 2 and 3 -> 2
+        bursts = NeighborBursts(graph, np.array([1, 3]), np.array([19723, 19723]), np.array([1, 2]))  # 2024-01-01
+        table = pa.table({"page_id": pa.array([2, 2], pa.int64()),
+                          "date": pa.array([date(2024, 1, 2), date(2024, 1, 3)], pa.date32())})
+        table = add_neighbor_columns(table, bursts)
+        table = add_neighbor_columns(table, bursts, EXCL_MASS_SUFFIX)
+        self.assertEqual(table["in_nbrs_bursting_1d"].to_pylist(), [2, 0])
+        self.assertEqual(table["in_nbrs_multi_editor_bursting_1d" + EXCL_MASS_SUFFIX].to_pylist(), [1, 0])
+        self.assertEqual(table["in_links"].to_pylist(), [2, 2])
+        self.assertEqual(table.schema.names.count("in_links"), 1)
 
     def test_context_columns_use_the_previous_day(self):
         daily = pa.table(

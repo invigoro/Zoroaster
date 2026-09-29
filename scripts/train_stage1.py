@@ -40,8 +40,19 @@ import pyarrow.parquet as pq
 
 from scripts.build_test_eval_days import OUTPUT_PATH as EVAL_PATH
 from scripts.build_test_features import DAILY_PATH, PANEL_META_PATH, PANEL_PATH
+from scripts.build_test_links import OUTPUT_PATH as LINKS_PATH
+from src.features.neighbors import LinkGraph, NeighborBursts
 from src.stage1.baselines import BASELINES
-from src.stage1.features import CATEGORICAL_FEATURES, FEATURE_SETS, add_context_columns, feature_matrix, site_edit_totals
+from src.stage1.features import (
+    CATEGORICAL_FEATURES,
+    EXCL_MASS_SUFFIX,
+    FEATURE_SET_PARENTS,
+    FEATURE_SETS,
+    add_context_columns,
+    add_neighbor_columns,
+    feature_matrix,
+    site_edit_totals,
+)
 from src.stage1.metrics import METRIC_NAMES, average, paired_difference, per_day_metrics
 from src.stage1.splits import Splits, make_splits
 
@@ -68,12 +79,29 @@ NUM_BOOST_ROUND = 3000
 EARLY_STOPPING_ROUNDS = 100
 
 # (baseline, candidate) pairs compared day by day: the model against the best
-# heuristic, then each feature set against the one it extends.
-COMPARISONS = [
-    ("edits yesterday", "habits"),
-    ("habits", "habits+burst"),
-    ("habits+burst", "habits+burst+co_burst"),
-]
+# heuristic, each feature set against the one it extends, and the two burst
+# definitions for link neighbors against each other.
+COMPARISONS = (
+    [("edits yesterday", "habits")]
+    + [(parent, child) for child, parent in FEATURE_SET_PARENTS.items()]
+    + [("habits+burst+links", "habits+burst+links_excl_mass")]
+)
+
+
+def neighbor_bursts(graph: LinkGraph, daily: pa.Table, flag: str, editors: str) -> NeighborBursts:
+    bursts = daily.filter(daily[flag])
+    return NeighborBursts(
+        graph,
+        pc.cast(bursts["page_id"], pa.int64()).to_numpy(),
+        pc.cast(bursts["date"], pa.int32()).to_numpy(),
+        pc.cast(bursts[editors], pa.int64()).to_numpy(),
+    )
+
+
+def with_neighbors(table: pa.Table, variants: dict[str, NeighborBursts]) -> pa.Table:
+    for suffix, neighbors in variants.items():
+        table = add_neighbor_columns(table, neighbors, suffix)
+    return table
 
 
 def load(path: Path, site_totals: dict[int, int]) -> pa.Table:
@@ -117,9 +145,20 @@ def main() -> int:
         window = getattr(splits, name)
         print(f"{name:>10}: {window.start} .. {window.end}")
 
-    site_totals = site_edit_totals(pq.read_table(DAILY_PATH, columns=["date", "edits"]))
+    daily = pq.read_table(
+        DAILY_PATH, columns=["page_id", "date", "edits", "is_burst", "editors", "is_burst_excl_mass", "editors_excl_mass"]
+    )
+    site_totals = site_edit_totals(daily)
+    links = pq.read_table(LINKS_PATH)
+    graph = LinkGraph(links["source"].to_numpy(), links["target"].to_numpy())
+    variants = {
+        "": neighbor_bursts(graph, daily, "is_burst", "editors"),
+        EXCL_MASS_SUFFIX: neighbor_bursts(graph, daily, "is_burst_excl_mass", "editors_excl_mass"),
+    }
+    del daily, links
     train, validation = split_panel(load(PANEL_PATH, site_totals), splits)
-    evaluation = load(EVAL_PATH, site_totals)
+    train, validation = with_neighbors(train, variants), with_neighbors(validation, variants)
+    evaluation = with_neighbors(load(EVAL_PATH, site_totals), variants)
     y_eval = labels(evaluation)
     eval_days = pc.cast(evaluation["date"], pa.int32()).to_numpy()
     positives = pc.filter(evaluation, evaluation["y"])
@@ -139,6 +178,19 @@ def main() -> int:
         f"{context['eval_days']} days ({context['eval_positives_per_day']:,.0f} positives/day, "
         f"base rate {context['base_rate']:.3%})"
     )
+    for suffix in variants:
+        flagged = pc.or_(
+            pc.greater(evaluation["in_nbrs_bursting_1d" + suffix], 0),
+            pc.greater(evaluation["out_nbrs_bursting_1d" + suffix], 0),
+        )
+        share = pc.mean(pc.cast(flagged, pa.float64())).as_py()
+        rate = pc.mean(pc.cast(pc.filter(evaluation["y"], flagged), pa.float64())).as_py()
+        context[f"eval_rows_with_a_bursting_neighbor{suffix}"] = share
+        context[f"positive_rate_with_a_bursting_neighbor{suffix}"] = rate
+        print(
+            f"  bursting link neighbor yesterday{suffix or ''}: {share:.2%} of eval rows; "
+            f"their positive rate {rate:.3%} ({rate / context['base_rate']:.1f}x base)"
+        )
 
     results: dict[str, dict] = {}
     for name, score in BASELINES.items():
