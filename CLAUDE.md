@@ -9,8 +9,9 @@ status, findings and next steps. Keep it current as work lands.
   and its tests pass (a fix, a feature, a pipeline step, a doc update),
   commit it with a descriptive message and push. Don't mix unrelated changes
   in one commit, and don't leave finished work uncommitted.
-- Work on the `stage1` branch and push it to `origin`. Merge to `main` only
-  when the user says so.
+- Work on the `stage1` branch and push it to `origin`. After each finished
+  milestone (tests passing, docs updated), fast-forward `main` to it and
+  push; the user OK'd merging on 2026-09-28.
 - **Write tests alongside the code** in `tests/`, using stdlib `unittest`.
   Run `python -m unittest discover -s tests` from the repo root before every
   commit.
