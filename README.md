@@ -172,6 +172,12 @@ Wikipedia, which is roughly 100× the test corpus.
   python scripts/train_stage1.py --corpus enwiki
   ```
 
+  Results (133M revisions, 9.7M pages): 74 of the model's top 100 pages
+  get a kept edit the next day, against 58 for the best simple rule. A
+  page's own bursts add a tiny but consistent gain. Site-wide co-burst adds
+  nothing, even though its top days are clearly real events (elections,
+  disasters, the World Cup final). Details are in `PLAN.md` §5.
+
 Run the tests (no network or data files needed) with:
 
 ```bash

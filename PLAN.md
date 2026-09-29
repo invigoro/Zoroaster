@@ -10,11 +10,16 @@ Last updated: 2026-09-28.
 - The code-vs-data review found five problems (§5).
 - Revert labels and point-in-time features were rebuilt and validated
   (§3).
-- The Stage 1 harness is built. Results are in §5: habits beat the
-  heuristics, burst and co-burst add nothing measurable, and link-neighbor
-  bursts add only a sliver of deep recall.
-- Next is English Wikipedia (§6 step 5), which needs a go-ahead: about 20
-  GB of downloads.
+- The Stage 1 harness runs on both Simple Wikipedia and English Wikipedia.
+  Results are in §5.
+  - Page habits dominate. On English Wikipedia, 74 of the top 100 pages
+    get edited the next day.
+  - A page's own bursts add a tiny but consistent gain on English
+    Wikipedia, and nothing on Simple Wikipedia.
+  - Site-wide co-burst adds nothing on either, although on English
+    Wikipedia its top days are plainly real events.
+- Next candidate: link-neighbor bursts on English Wikipedia (§6 step 6),
+  which needs a go-ahead for 11 GB of link tables.
 
 ## 1. Goal
 
@@ -244,6 +249,23 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
 10. **Step 4 ablation (2026-09-28)**: `python scripts/train_stage1.py`
     again, now with the link-count and link-neighbor feature sets. Results
     are in §5, "Step 4 results".
+11. **English Wikipedia data (2026-09-28)**:
+    - Downloaded 39 monthly files (22.3 GB) in about 50 minutes, two at a
+      time.
+    - `build_enwiki_revisions.py`: 133,031,385 mainspace revisions into 128
+      page buckets.
+    - `build_enwiki_labels.py`: 555s with 8 workers.
+    - `build_enwiki_features.py`: 349s. 1,936,499 of 9,681,562 pages
+      sampled; panel 7.59M rows; evaluation set 25.2M rows over 14 test
+      days.
+    - Disk: 21 GB raw, 15 GB processed. The 7 GB of bucketed revisions are
+      intermediate (the labels contain them) and can be deleted unless
+      labels need re-running.
+12. **English Wikipedia harness (2026-09-28)**: `python
+    scripts/train_stage1.py --corpus enwiki`.
+    - Windows: train 2024-06-07..2024-12-05, validation
+      2025-03-06..2025-09-03, test 2025-12-03..2026-06-02.
+    - Results are in §5, "English Wikipedia results".
 
 ## 4. Data state — important for resuming on a new machine
 
@@ -364,7 +386,7 @@ burst tally was off by 2 of 54K, which doesn't matter). But the check found
 five problems. None of them break the plumbing, but each gets much more
 expensive once it's baked into an English Wikipedia corpus. Items 1, 2, 3
 and 5 were fixed the same day (§3 items 4–5). Item 4 stays open until the
-Stage 2 fetch is reworked (§6 step 7).
+Stage 2 fetch is reworked (§6 step 8).
 
 1. **The revert rule from §2 wasn't implemented as decided.**
    - Nothing flagged the revert revisions themselves. So **335,488 identity
@@ -565,6 +587,79 @@ link counts. The tables above predate it. With it:
   link counts (t = 2.9), or +0.0035 ± 0.0017 with mass editing excluded,
   and nothing at the top of the ranking.
 
+### English Wikipedia results (2026-09-28)
+
+**The corpus**
+- 133.0M mainspace revisions across 9.68M pages, June 2023 to August 2026
+  (MediaWiki history dumps, 2026-08 snapshot).
+- 7.14% of revisions reverted, 5.05% reverts.
+- Every revert and reverted edit our `revert_detect` finds is also flagged
+  by Wikimedia. Wikimedia flags about 12% more reverted edits and 6% more
+  reverts, as expected: their definition has no 15-revision/90-day window,
+  and they can see states from before our window.
+- Mass editing is 1.6% of editor-days but 41% of human editor-page-days,
+  the same split as Simple Wikipedia.
+
+**The phenomenon is real here.** With mass editing excluded, the top
+co-burst days are real-world events, with dozens to over a hundred editors
+on the central page:
+- 2024-07-05, UK general election: the election page (158 editors),
+  *Keir Starmer* (103), *Starmer ministry*.
+- 2024-06-04, Indian general election results.
+- 2024-02-05: the Grammys, *The Tortured Poets Department* (announced
+  there) and *Charles III* (cancer diagnosis announced).
+- 2025-01-02, the Las Vegas Cybertruck explosion.
+- 2025-01-06, Trudeau's resignation.
+
+The regular list looks similar: 2026-07-19 (the World Cup final, *Spain
+national football team*), 2024-11-30 (the Syrian offensive and *Battle of
+Aleppo (2024)*), 2024-12-06 (the annulled Romanian presidential election).
+This is unlike Simple Wikipedia, where top days were maintenance runs and
+busy days.
+
+**Window-start artifact.** Burst baselines are truncated in the first 90
+days of data, because no history before June 2023 was downloaded. So early
+June 2023 days top the discounted co-burst list. This only affects the
+lookback year, never a train, validation or test row, whose 90-day
+baselines are complete.
+
+**Harness.** Every sampled page (20%) is ranked on 14 test days. About
+11,200 pages a day get a kept edit, a base rate of 0.62%:
+
+| model | P@100 | P@1000 | R@10000 | AP |
+|---|---|---|---|---|
+| edits yesterday (best heuristic by P@100) | 0.578 | 0.315 | 0.092 | 0.0572 |
+| LightGBM: habits | 0.742 | 0.435 | 0.149 | 0.0859 |
+| + burst | 0.741 | 0.436 | 0.150 | 0.0865 |
+| + co-burst | 0.739 | 0.435 | 0.149 | 0.0864 |
+
+Paired per-day differences:
+- **habits vs the best heuristic:** P@100 +0.164 ± 0.011 and AP +0.0287 ±
+  0.0011, better on all 14 days (t = 15–25).
+- **+ burst vs habits:** AP **+0.0006 ± 0.0001, better on 14 of 14 days
+  (t = 9.9)**; recall@10000 +0.0007 ± 0.0002 (t = 2.9). P@100 and P@1000
+  don't change. `burst_z_1d` takes 0.9% of the gain.
+- **+ co-burst vs + burst:** nothing on any metric (|t| ≤ 1.3).
+
+What this means:
+- **Next-day edits are very predictable from page habits.** 74 of the top
+  100 sampled pages get a kept edit the next day. The gain goes to edits in
+  the last year (49%), page size (22%) and days since the last edit.
+- **A page's own burst signal gives the first unambiguous evidence for the
+  hypothesis:** a gain on every test day. But it's tiny, about 0.7% of AP.
+- **Site-wide co-burst again adds nothing.** It's the same number for every
+  page on a day. The events are plainly visible in co-burst, but a count
+  can't say which pages they'll touch. The page-specific version, link
+  neighbors, is the natural next test (§6 step 6).
+- **Checked:** the leakage check on real pages (features from the full
+  history vs a history cut at midnight before D, including source bot
+  flags, creation dates and the mass-editor discount) passed on 7,143
+  (page, day) pairs from 600 pages.
+- **Comparability with Simple Wikipedia:** the universe here is pages with
+  a revision since June 2023, sampled at 20%. 55% of next-day positives had
+  no human edit in the prior 30 days (66% on Simple Wikipedia), and 9.7% had
+  none in the prior year (28%).
+
 ## 6. Next steps, in order
 
 Re-planned 2026-09-28 after the code review in §5, and again after the
@@ -618,8 +713,11 @@ old step 2 (move to English Wikipedia) is now step 5.
      higher cost.
    - Also try the mass-editor discount from §5 in the burst definition,
      then rerun the ablation.
-5. **Move to English Wikipedia** (**next**). Get explicit go-ahead first,
-   given the scale jump.
+5. **Move to English Wikipedia** (**done 2026-09-28**, see §3 items 11–12
+   and §5 "English Wikipedia results"). Page habits are very predictive
+   (P@100 0.74). The page's own bursts add a tiny but consistent gain, and
+   site-wide co-burst adds nothing, although the top co-burst days are
+   clearly real events. What was planned:
 
    **Sizes, checked 2026-09-28:**
    - MediaWiki history, 2026-08 snapshot: 309 English Wikipedia files,
@@ -655,9 +753,22 @@ old step 2 (move to English Wikipedia) is now step 5.
      definition.
    - Records change retroactively between monthly snapshots (renames,
      reverts, moves), so take every month from a single snapshot.
-6. **Pageview-based popularity stratum.** Unchanged; deferred until ready
+6. **Link-neighbor bursts on English Wikipedia** (**next candidate**; needs
+   go-ahead for 11.15 GB of link tables, `pagelinks` alone 7.13 GB). On
+   English Wikipedia the events are visible in co-burst, but a site-wide
+   count can't point at pages. "Pages linked to this one are bursting" is
+   the page-specific version, and the direct test of the hypothesis where
+   it can actually show up.
+   - The code exists (`src/ingest/link_graph.py`, `src/features/neighbors.py`).
+   - The graph needs restricting to pages near the sampled ones to fit in
+     memory: roughly 1B+ links in total.
+   - The snapshot-leak caveat from §5 applies.
+   - Alternative, cheaper next steps: a 7-day horizon variant, or moving
+     on to Stage 2 (step 8). Stage 2's gate below is only partly met: the
+     burst signal is real but tiny.
+7. **Pageview-based popularity stratum.** Unchanged; deferred until ready
    to pull the pageviews dumps.
-7. **Stage 2 QLoRA fine-tuning** on the RTX 3070, only after Stage 1 shows
+8. **Stage 2 QLoRA fine-tuning** on the RTX 3070, only after Stage 1 shows
    the burst/co-burst signal is predictive. Before any large diff fetch:
    - switch to word-level diffs (keep line-level context separately if
      useful as conditioning);
