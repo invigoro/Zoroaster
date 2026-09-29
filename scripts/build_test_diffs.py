@@ -1,4 +1,4 @@
-"""Fetch real diff text for the 125 already-sampled test pages.
+"""Fetch real diff text for the already-sampled test pages.
 
 Wires up `src.ingest.fetch_diffs` (validated so far only with mocked HTTP)
 against live Wikipedia, restricted to the small, deliberate sample chosen by
@@ -9,15 +9,16 @@ pointed at the full English Wikipedia corpus.
 Does not download anything new via `download_dump.py` — it reads the local
 `data/processed/simplewiki_test_revert_labels.parquet` and
 `simplewiki_test_sample_manifest.json` produced by the two `build_test_*`
-scripts, then makes one (or two) HTTP calls per retained revision belonging
-to a sampled page.
+scripts, then makes one (or two) HTTP calls per retained revision (neither
+reverted nor itself a revert) belonging to a sampled page. Bot edits are
+still included; see PLAN.md §7.
 
 Usage:
     python scripts/build_test_diffs.py [max_revisions]
 
     `max_revisions` (optional) caps how many retained revisions are fetched,
     for a quick end-to-end validation pass instead of the full sample (the
-    full 125-page sample is ~4,076 retained revisions, i.e. ~2+ hours at the
+    full 150-page sample is ~4,140 retained revisions, i.e. ~2+ hours at the
     polite 1 req/sec rate — pass no argument to run the full set).
 """
 
@@ -67,7 +68,7 @@ def main() -> int:
     targets = [
         r
         for r in rows
-        if r["page_id"] in sampled_page_ids and not r["is_reverted"]
+        if r["page_id"] in sampled_page_ids and not r["is_reverted"] and not r["is_revert"]
     ]
     targets.sort(key=lambda r: (r["page_id"], r["revision_id"]))
     print(f"{len(targets):,} retained revisions to fetch across those pages")
