@@ -1,6 +1,6 @@
 import unittest
 
-from scripts.analyze_stage2 import snippet_overlap, title_in_target
+from scripts.analyze_stage2 import relevant_overlap, snippet_overlap, title_in_target
 
 
 class MechanismTest(unittest.TestCase):
@@ -16,6 +16,12 @@ class MechanismTest(unittest.TestCase):
         # words of 4+ letters: impeachment, hearings, resumed, april; one is shared
         self.assertEqual(snippet_overlap(row), 0.25)
         self.assertIsNone(snippet_overlap(row | {"neighbor_changes": {"A": None, "B": None}}))
+
+    def test_relevant_overlap(self):
+        row = {"added_text": "The impeachment hearings resumed in April.",
+               "relevant_changes": [("A", "Impeachment hearings began")]}
+        self.assertEqual(relevant_overlap(row), 0.5)
+        self.assertIsNone(relevant_overlap(row | {"relevant_changes": []}))
 
 
 if __name__ == "__main__":

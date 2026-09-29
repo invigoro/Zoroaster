@@ -39,12 +39,16 @@ def trigger_text(
     max_neighbors: int = MAX_NEIGHBORS_SHOWN,
     changes: dict[str, str | None] | None = None,
     max_changes: int = 3,
+    ranked_changes: list[tuple[str, str]] | None = None,
 ) -> str:
     """The Stage 1 signals for (page, day), as prompt lines.
 
-    `changes` maps a bursting neighbor's title to a snippet of what changed
-    on it the day before (`build_stage2_neighbor_changes.py`). Snippets are
-    shown for the first `max_changes` neighbors that have one.
+    What changed on the bursting neighbors the day before comes one of two ways:
+    - `changes` maps a neighbor's title to a snippet
+      (`build_stage2_neighbor_changes.py`). Snippets are shown for the first
+      `max_changes` neighbors that have one.
+    - `ranked_changes` lists (neighbor, text) to show as given, already
+      ranked and trimmed (`src.stage2.relevance`).
     """
     burst = "yes" if features["is_burst_1d"] else "no"
     neighbors = "; ".join(t.replace("_", " ") for t in bursting_neighbors[:max_neighbors]) or "none"
@@ -54,7 +58,10 @@ def trigger_text(
         f"Page bursting yesterday: {burst} (z = {features['burst_z_1d']:.1f}).\n"
         f"Linked pages bursting yesterday: {neighbors}."
     )
-    shown = [(t, changes[t]) for t in bursting_neighbors if changes and changes.get(t)][:max_changes]
+    if ranked_changes is not None:
+        shown = ranked_changes
+    else:
+        shown = [(t, changes[t]) for t in bursting_neighbors if changes and changes.get(t)][:max_changes]
     if shown:
         text += "\nWhat changed on them yesterday:" + "".join(
             f'\n- {t.replace("_", " ")}: "{s}"' for t, s in shown

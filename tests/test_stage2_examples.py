@@ -52,6 +52,14 @@ class PromptTest(unittest.TestCase):
         self.assertEqual(trigger_text(features, neighbors), trigger_text(features, neighbors, changes={}))
         self.assertNotIn("What changed", trigger_text(features, neighbors, changes={}))
 
+    def test_ranked_changes_shown_as_given(self):
+        features = {"edits_1d": 0, "edits_7d": 0, "edits_30d": 1, "is_burst_1d": False, "burst_z_1d": 0.0}
+        neighbors = ["Daredevil", "Kingpin"]
+        text = trigger_text(features, neighbors, ranked_changes=[("Kingpin", "Fisk is elected mayor."), ("Daredevil", "b")])
+        self.assertTrue(text.endswith('What changed on them yesterday:\n- Kingpin: "Fisk is elected mayor."\n- Daredevil: "b"'))
+        # nothing relevant: the same prompt as titles alone
+        self.assertEqual(trigger_text(features, neighbors, ranked_changes=[]), trigger_text(features, neighbors))
+
 
 if __name__ == "__main__":
     unittest.main()

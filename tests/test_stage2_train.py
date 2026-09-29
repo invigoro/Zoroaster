@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 import torch
 
-from scripts.train_stage2 import attach_changes, collate, paired, point_in_time_titles, pooled, target_nll, unshortened
+from scripts.train_stage2 import attach_changes, attach_relevant, collate, paired, point_in_time_titles, pooled, target_nll, unshortened
 
 VOCAB = 50
 
@@ -81,6 +81,25 @@ class PooledAndChangesTest(unittest.TestCase):
         self.assertEqual(rows[0]["page_title"], "P_then")
         self.assertEqual(rows[0]["bursting_neighbors"], ["N_then", "M", "Q"])  # the day before's title, not the day's
         self.assertEqual(rows[0]["neighbor_changes"], {"N_then": "s", "M": None, "Q": None})
+        self.assertEqual(rows[0]["snapshot_neighbors"], ["N_now", "M", "Q"])  # the change data's keys
+
+    def test_relevant_changes_come_from_the_previous_day(self):
+        import tempfile
+        from datetime import date
+        from pathlib import Path
+        import pyarrow as pa
+        import pyarrow.parquet as pq
+        named = "Rachel Reeves was named chancellor in the new cabinet."
+        with tempfile.TemporaryDirectory() as tmp:
+            pq.write_table(pa.table({
+                "title": ["Cabinet_now", "Cabinet_now"], "date": [date(2025, 1, 1), date(2025, 1, 2)],
+                "spans": [[named], ["Rachel Reeves resigned from the cabinet after a scandal broke."]],  # the day itself
+            }), Path(tmp) / "part-00000.parquet")
+            row = {"split": "test", "date": date(2025, 1, 2), "page_title": "Rachel_Reeves", "section": "Career",
+                   "context": "She is a politician.", "bursting_neighbors": ["Cabinet_then"],
+                   "snapshot_neighbors": ["Cabinet_now"]}
+            attach_relevant([row, row | {"split": "train"}], Path(tmp))
+        self.assertEqual(row["relevant_changes"], [("Cabinet_then", named)])  # shown under the title then
 
 
 class PairedTest(unittest.TestCase):

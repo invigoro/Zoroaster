@@ -1,8 +1,8 @@
 """Stage 2: fine-tune a small causal LM to write the text an edit inserts.
 
-QLoRA on Qwen2.5-0.5B: a 4-bit NF4 base with LoRA (r=16) on every
-attention and MLP projection, trained on this machine's RTX 3070 (8GB),
-per PLAN.md §2. Each example is a prompt (`src.stage2.examples`) plus the
+QLoRA on Qwen2.5-0.5B by default (`--model`): a 4-bit NF4 base with LoRA
+(r=16) on every attention and MLP projection, trained on this machine's
+RTX 3070 (8GB), per PLAN.md §2. Each example is a prompt (`src.stage2.examples`) plus the
 edit's inserted text, and the loss covers the inserted text only.
 
 Variants train identically and differ only in the prompt's trigger text:
@@ -10,7 +10,9 @@ Variants train identically and differ only in the prompt's trigger text:
 - `context+triggers`: plus the Stage 1 signals as text, including the titles
   of linked pages that were bursting the day before;
 - `context+triggers+changes`: plus what changed on those pages that day
-  (`build_stage2_neighbor_changes.py`).
+  (`build_stage2_neighbor_changes.py`): each one's longest new prose;
+- `context+triggers+relevant`: plus their new sentences most relevant to
+  this page (`src.stage2.relevance`), or none if nothing relates.
 
 Each variant trains once per seed, so run-to-run noise can be told apart
 from real differences. All are scored on the test split (Dec 2025-Jun
@@ -40,9 +42,12 @@ Memory on 8GB:
   full-sequence logits would be by far the biggest tensor.
 - The model must be in `train()` mode during training, or gradient
   checkpointing silently doesn't apply.
+- `--micro-batch` trades memory for speed. Gradient accumulation keeps the
+  effective batch at EFFECTIVE_BATCH either way.
 
 Usage:
-    python scripts/train_stage2.py [--seeds 1234 2345] [--variants ...] [--max-train N]
+    python scripts/train_stage2.py [--model Qwen/Qwen2.5-1.5B] [--micro-batch 4]
+        [--seeds 1234 2345] [--variants ...] [--max-train N] [--out DIR]
 """
 
 from __future__ import annotations
@@ -67,6 +72,7 @@ import pyarrow.parquet as pq
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
+from src.stage2 import relevance
 from src.stage2.examples import build_prompt, trigger_text
 
 BASE_MODEL = "Qwen/Qwen2.5-0.5B"
@@ -74,12 +80,12 @@ EXAMPLES_DIR = Path("data/processed/enwiki/stage2/examples")
 CHANGES_DIR = Path("data/processed/enwiki/stage2/neighbor_changes")
 TITLES_PATH = Path("data/processed/enwiki/stage2/titles.parquet")
 OUT_DIR = Path("data/processed/enwiki/stage2")
-VARIANTS = ("context", "context+triggers", "context+triggers+changes")
+VARIANTS = ("context", "context+triggers", "context+triggers+changes", "context+triggers+relevant")
 SEEDS = (1234, 2345)
 MAX_PROMPT_TOKENS = 512
 TARGET_TOKENS = 128
 MAX_CHANGES = 3
-MICRO_BATCH, ACCUMULATION, EVAL_BATCH = 8, 2, 16
+MICRO_BATCH, EFFECTIVE_BATCH = 8, 16
 LEARNING_RATE, WARMUP_STEPS = 2e-4, 50
 N_GENERATIONS = 12
 
@@ -88,7 +94,9 @@ def prompt_for(example: dict, variant: str) -> str:
     triggers = None
     if variant != "context":
         changes = example.get("neighbor_changes") if variant == "context+triggers+changes" else None
-        triggers = trigger_text(example, example["bursting_neighbors"], changes=changes, max_changes=MAX_CHANGES)
+        ranked = example.get("relevant_changes", []) if variant == "context+triggers+relevant" else None
+        triggers = trigger_text(example, example["bursting_neighbors"], changes=changes, max_changes=MAX_CHANGES,
+                                ranked_changes=ranked)
     return build_prompt(example["page_title"], example["date"].isoformat(), example["section"], example["context"], triggers)
 
 
@@ -119,9 +127,12 @@ def attach_changes(rows: list[dict], changes_dir: Path) -> None:
 def point_in_time_titles(rows: list[dict], titles_path: Path) -> dict[str, int]:
     """Rename pages to their titles at the time (`build_stage2_titles.py`):
     each example's page as of its edit, each bursting neighbor as of the day
-    before. Runs after `attach_changes`, whose keys it renames too. Returns
-    how many titles changed."""
+    before. Runs after `attach_changes`, whose keys it renames too. The
+    snapshot's neighbor titles stay in `snapshot_neighbors`, the keys of the
+    change data. Returns how many titles changed."""
     renamed = {"pages": 0, "neighbors": 0}
+    for row in rows:
+        row["snapshot_neighbors"] = list(row["bursting_neighbors"])
     if not titles_path.exists():
         print(f"No {titles_path}: prompts use the snapshot's titles")
         return renamed
@@ -138,6 +149,31 @@ def point_in_time_titles(rows: list[dict], titles_path: Path) -> dict[str, int]:
         row["bursting_neighbors"] = [names[t] for t in row["bursting_neighbors"]]
         row["neighbor_changes"] = {names[t]: s for t, s in row["neighbor_changes"].items()}
     return renamed
+
+
+def attach_relevant(rows: list[dict], changes_dir: Path) -> None:
+    """Give each row `relevant_changes`: [(neighbor, text)], its bursting
+    neighbors' new sentences from the day before that relate to the page,
+    most relevant first (`src.stage2.relevance`).
+
+    Runs after `point_in_time_titles`, so relevance is judged against the
+    page's title then. The idf is fitted on the train split's neighbor-days
+    only."""
+    by_pair: dict = {}
+    if changes_dir.exists():
+        table = pq.read_table(changes_dir, columns=["title", "date", "spans"])
+        by_pair = {(t, d): relevance.sentences(s or [])
+                   for t, d, s in zip(*(table[c].to_pylist() for c in ("title", "date", "spans")))}
+
+    def days(row: dict) -> list[tuple]:
+        return [(t, row["date"] - timedelta(days=1)) for t in row["snapshot_neighbors"]]
+
+    train_pairs = {pair for row in rows if row["split"] == "train" for pair in days(row)}
+    idf = relevance.Idf(s for pair in train_pairs for s in by_pair.get(pair, []))
+    for row in rows:
+        candidates = {shown: by_pair.get(pair, []) for shown, pair in zip(row["bursting_neighbors"], days(row))}
+        ranked = relevance.rank(row["page_title"], row["section"], row["context"], candidates, idf)
+        row["relevant_changes"] = relevance.select(ranked)
 
 
 def collate(pairs: list[tuple[list[int], list[int]]], pad_id: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, int]:
@@ -164,10 +200,10 @@ def target_nll(model, ids, mask, labels, keep: int) -> tuple[torch.Tensor, torch
     return token_nll.sum(dim=1), counts
 
 
-def load_model(adapters: bool):
+def load_model(name: str, adapters: bool):
     bnb = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_compute_dtype=torch.bfloat16,
                              bnb_4bit_use_double_quant=True)
-    model = AutoModelForCausalLM.from_pretrained(BASE_MODEL, quantization_config=bnb, dtype=torch.bfloat16,
+    model = AutoModelForCausalLM.from_pretrained(name, quantization_config=bnb, dtype=torch.bfloat16,
                                                  device_map={"": 0})
     model.config.use_cache = False
     if not adapters:
@@ -185,11 +221,12 @@ def _batch(pairs: list, pad_id: int):
     return ids.cuda(), mask.cuda(), labels.cuda(), keep
 
 
-def train(model, pairs: list, pad_id: int, validation: list, seed: int) -> list[dict]:
+def train(model, pairs: list, pad_id: int, validation: list, seed: int, micro_batch: int = MICRO_BATCH) -> list[dict]:
+    accumulation = EFFECTIVE_BATCH // micro_batch
     order = list(range(len(pairs)))
     random.Random(seed).shuffle(order)
-    batches = [order[i : i + MICRO_BATCH] for i in range(0, len(order), MICRO_BATCH)]
-    steps = math.ceil(len(batches) / ACCUMULATION)
+    batches = [order[i : i + micro_batch] for i in range(0, len(order), micro_batch)]
+    steps = math.ceil(len(batches) / accumulation)
     optimizer = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=LEARNING_RATE)
     schedule = torch.optim.lr_scheduler.LambdaLR(optimizer, lambda s: min(1.0, (s + 1) / WARMUP_STEPS)
                                                  * 0.5 * (1 + math.cos(math.pi * min(s, steps) / steps)))
@@ -198,17 +235,17 @@ def train(model, pairs: list, pad_id: int, validation: list, seed: int) -> list[
     for i, batch in enumerate(batches):
         nll, counts = target_nll(model, *_batch([pairs[j] for j in batch], pad_id))
         loss = nll.sum() / counts.sum()
-        (loss / ACCUMULATION).backward()
+        (loss / accumulation).backward()
         running.append(loss.item())
-        if (i + 1) % ACCUMULATION == 0 or i + 1 == len(batches):
+        if (i + 1) % accumulation == 0 or i + 1 == len(batches):
             torch.nn.utils.clip_grad_norm_([p for p in model.parameters() if p.requires_grad], 1.0)
             optimizer.step(); schedule.step(); optimizer.zero_grad(set_to_none=True)
-            step = (i + 1) // ACCUMULATION
+            step = math.ceil((i + 1) / accumulation)
             if step % 100 == 0 or i + 1 == len(batches):
                 entry = {"step": step, "train_loss": float(np.mean(running)), "seconds": time.monotonic() - start}
                 running = []
                 if i + 1 == len(batches):
-                    entry["validation_loss"] = token_mean(score(model, validation, pad_id))
+                    entry["validation_loss"] = token_mean(score(model, validation, pad_id, 2 * micro_batch))
                     model.train()
                 log.append(entry)
                 print(f"    step {step}/{steps}: " + ", ".join(f"{k} {v:.3f}" for k, v in entry.items() if k != "step"), flush=True)
@@ -216,12 +253,12 @@ def train(model, pairs: list, pad_id: int, validation: list, seed: int) -> list[
 
 
 @torch.no_grad()
-def score(model, pairs: list, pad_id: int) -> list[tuple[float, int]]:
+def score(model, pairs: list, pad_id: int, batch: int = 2 * MICRO_BATCH) -> list[tuple[float, int]]:
     """(summed target NLL, target tokens) per example, in order."""
     model.eval()
     out = []
-    for i in range(0, len(pairs), EVAL_BATCH):
-        nll, counts = target_nll(model, *_batch(pairs[i : i + EVAL_BATCH], pad_id))
+    for i in range(0, len(pairs), batch):
+        nll, counts = target_nll(model, *_batch(pairs[i : i + batch], pad_id))
         out += list(zip(nll.tolist(), counts.tolist()))
     return out
 
@@ -270,6 +307,8 @@ def generate(model, tokenizer, examples: list[dict], variant: str) -> list[str]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--model", default=BASE_MODEL)
+    parser.add_argument("--micro-batch", type=int, default=MICRO_BATCH, choices=(1, 2, 4, 8, 16))
     parser.add_argument("--seeds", type=int, nargs="+", default=list(SEEDS))
     parser.add_argument("--variants", nargs="+", default=list(VARIANTS), choices=VARIANTS)
     parser.add_argument("--max-train", type=int, default=None, help="cap training examples (smoke runs)")
@@ -282,11 +321,12 @@ def main(argv: list[str] | None = None) -> int:
     attach_changes(rows, args.changes)
     renamed = point_in_time_titles(rows, args.titles)
     print("titles that differed from the snapshot's:", renamed)
+    attach_relevant(rows, args.changes)
     by_split = {s: [r for r in rows if r["split"] == s] for s in ("train", "validation", "test")}
     if args.max_train:
         by_split = {s: v[: args.max_train if s == "train" else max(args.max_train // 4, 8)] for s, v in by_split.items()}
     print({s: len(v) for s, v in by_split.items()})
-    tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL)
+    tokenizer = AutoTokenizer.from_pretrained(args.model)
     pad_id = tokenizer.pad_token_id if tokenizer.pad_token_id is not None else tokenizer.eos_token_id
     encoded, truncation, shortened = {}, {}, {}
     for v in args.variants:
@@ -301,20 +341,22 @@ def main(argv: list[str] | None = None) -> int:
         "all": None,
         "bursting neighbors": [bool(r["bursting_neighbors"]) for r in test],
         "changes shown": [any(r["neighbor_changes"].get(t) for t in r["bursting_neighbors"]) for r in test],
+        "relevant shown": [bool(r["relevant_changes"]) for r in test],
         "no bursting neighbors": [not r["bursting_neighbors"] for r in test],
     }
     rng = random.Random(args.seeds[0])
-    shown = [r for r, has in zip(test, subsets["changes shown"]) if has]
+    featured = "relevant shown" if "context+triggers+relevant" in args.variants else "changes shown"
+    shown = [r for r, has in zip(test, subsets[featured]) if has]
     showcase = rng.sample(shown, min(N_GENERATIONS // 2, len(shown)))
     quiet = [r for r in test if not r["bursting_neighbors"]]
     showcase += rng.sample(quiet, min(N_GENERATIONS // 2, len(quiet)))
 
-    results: dict = {"base_model": BASE_MODEL, "seeds": args.seeds, "examples": {s: len(v) for s, v in by_split.items()},
+    results: dict = {"base_model": args.model, "micro_batch": args.micro_batch, "seeds": args.seeds, "examples": {s: len(v) for s, v in by_split.items()},
                      "subset_sizes": {k: (sum(v) if v else len(test)) for k, v in subsets.items()},
                      "truncation": truncation, "renamed": renamed, "scores": {}, "training": {}, "peak_gpu_gb": {}}
-    base = load_model(adapters=False)
+    base = load_model(args.model, adapters=False)
     for v in args.variants:
-        results["scores"][f"base / {v}"] = score(base, encoded[v]["test"], pad_id)
+        results["scores"][f"base / {v}"] = score(base, encoded[v]["test"], pad_id, 2 * args.micro_batch)
     del base
     torch.cuda.empty_cache()
 
@@ -326,9 +368,10 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Training {name}:")
             torch.manual_seed(seed)
             torch.cuda.reset_peak_memory_stats()
-            model = load_model(adapters=True)
-            results["training"][name] = train(model, encoded[v]["train"], pad_id, encoded[v]["validation"], seed)
-            results["scores"][f"tuned / {name}"] = score(model, encoded[v]["test"], pad_id)
+            model = load_model(args.model, adapters=True)
+            results["training"][name] = train(model, encoded[v]["train"], pad_id, encoded[v]["validation"], seed,
+                                              args.micro_batch)
+            results["scores"][f"tuned / {name}"] = score(model, encoded[v]["test"], pad_id, 2 * args.micro_batch)
             results["peak_gpu_gb"][name] = torch.cuda.max_memory_allocated() / 1e9
             if seed == args.seeds[0]:
                 generations[v] = generate(model, tokenizer, showcase, v)
@@ -342,7 +385,10 @@ def main(argv: list[str] | None = None) -> int:
         scores[f"tuned / {v} / pooled"] = pooled([scores[f"tuned / {v} / seed {s}"] for s in args.seeds])
     results["test_token_nll"] = {name: token_mean(s) for name, s in scores.items()}
     pairs_to_compare = [(a, b) for a, b in [("context", "context+triggers"), ("context+triggers", "context+triggers+changes"),
-                                            ("context", "context+triggers+changes")] if a in args.variants and b in args.variants]
+                                            ("context", "context+triggers+changes"),
+                                            ("context+triggers", "context+triggers+relevant"),
+                                            ("context", "context+triggers+relevant")]
+                        if a in args.variants and b in args.variants]
     runs = [f"seed {s}" for s in args.seeds] + ["pooled"]
     for key, restrict in [("comparisons", True), ("comparisons_including_shortened", False)]:
         results[key] = {
@@ -357,7 +403,8 @@ def main(argv: list[str] | None = None) -> int:
                                  for v in args.variants}
     results["generations"] = [
         {"page": r["page_title"], "date": r["date"].isoformat(), "bursting_neighbors": r["bursting_neighbors"][:MAX_CHANGES],
-         "changes": {t: s for t, s in r["neighbor_changes"].items() if s} , "actual": r["added_text"][:300],
+         "changes": {t: s for t, s in r["neighbor_changes"].items() if s}, "relevant": r["relevant_changes"],
+         "actual": r["added_text"][:300],
          **{v: generations[v][i] for v in generations}}
         for i, r in enumerate(showcase)
     ]
