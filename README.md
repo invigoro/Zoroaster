@@ -180,9 +180,16 @@ Wikipedia, which is roughly 100× the test corpus.
 
 - **Stage 2: generating the edit's text** (`src/stage2/`). This fine-tunes
   Qwen2.5-0.5B with QLoRA on an 8GB GPU to write the text an edit inserts,
-  given the page, date, section and surrounding text. It compares prompts
-  with and without *trigger text*: the Stage 1 signals, including titles
-  of linked pages bursting the day before.
+  given the page, date, section and surrounding text. It compares three
+  prompts, each trained with two seeds:
+  - context only;
+  - plus *trigger text*: the Stage 1 signals, including the titles of
+    linked pages that were bursting the day before;
+  - plus what changed on those linked pages that day: a snippet of the
+    new prose each one gained (`src/stage2/wikitext.py` strips the markup).
+
+  Pages are named by their titles at the time, from the history dumps. The
+  snapshot's titles would leak later renames.
   - The inserted text comes from word-level diffs of revisions fetched
     from the MediaWiki API, 50 per request.
   - Only the changed text and its context are stored.
@@ -193,13 +200,22 @@ Wikipedia, which is roughly 100× the test corpus.
   python scripts/build_enwiki_links.py      # 11 GB of link tables (needed for trigger titles)
   python scripts/build_stage2_targets.py    # 16,000 kept edits with their Stage 1 signals
   python scripts/fetch_stage2_diffs.py      # ~20 min of polite API fetching
-  python scripts/train_stage2.py            # ~1 hour on an RTX 3070
+  python scripts/build_stage2_neighbor_changes.py  # ~20 min: what changed on bursting linked pages
+  python scripts/build_stage2_titles.py     # ~4 min: titles at the time, from the history dumps
+  python scripts/train_stage2.py            # ~3.3 hours on an RTX 3070: 3 prompts x 2 seeds
   ```
 
-  First result, on 2,809 test edits from Dec 2025–Jun 2026: fine-tuning
-  cuts the perplexity of the inserted text from 15.6 to 6.6. Trigger text
-  helps only on edits whose linked pages were bursting (−0.010 nats per
-  token, t ≈ 2.5). Details are in `PLAN.md` §5.
+  Results, on 2,809 test edits from Dec 2025–Jun 2026:
+  - Fine-tuning cuts the perplexity of the inserted text from 15.6 to 6.6.
+  - Trigger text helps on edits whose linked pages were bursting: −0.014
+    nats per token, t ≈ 4 in each of two seeds. It does nothing measurable
+    elsewhere.
+  - Snippets of what changed on those pages add nothing detectable; the
+    neighbor's name is what helps. Most of the gain comes from edits that
+    add that name, often as a link (e.g. a singer's page gaining "She
+    performed at the [[2026 Winter Olympics opening ceremony]]").
+
+  Details are in `PLAN.md` §5.
 
 Run the tests (no network or data files needed) with:
 

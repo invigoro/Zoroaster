@@ -312,6 +312,27 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
       unavailable. The median insertion is 44 characters.
     - `train_stage2.py`: 38 and 32 minutes per variant, 1 epoch.
     - Results are in §5, "Stage 2 results".
+15. **Stage 2, seeds and change snippets (2026-09-29)**:
+    - `build_stage2_neighbor_changes.py`: what changed on each example's top
+      3 bursting neighbors the day before. 9,959 (page, day) pairs; 9,937
+      fetched in 20.5 minutes. 6,664 (67%) have a prose snippet, and 228
+      pages were created that day.
+    - A first fetch was stopped after 9 of 20 parts. It took the longest
+      inserted span as it was, and 59% of its snippets held citation,
+      infobox or table markup. The rerun cleans wikitext
+      (`src/stage2/wikitext.py`) and skips moved text.
+    - `build_stage2_titles.py`: 4 minutes over 20 monthly history dumps with
+      10 workers. Every needed revision was found, and the dumps' snapshot
+      titles matched the revision data's in every case.
+    - Titles were different at the time for 373 of 14,760 example pages
+      (2.5%) and 540 of 13,496 neighbor-days (4.0%). In the test split, 1.0%
+      of pages had one, and 5.9% of examples with bursting neighbors named a
+      neighbor by a later title. Some renames encode later events, e.g.
+      "2026 California billionaire tax" became "2026 California Proposition
+      40".
+    - `train_stage2.py`: three prompt variants × two seeds, 1 epoch each:
+      28.5, 31.6 and 33.5 minutes per run, 3.3 hours in all, with a 4.6 GB
+      peak. Results are in §5, "Stage 2: seeds and change snippets".
 
 ## 4. Data state — important for resuming on a new machine
 
@@ -350,7 +371,10 @@ pip install -r requirements-stage2.txt
 python scripts/build_enwiki_links.py       # ~22 min, 11GB of SQL tables
 python scripts/build_stage2_targets.py     # ~30s
 python scripts/fetch_stage2_diffs.py       # ~21 min of sequential API requests
-python scripts/train_stage2.py             # ~75 min on an RTX 3070
+python scripts/build_stage2_neighbor_changes.py  # ~21 min of API requests: what changed on bursting neighbors
+python scripts/build_stage2_titles.py      # ~4 min: titles at the time, from the history dumps
+python scripts/train_stage2.py             # ~3.3 h on an RTX 3070: 3 prompt variants x 2 seeds
+python scripts/analyze_stage2.py           # ~1 min: the §5 comparisons, from results.json
 ```
 
 To re-run revert detection after changing it, use `--from-parquet` on the
@@ -787,12 +811,91 @@ What this means:
 - **Caveat: one training run per variant.** The paired SE covers variation
   across examples, not across training runs. The effect being confined to
   the subset where the triggers differ argues against a global fluke, but a
-  second seed would settle it.
+  second seed would settle it. **Settled** by the next run, below.
+- **Caveat: prompts used the snapshot's titles**, so a page renamed after
+  the event showed its later name. The next run uses titles at the time,
+  and the effect holds.
 - **Triggers are underused.** One test edit added "Commissioner of Mental
   Health under Mayor [[Wilson Fisk (Marvel Cinematic Universe)]]" while
   that very page was a bursting neighbor, yet both variants wrote
   "Murdock.". The trigger text carries only *titles*.
 - **Greedy decoding sometimes loops** ("2026, … 2026, …").
+
+### Stage 2: seeds and change snippets (2026-09-29, English Wikipedia)
+
+This run repeats the first run's setup with three changes (§3 item 15):
+- **Two seeds per prompt variant.**
+- **A third variant** adds what changed on bursting linked pages the day
+  before: a prose snippet each, for up to three of them.
+- **Titles at the time.** Pages are named by their titles then, not the
+  snapshot's.
+
+The prompt budget is 512 tokens. Some test prompts had their context
+shortened to fit: 3 for context, 14 with triggers, 66 with changes. The
+comparisons below exclude examples shortened in either prompt. Including
+them moves the trigger rows by at most 0.0004, but makes the snippet
+penalty about 0.002 larger (+0.0047 pooled), since shortening removes
+context. `python scripts/analyze_stage2.py` reproduces these numbers from
+`results.json`.
+
+Test NLL per inserted-text token:
+
+| variant | untuned | tuned, seed 1234 | tuned, seed 2345 |
+|---|---|---|---|
+| context | 2.750 | 1.893 | 1.895 |
+| + triggers | 2.762 | 1.889 | 1.891 |
+| + triggers + changes | 2.761 | 1.891 | 1.894 |
+
+Paired per-example differences in mean NLL/token (negative is better):
+
+| comparison | subset | n | seed 1234 | seed 2345 | pooled |
+|---|---|---|---|---|---|
+| triggers − context | bursting linked page | 927 | −0.0132 ± 0.0035 | −0.0144 ± 0.0034 | **−0.0138 ± 0.0032** |
+| triggers − context | none | 1,868 | +0.0004 ± 0.0016 | −0.0036 ± 0.0014 | −0.0016 ± 0.0010 |
+| changes − triggers | snippet shown | 684 | +0.0003 ± 0.0022 | +0.0047 ± 0.0019 | +0.0025 ± 0.0017 |
+| changes − triggers | none (identical prompts) | 1,868 | −0.0011 ± 0.0009 | +0.0030 ± 0.0010 | +0.0009 ± 0.0007 |
+
+What this means:
+- **The trigger effect replicates, and is larger:** −0.014 per token on
+  edits with a bursting linked page, in both seeds (t ≈ 4 each). The
+  titles are now point-in-time, so the first run's −0.010 didn't come from
+  leaked renames.
+- **Run-to-run noise is about ±0.003 per token.** The cleanest measure is
+  the last row. The two variants' prompts are identical there, yet the
+  seeds differ by −0.0011 and +0.0030. The per-example SE doesn't cover
+  this, so effects below ~0.005 need more seeds. The trigger effect is
+  about four times that.
+- **Snippets of what changed add nothing detectable.** If anything they
+  make things slightly worse (+0.0025 ± 0.0017 pooled). The samples
+  suggest why:
+  - Snippets are about the linked page's own news, and rarely say what
+    this page's edit will. Take the share of an inserted text's words (4+
+    letters) that appear in its snippets: the median is 0, and the 90th
+    percentile is 5%.
+  - High-degree pages get incidental neighbors: Formula One's were Patrick
+    Mahomes, New York Red Bulls and Russia.
+  - What helps is the neighbor's *name*. For example, "Deccan thorn scrub
+    forests" had [[Acacia planifrons]] changed to [[Vachellia …, the day
+    after "Vachellia planifrons" burst.
+- **Most of the trigger gain is a neighbor's name being copied.** 40 test
+  edits' inserted text contains a shown neighbor's title, 25 of them as a
+  link. For example, Cecilia Bartoli's page gained "She performed at the
+  [[2026 Winter Olympics opening ceremony]]", which was a bursting neighbor
+  the day before.
+  - On those 40 edits, triggers cut NLL by 0.19 per token in both seeds.
+  - On the other 887 edits with bursting neighbors, the cut is 0.0058 ±
+    0.0020.
+  - This split conditions on the answer, so it shows where the gain comes
+    from; it isn't a score.
+- **The untuned model gets slightly worse with trigger text** (2.750 →
+  2.762). Only a fine-tuned model can use it.
+- **The repetition penalty (1.2) fixed looping:** none of the 12 saved
+  generations loop, in any variant. In the first run, 3 of 24 did.
+- **Still optimistic in one way:** which pages count as linked comes from
+  the 2026-09 link snapshot (§5, "Step 4 results").
+- **Snippet coverage:** a neighbor's snippet can come from another example
+  that day, so a snippet shown isn't always one of the top three
+  neighbors. That's harmless: it's still a bursting neighbor, point-in-time.
 
 ## 6. Next steps, in order
 
@@ -904,17 +1007,28 @@ old step 2 (move to English Wikipedia) is now step 5.
      burst signal is real but tiny.
 7. **Pageview-based popularity stratum.** Unchanged; deferred until ready
    to pull the pageviews dumps.
-8. **Stage 2 QLoRA fine-tuning** on the RTX 3070 (**first run done
-   2026-09-29**, see §3 item 14 and §5 "Stage 2 results"; started once the
-   Stage 1 burst and link signals proved real, if small). Next, in rough
-   order:
-   - Replicate with a second seed, to confirm the trigger effect on the
-     bursting-neighbor subset.
-   - Put *what changed* on the bursting linked pages into the triggers
-     (e.g. their recent inserted text), not just their titles. That's the
-     event content the model could actually use.
-   - Try Qwen2.5-1.5B; with QLoRA it should fit in 8GB.
-   - Use a repetition penalty or sampling for generations.
+8. **Stage 2 QLoRA fine-tuning** on the RTX 3070 (**first run and seed
+   replication done 2026-09-29**, see §3 items 14–15 and §5 "Stage 2
+   results" and "Stage 2: seeds and change snippets"; started once the
+   Stage 1 burst and link signals proved real, if small).
+
+   Done: a second seed (the trigger effect replicates, −0.014 per token);
+   snippets of what changed on bursting linked pages (no detectable gain);
+   point-in-time titles; a repetition penalty for generations.
+
+   Next, in rough order:
+   - Pick neighbors by relevance to this page, not by editor count. For
+     example, show a neighbor only if its new text that day links to or
+     names this page. High-degree pages get incidental neighbors, and that
+     may be why snippets didn't help.
+   - Try Qwen2.5-1.5B; with QLoRA it should fit in 8GB. A larger model may
+     use content the 0.5B one ignores.
+   - Use more seeds, or average runs, for effects under ~0.005 per token:
+     run-to-run noise is about ±0.003.
+   - Give longer prompts room. At 512 tokens, the snippet prompts lost
+     context on 66 test examples, against 14 with triggers alone. Memory
+     peaked at 4.6 of 8 GB, so raise the budget (or cap the snippets) until
+     no variant is shortened.
 
    The pre-fetch checklist below is done (word-level diffs, bots and
    reverts excluded, 50-revision batches, incremental output). Before any
