@@ -32,16 +32,33 @@ def edit_context(old: str, offset: int, before: int = 600, after: int = 200) -> 
     return section, old[start:offset] + EDIT_MARK + old[offset:end]
 
 
-def trigger_text(features: dict, bursting_neighbors: list[str], max_neighbors: int = 8) -> str:
-    """The Stage 1 signals for (page, day), as prompt lines."""
+def trigger_text(
+    features: dict,
+    bursting_neighbors: list[str],
+    max_neighbors: int = 8,
+    changes: dict[str, str | None] | None = None,
+    max_changes: int = 3,
+) -> str:
+    """The Stage 1 signals for (page, day), as prompt lines.
+
+    `changes` maps a bursting neighbor's title to a snippet of what changed
+    on it the day before (`build_stage2_neighbor_changes.py`). Snippets are
+    shown for the first `max_changes` neighbors that have one.
+    """
     burst = "yes" if features["is_burst_1d"] else "no"
     neighbors = "; ".join(t.replace("_", " ") for t in bursting_neighbors[:max_neighbors]) or "none"
-    return (
+    text = (
         f"Edits to this page yesterday: {features['edits_1d']}; last 7 days: {features['edits_7d']}; "
         f"last 30 days: {features['edits_30d']}.\n"
         f"Page bursting yesterday: {burst} (z = {features['burst_z_1d']:.1f}).\n"
         f"Linked pages bursting yesterday: {neighbors}."
     )
+    shown = [(t, changes[t]) for t in bursting_neighbors if changes and changes.get(t)][:max_changes]
+    if shown:
+        text += "\nWhat changed on them yesterday:" + "".join(
+            f'\n- {t.replace("_", " ")}: "{s}"' for t, s in shown
+        )
+    return text
 
 
 def build_prompt(title: str, date: str, section: str, context: str, triggers: str | None = None) -> str:

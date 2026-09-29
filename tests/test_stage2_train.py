@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 import torch
 
-from scripts.train_stage2 import collate, paired, target_nll
+from scripts.train_stage2 import attach_changes, collate, paired, pooled, target_nll
 
 VOCAB = 50
 
@@ -40,6 +40,24 @@ class CollateTest(unittest.TestCase):
         wrong, wrong_counts = target_nll(_Oracle(), ids, mask, shifted, keep + 1)
         self.assertEqual(wrong_counts.tolist(), [2, 3, 1])
         self.assertTrue(torch.all(wrong / wrong_counts > 1.0), wrong)
+
+
+class PooledAndChangesTest(unittest.TestCase):
+    def test_pooled_averages_each_example_over_runs(self):
+        self.assertEqual(pooled([[(2.0, 2), (4.0, 1)], [(4.0, 2), (2.0, 1)]]), [(3.0, 2), (3.0, 1)])
+
+    def test_changes_come_from_the_previous_day(self):
+        import tempfile
+        from datetime import date
+        from pathlib import Path
+        import pyarrow as pa
+        import pyarrow.parquet as pq
+        with tempfile.TemporaryDirectory() as tmp:
+            pq.write_table(pa.table({"title": ["A", "A", "B"], "date": [date(2025, 1, 1), date(2025, 1, 2), date(2025, 1, 1)],
+                                     "snippet": ["day 1", "day 2", None]}), Path(tmp) / "part-00000.parquet")
+            rows = [{"date": date(2025, 1, 2), "bursting_neighbors": ["A", "B", "C"]}]
+            attach_changes(rows, Path(tmp))
+        self.assertEqual(rows[0]["neighbor_changes"], {"A": "day 1", "B": None, "C": None})
 
 
 class PairedTest(unittest.TestCase):

@@ -38,6 +38,20 @@ class PromptTest(unittest.TestCase):
         self.assertEqual(without, with_t.replace(triggers + "\n", ""))
         self.assertIn("Linked pages bursting yesterday: none.", trigger_text(features, []))
 
+    def test_changes_on_bursting_neighbors(self):
+        features = {"edits_1d": 3, "edits_7d": 5, "edits_30d": 9, "is_burst_1d": False, "burst_z_1d": 0.2}
+        neighbors = ["Wilson_Fisk_(Marvel_Cinematic_Universe)", "Daredevil", "Kingpin", "Elektra"]
+        changes = {"Wilson_Fisk_(Marvel_Cinematic_Universe)": "Fisk is elected Mayor of New York City",
+                   "Daredevil": None, "Kingpin": "a", "Elektra": "b"}
+        text = trigger_text(features, neighbors, changes=changes)
+        self.assertTrue(text.endswith(
+            'What changed on them yesterday:\n'
+            '- Wilson Fisk (Marvel Cinematic Universe): "Fisk is elected Mayor of New York City"\n'
+            '- Kingpin: "a"\n- Elektra: "b"'
+        ))  # Daredevil has no snippet, so the first three with one are shown
+        self.assertEqual(trigger_text(features, neighbors), trigger_text(features, neighbors, changes={}))
+        self.assertNotIn("What changed", trigger_text(features, neighbors, changes={}))
+
 
 if __name__ == "__main__":
     unittest.main()
