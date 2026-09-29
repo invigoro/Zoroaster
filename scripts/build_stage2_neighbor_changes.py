@@ -1,7 +1,7 @@
 """What changed on each Stage 2 example's bursting linked pages the day before.
 
-Takes each example's top MAX_NEIGHBORS bursting neighbors, most editors
-first (`build_stage2_targets.py`). For each (linked page Q, day D-1), this
+Takes every bursting neighbor a prompt can name, up to MAX_NEIGHBORS, most
+editors first (`build_stage2_targets.py`). For each (linked page Q, day D-1), this
 takes the net change over that day: the word diff between Q's text at the
 start of D-1 (the parent of its first revision that day) and at its end
 (its last revision that day).
@@ -21,8 +21,9 @@ cut to SNIPPET_CHARS:
 The new text of each span is stored too (capped), so snippets can be
 re-derived without refetching.
 
-Writes `data/processed/enwiki/stage2/neighbor_changes/part-NNNNN.parquet`,
-resumable like `fetch_stage2_diffs.py`.
+Writes `data/processed/enwiki/stage2/neighbor_changes/part-NNNNN.parquet`.
+A rerun fetches only the pairs no part has yet, so raising MAX_NEIGHBORS
+adds to the existing parts.
 
 Usage:
     python scripts/build_stage2_neighbor_changes.py
@@ -47,11 +48,12 @@ from scripts.build_enwiki_labels import LABELS_DIR
 from scripts.build_stage2_targets import OUT_DIR
 from scripts.fetch_stage2_diffs import EXAMPLES_DIR
 from src.stage2.diff import word_diff
+from src.stage2.examples import MAX_NEIGHBORS_SHOWN
 from src.stage2.fetch import fetch_contents
 from src.stage2.wikitext import prose
 
 CHANGES_DIR = OUT_DIR / "neighbor_changes"
-MAX_NEIGHBORS = 3
+MAX_NEIGHBORS = MAX_NEIGHBORS_SHOWN  # the first run fetched 3
 SNIPPET_CHARS = 150
 MIN_SNIPPET_CHARS = 25  # shorter prose is mostly a fixed word or leftover markup
 MAX_SPAN_CHARS, MAX_SPANS_CHARS = 20_000, 50_000  # raw spans kept per page-day
@@ -120,9 +122,15 @@ def main() -> int:
     print(f"{len(pairs):,} (page, day) pairs; {len(bounds):,} found in the revision data "
           f"({time.monotonic() - start_time:,.0f}s)")
     CHANGES_DIR.mkdir(parents=True, exist_ok=True)
-    first_part = len(list(CHANGES_DIR.glob("part-*.parquet")))
+    parts = sorted(CHANGES_DIR.glob("part-*.parquet"))
+    done = set()
+    for part in parts:
+        t = pq.read_table(part, columns=["title", "date"])
+        done |= set(zip(t["title"].to_pylist(), t["date"].to_pylist()))
+    bounds = [b for b in bounds if (b["title"], b["date"]) not in done]
+    print(f"{len(done):,} pairs already fetched, {len(bounds):,} to fetch", flush=True)
     session = requests.Session()
-    for n, begin in enumerate(range(first_part * PAIRS_PER_PART, len(bounds), PAIRS_PER_PART), start=first_part):
+    for n, begin in enumerate(range(0, len(bounds), PAIRS_PER_PART), start=len(parts)):
         chunk = bounds[begin : begin + PAIRS_PER_PART]
         ids = [i for b in chunk for i in (b["start_revision"], b["end_revision"]) if i]
         texts = dict(fetch_contents(list(dict.fromkeys(ids)), session=session))
