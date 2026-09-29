@@ -16,7 +16,7 @@ from src.stage1.features import (
     feature_matrix,
     site_edit_totals,
 )
-from src.stage1.metrics import day_metrics, mean_day_metrics
+from src.stage1.metrics import average, day_metrics, mean_day_metrics, paired_difference, per_day_metrics
 from src.stage1.panel import LABEL_COLUMNS, PANEL_BASE_SCHEMA, PANEL_SCHEMA, add_co_burst, panel_row
 from src.stage1.splits import EMBARGO_DAYS, EVAL_DAY_STRIDE, make_splits
 
@@ -67,6 +67,16 @@ class MetricsTest(unittest.TestCase):
         self.assertEqual(m["recall@1000"], 1.0)
         self.assertEqual(m["precision@100"], (1 / 100 + 0) / 2)
         self.assertFalse(math.isnan(m["precision@1000"]))
+        self.assertEqual(m, average(per_day_metrics(scores, labels, days)))
+
+    def test_paired_difference(self):
+        nan = float("nan")
+        baseline = [{"m": 0.1}, {"m": 0.2}, {"m": nan}]
+        candidate = [{"m": 0.2}, {"m": 0.1}, {"m": 0.5}]
+        d = paired_difference(baseline, candidate, "m")
+        self.assertAlmostEqual(d["mean"], 0.0)
+        self.assertAlmostEqual(d["se"], 0.1)  # std([0.1, -0.1], ddof=1) / sqrt(2)
+        self.assertEqual((d["days_better"], d["days_worse"], d["days"]), (1, 1, 2))
 
 
 class BaselinesTest(unittest.TestCase):

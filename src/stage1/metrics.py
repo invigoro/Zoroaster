@@ -37,11 +37,37 @@ def day_metrics(scores: np.ndarray, labels: np.ndarray, rng: np.random.Generator
     return out
 
 
+def per_day_metrics(
+    scores: np.ndarray, labels: np.ndarray, days: np.ndarray, seed: int = 0
+) -> list[dict[str, float]]:
+    """`day_metrics` for each distinct value of `days`, in sorted order."""
+    rng = np.random.default_rng(seed)
+    return [day_metrics(scores[days == d], labels[days == d], rng) for d in np.unique(days)]
+
+
+def average(per_day: list[dict[str, float]]) -> dict[str, float]:
+    """Macro-average over days, skipping NaNs (days without positives)."""
+    return {name: float(np.nanmean([m[name] for m in per_day])) for name in METRIC_NAMES}
+
+
 def mean_day_metrics(
     scores: np.ndarray, labels: np.ndarray, days: np.ndarray, seed: int = 0
 ) -> dict[str, float]:
-    """Macro-average of `day_metrics` over the distinct values of `days`,
-    skipping NaNs (days without positives)."""
-    rng = np.random.default_rng(seed)
-    per_day = [day_metrics(scores[days == d], labels[days == d], rng) for d in np.unique(days)]
-    return {name: float(np.nanmean([m[name] for m in per_day])) for name in METRIC_NAMES}
+    return average(per_day_metrics(scores, labels, days, seed))
+
+
+def paired_difference(baseline: list[dict], candidate: list[dict], name: str) -> dict[str, float]:
+    """Per-day `candidate - baseline` for metric `name`, over the days where
+    both are defined: the mean, its standard error, and how many days the
+    candidate was better or worse. Pairing by day removes most of the
+    day-to-day variance that an unpaired comparison of two means would carry."""
+    diffs = np.array(
+        [c[name] - b[name] for b, c in zip(baseline, candidate, strict=True) if not (np.isnan(b[name]) or np.isnan(c[name]))]
+    )
+    return {
+        "mean": float(diffs.mean()),
+        "se": float(diffs.std(ddof=1) / np.sqrt(len(diffs))),
+        "days_better": int((diffs > 0).sum()),
+        "days_worse": int((diffs < 0).sum()),
+        "days": len(diffs),
+    }
