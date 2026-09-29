@@ -178,6 +178,24 @@ Wikipedia, which is roughly 100× the test corpus.
   nothing, even though its top days are clearly real events (elections,
   disasters, the World Cup final). Details are in `PLAN.md` §5.
 
+- **Stage 2: generating the edit's text** (`src/stage2/`). This fine-tunes
+  Qwen2.5-0.5B with QLoRA on an 8GB GPU to write the text an edit inserts,
+  given the page, date, section and surrounding text. It compares prompts
+  with and without *trigger text*: the Stage 1 signals, including titles
+  of linked pages bursting the day before.
+  - The inserted text comes from word-level diffs of revisions fetched
+    from the MediaWiki API, 50 per request.
+  - Only the changed text and its context are stored.
+
+  ```bash
+  pip install torch --index-url https://download.pytorch.org/whl/cu128
+  pip install -r requirements-stage2.txt
+  python scripts/build_enwiki_links.py      # 11 GB of link tables (needed for trigger titles)
+  python scripts/build_stage2_targets.py    # 16,000 kept edits with their Stage 1 signals
+  python scripts/fetch_stage2_diffs.py      # ~20 min of polite API fetching
+  python scripts/train_stage2.py            # ~1 hour on an RTX 3070
+  ```
+
 Run the tests (no network or data files needed) with:
 
 ```bash
