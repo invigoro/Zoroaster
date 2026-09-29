@@ -29,6 +29,10 @@ as of the dump snapshot, which would leak later renames.
 The prompt budget (MAX_PROMPT_TOKENS) is large enough that trigger text
 doesn't crowd out context. Truncation is counted and reported: at 384
 tokens, the first run trimmed the triggers variant's context more often.
+A shortened prompt loses the far end of its context, which biases a
+comparison against the longer prompt. So comparisons leave out test
+examples shortened in either prompt; `comparisons_including_shortened`
+keeps them.
 
 Memory on 8GB:
 - Sequences are left-padded so every target sits at the end, and logits
@@ -231,6 +235,12 @@ def pooled(runs: list[list[tuple[float, int]]]) -> list[tuple[float, int]]:
     return [(float(np.mean([run[i][0] for run in runs])), runs[0][i][1]) for i in range(len(runs[0]))]
 
 
+def unshortened(mask: list[bool] | None, shortened_a: list[bool], shortened_b: list[bool]) -> list[bool]:
+    """`mask` (None: every example) without the examples either prompt had to shorten."""
+    keep = [not (x or y) for x, y in zip(shortened_a, shortened_b)]
+    return keep if mask is None else [m and k for m, k in zip(mask, keep)]
+
+
 def paired(a: list[tuple[float, int]], b: list[tuple[float, int]], subset: list[bool] | None = None) -> dict:
     """Per-example mean-token-NLL difference b - a: mean, standard error, share improved."""
     diffs = np.array([nb / cb - na / ca for (na, ca), (nb, cb) in zip(a, b)])
@@ -278,10 +288,11 @@ def main(argv: list[str] | None = None) -> int:
     print({s: len(v) for s, v in by_split.items()})
     tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL)
     pad_id = tokenizer.pad_token_id if tokenizer.pad_token_id is not None else tokenizer.eos_token_id
-    encoded, truncation = {}, {}
+    encoded, truncation, shortened = {}, {}, {}
     for v in args.variants:
         encoded[v] = {s: [encode(tokenizer, r, v) for r in rs] for s, rs in by_split.items()}
         truncation[v] = {s: sum(t for _, _, t in e) for s, e in encoded[v].items()}
+        shortened[v] = [t for _, _, t in encoded[v]["test"]]
         encoded[v] = {s: [(p, t) for p, t, _ in e] for s, e in encoded[v].items()}
     print("prompts truncated (context shortened):", truncation)
 
@@ -332,12 +343,15 @@ def main(argv: list[str] | None = None) -> int:
     results["test_token_nll"] = {name: token_mean(s) for name, s in scores.items()}
     pairs_to_compare = [(a, b) for a, b in [("context", "context+triggers"), ("context+triggers", "context+triggers+changes"),
                                             ("context", "context+triggers+changes")] if a in args.variants and b in args.variants]
-    results["comparisons"] = {
-        f"{b} vs {a} / {run} / {subset}": paired(scores[f"tuned / {a} / {run}"], scores[f"tuned / {b} / {run}"], mask)
-        for a, b in pairs_to_compare
-        for run in [f"seed {s}" for s in args.seeds] + ["pooled"]
-        for subset, mask in subsets.items()
-    }
+    runs = [f"seed {s}" for s in args.seeds] + ["pooled"]
+    for key, restrict in [("comparisons", True), ("comparisons_including_shortened", False)]:
+        results[key] = {
+            f"{b} vs {a} / {run} / {subset}": paired(
+                scores[f"tuned / {a} / {run}"], scores[f"tuned / {b} / {run}"],
+                unshortened(mask, shortened[a], shortened[b]) if restrict else mask,
+            )
+            for a, b in pairs_to_compare for run in runs for subset, mask in subsets.items()
+        }
     if len(args.seeds) > 1:  # run-to-run noise: the same variant, two seeds
         results["seed_noise"] = {v: paired(scores[f"tuned / {v} / seed {args.seeds[0]}"], scores[f"tuned / {v} / seed {args.seeds[1]}"])
                                  for v in args.variants}

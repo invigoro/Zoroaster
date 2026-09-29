@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 import torch
 
-from scripts.train_stage2 import attach_changes, collate, paired, point_in_time_titles, pooled, target_nll
+from scripts.train_stage2 import attach_changes, collate, paired, point_in_time_titles, pooled, target_nll, unshortened
 
 VOCAB = 50
 
@@ -91,6 +91,11 @@ class PairedTest(unittest.TestCase):
         self.assertAlmostEqual(d["mean"], -0.5)
         self.assertEqual((d["share_improved"], d["examples"]), (0.5, 2))
         self.assertEqual(paired(a, b, [True, False])["mean"], -1.0)
+
+    def test_unshortened_drops_examples_either_prompt_shortened(self):
+        a, b = [False, True, False, False], [False, False, True, False]
+        self.assertEqual(unshortened(None, a, b), [True, False, False, True])
+        self.assertEqual(unshortened([False, True, True, True], a, b), [False, False, False, True])
 
 
 if __name__ == "__main__":
