@@ -15,6 +15,13 @@ from typing import Iterable
 from src.common import is_bot_edit
 
 
+def hash_sampled(page_id: int, rate: float) -> bool:
+    """Deterministic page sample: Knuth multiplicative hashing of the page id
+    into 32 bits. The high bits decide, so the sample is independent of
+    `page_id % n` bucketing."""
+    return (page_id * 2654435761) % 2**32 < rate * 2**32
+
+
 def _edit_frequency_bucket(edit_count: int) -> str:
     if edit_count < 5:
         return "low"
