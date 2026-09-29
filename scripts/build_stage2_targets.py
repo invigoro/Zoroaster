@@ -78,7 +78,9 @@ def bursting_neighbors(selected: pa.Table) -> list[list[str]]:
     for s, t in zip(links["source"].to_pylist(), links["target"].to_pylist()):
         neighbors.setdefault(s, set()).add(t)
         neighbors.setdefault(t, set()).add(s)
-    prev_days = pc.unique(pc.cast(pc.subtract(pc.cast(selected["date"], pa.int32()), 1), pa.date32()))
+    # Stay in int32: int64 (what a plain `- 1` promotes to) can't cast back to date32.
+    day_numbers = pc.subtract(pc.cast(selected["date"], pa.int32()), pa.scalar(1, pa.int32()))
+    prev_days = pc.unique(pc.cast(day_numbers, pa.date32()))
     bursts = pq.read_table(enwiki.BURST_DIR, columns=["page_id", "date", "editors", "is_burst"])
     bursts = bursts.filter(pc.and_(bursts["is_burst"], pc.is_in(bursts["date"], prev_days)))
     editors = {(p, d): e for p, d, e in zip(*(bursts[c].to_pylist() for c in ("page_id", "date", "editors")))}
