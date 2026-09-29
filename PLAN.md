@@ -266,6 +266,16 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
     - Windows: train 2024-06-07..2024-12-05, validation
       2025-03-06..2025-09-03, test 2025-12-03..2026-06-02.
     - Results are in §5, "English Wikipedia results".
+13. **English Wikipedia link graph (2026-09-28)**: `python
+    scripts/build_enwiki_links.py`.
+    - The 20260901 SQL tables, 11.15 GB.
+    - 255,571,218 mainspace links touching the 20% page sample, built in
+      22 minutes. The SQL parser needed a fix first: English Wikipedia's
+      dumps put one row per line.
+    - The harness then reruns with the link feature sets. Neighbor features
+      took about 2.5 minutes per burst definition, over 1.87M receiving
+      pages.
+    - Results are in §5, "English Wikipedia link-neighbor results".
 
 ## 4. Data state — important for resuming on a new machine
 
@@ -660,6 +670,39 @@ What this means:
   no human edit in the prior 30 days (66% on Simple Wikipedia), and 9.7% had
   none in the prior year (28%).
 
+### English Wikipedia link-neighbor results (2026-09-28)
+
+**Raw lift.** 11.1% of evaluation rows had a link neighbor bursting the day
+before. Those rows got a kept edit at 3.0× the base rate (1.90% vs
+0.62%).
+
+| model | P@100 | P@1000 | R@10000 | AP |
+|---|---|---|---|---|
+| habits + burst | 0.741 | 0.436 | 0.150 | 0.0865 |
+| + link counts | 0.746 | 0.436 | 0.150 | 0.0867 |
+| + neighbor bursts | 0.741 | 0.434 | 0.151 | 0.0871 |
+| + neighbor bursts, mass editing excluded | 0.744 | 0.436 | 0.151 | **0.0873** |
+
+Paired per-day differences in AP:
+- **link counts vs habits + burst:** +0.0002 ± 0.0001 (better 13/1 days).
+- **neighbor bursts vs link counts:** +0.0005 ± 0.0001 (11/3).
+- **neighbor bursts with mass editing excluded vs link counts:**
+  **+0.0007 ± 0.0001 (13/1)**.
+- **the discount vs no discount:** +0.0002 ± 0.0001 (12/2).
+
+P@100 differences are all within noise.
+
+What this means:
+- **The page-specific cross-page signal is real on English Wikipedia.**
+  Neighbor bursts improve AP on 13 of 14 test days once mass editing is
+  excluded, where the site-wide co-burst count added nothing. Here the
+  mass-editor discount does help, if modestly.
+- **The gains are small.** From habits to the full model, AP goes 0.0859 →
+  0.0873, +1.6% relative, and the top of the ranking doesn't move. Next-day
+  "which pages" prediction is dominated by page habits.
+- **Still optimistic:** the link snapshot is from 2026-09-01, after the test
+  window (§5 "Step 4 results").
+
 ## 6. Next steps, in order
 
 Re-planned 2026-09-28 after the code review in §5, and again after the
@@ -753,8 +796,10 @@ old step 2 (move to English Wikipedia) is now step 5.
      definition.
    - Records change retroactively between monthly snapshots (renames,
      reverts, moves), so take every month from a single snapshot.
-6. **Link-neighbor bursts on English Wikipedia** (**next candidate**; needs
-   go-ahead for 11.15 GB of link tables, `pagelinks` alone 7.13 GB). On
+6. **Link-neighbor bursts on English Wikipedia** (**done 2026-09-28**, see §3
+   item 13 and §5 "English Wikipedia link-neighbor results"). Small and
+   consistent: +1.6% relative AP in total, with neighbor bursts better on
+   13 of 14 days once mass editing is excluded. The original rationale: on
    English Wikipedia the events are visible in co-burst, but a site-wide
    count can't point at pages. "Pages linked to this one are bursting" is
    the page-specific version, and the direct test of the hypothesis where
