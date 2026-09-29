@@ -1,104 +1,78 @@
-"""Burst / co-burst activity features from retained (non-reverted) revisions.
+"""Causal burst scoring and cross-page co-burst counts.
 
-These are the endogenous "something is happening" signals used in place of
-an external news feed (see the project plan, deferred exogenous-enrichment
-decision): a page's own edit-rate spike vs. its own history, and how many
-*other* pages are spiking on the same day.
+A page is *bursting* on day d when its edit count that day is far above its
+own recent baseline: the BASELINE_DAYS calendar days before d, zero-edit
+days included, clipped to days since the page's first revision. Every input
+is from day d or earlier, so the flag is known by the end of day d and is
+safe as a feature for any later day. This replaces the original
+whole-history baseline, which let future days leak into past z-scores.
 
-Callers should pass revisions that are both retained (non-reverted) and
-non-bot: a coordinated vandalism wave or a routine bot maintenance run
-(interwiki-link bots, AWB mass page creation, etc.) produces the same
-statistical shape as a real-world-event-driven edit wave but isn't the
-signal this feature is meant to capture. On the Simple Wikipedia test
-corpus, the single largest co-burst day was in fact bot/AWB activity, not
-an event, confirming this needs to be filtered upstream rather than
-guarded against here.
+The z-score's denominator is floored at MIN_BASELINE_STD. A quiet page's
+baseline is flat (often all zeros), so without a floor its first few edits
+after a lull, or a brand-new page's first day, would be infinitely
+surprising. With the floor, a quiet page needs about 3 edits in a day to
+burst, and a busy first day counts as a burst. Under the old
+active-days-only population z-score, a page with fewer than 10 active days
+could never burst (Samuelson's inequality caps z at sqrt(n - 1)).
+
+"Co-burst" (how many *other* pages are bursting the same day) is the
+endogenous stand-in for an external news signal (see the project plan).
+Callers should score non-bot, non-revert edits: bot maintenance runs, AWB
+mass edits and vandalism waves otherwise produce the same statistical
+shape as a real-world-event-driven edit wave (see PLAN.md §5).
 """
 
 from __future__ import annotations
 
-from collections import defaultdict
-from statistics import mean, pstdev
-from typing import Iterable, TypedDict
+from collections import Counter
+from math import sqrt
 
 BURST_Z_THRESHOLD = 3.0
 MIN_BURST_DAY_COUNT = 2
+BASELINE_DAYS = 90
+MIN_BASELINE_STD = 1.0
 
 
-class DayActivity(TypedDict):
-    page_id: int
-    date: str
-    edit_count: int
-    baseline_mean: float
-    baseline_std: float
-    zscore: float
-    is_burst: bool
+def baseline_window(first_day: int, day: int) -> tuple[int, int]:
+    """Inclusive (start, end) day ordinals of `day`'s baseline; empty (end <
+    start) on the page's first day."""
+    return max(first_day, day - BASELINE_DAYS), day - 1
 
 
-def _date(timestamp: str) -> str:
-    return timestamp[:10]
+def burst_zscore(count: int, baseline_sum: int, baseline_sum_sq: int, baseline_days: int) -> float:
+    if baseline_days > 0:
+        mean = baseline_sum / baseline_days
+        std = sqrt(max(baseline_sum_sq / baseline_days - mean * mean, 0.0))
+    else:
+        mean = std = 0.0
+    return (count - mean) / max(std, MIN_BASELINE_STD)
 
 
-def daily_edit_counts(revisions: Iterable[dict]) -> dict[tuple[int, str], int]:
-    counts: dict[tuple[int, str], int] = defaultdict(int)
-    for revision in revisions:
-        counts[(revision["page_id"], _date(revision["timestamp"]))] += 1
-    return counts
+def is_burst(count: int, zscore: float) -> bool:
+    return count >= MIN_BURST_DAY_COUNT and zscore >= BURST_Z_THRESHOLD
 
 
-def compute_page_bursts(revisions: Iterable[dict]) -> list[DayActivity]:
-    """Flag burst days per page using a whole-history baseline.
+class CoBurstCounter:
+    """Per-day counts of bursting pages, accumulated one page at a time.
 
-    This uses each page's full retained-edit history as its own baseline
-    (mean/stddev of daily edit counts), which is a simplification of a
-    proper trailing-window baseline — fine for validating the pipeline on a
-    small test corpus, but worth revisiting (e.g. trailing N-day windows,
-    excluding the day itself from its own baseline) before running at full
-    scale.
+    `multi_editor` counts only bursts with at least two distinct editors:
+    on the Simple Wikipedia test corpus, top co-burst days were dominated by
+    unrelated single-editor sessions that happened to share a calendar day,
+    not by several editors reacting to one trigger (PLAN.md §5).
     """
-    counts = daily_edit_counts(revisions)
-    by_page: dict[int, dict[str, int]] = defaultdict(dict)
-    for (page_id, date), count in counts.items():
-        by_page[page_id][date] = count
 
-    results: list[DayActivity] = []
-    for page_id, day_counts in by_page.items():
-        values = list(day_counts.values())
-        baseline_mean = mean(values)
-        baseline_std = pstdev(values)
-        for date, count in sorted(day_counts.items()):
-            zscore = (count - baseline_mean) / baseline_std if baseline_std > 0 else 0.0
-            is_burst = zscore >= BURST_Z_THRESHOLD and count >= MIN_BURST_DAY_COUNT
-            results.append(
-                {
-                    "page_id": page_id,
-                    "date": date,
-                    "edit_count": count,
-                    "baseline_mean": baseline_mean,
-                    "baseline_std": baseline_std,
-                    "zscore": zscore,
-                    "is_burst": is_burst,
-                }
-            )
-    return results
+    def __init__(self) -> None:
+        self.pages: Counter[int] = Counter()
+        self.multi_editor: Counter[int] = Counter()
 
+    def add(self, day: int, editors: int) -> None:
+        self.pages[day] += 1
+        if editors >= 2:
+            self.multi_editor[day] += 1
 
-def compute_co_burst_counts(page_bursts: Iterable[DayActivity]) -> dict[str, int]:
-    """Count how many distinct pages are bursting on each date."""
-    counts: dict[str, int] = defaultdict(int)
-    for activity in page_bursts:
-        if activity["is_burst"]:
-            counts[activity["date"]] += 1
-    return counts
-
-
-def attach_co_burst(page_bursts: list[DayActivity]) -> list[dict]:
-    """Add `co_burst_count`: how many *other* pages are bursting the same day."""
-    co_burst_by_date = compute_co_burst_counts(page_bursts)
-    enriched = []
-    for activity in page_bursts:
-        co_burst = co_burst_by_date.get(activity["date"], 0)
-        if activity["is_burst"]:
-            co_burst -= 1
-        enriched.append({**activity, "co_burst_count": co_burst})
-    return enriched
+    def others(self, day: int, self_bursting: bool, self_editors: int) -> tuple[int, int]:
+        """(pages, multi-editor pages) bursting on `day`, excluding the caller's own page."""
+        return (
+            self.pages[day] - self_bursting,
+            self.multi_editor[day] - (self_bursting and self_editors >= 2),
+        )

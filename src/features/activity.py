@@ -1,0 +1,147 @@
+"""Per-page daily activity and point-in-time features for Stage 1.
+
+A page's labeled revisions (see `src.ingest.revert_detect`) are aggregated
+into per-UTC-day counts on separate channels. Features for a prediction day
+D read only days before D, i.e. what was knowable by the end of day D-1
+(PLAN.md §2). The target for D is D's own `kept_edits`.
+
+Channels:
+- `edits`: non-bot, non-revert edits not yet reverted by the end of the day
+  they were made. This is the input-side stand-in for "retained": the final
+  `is_reverted` flag can't be used for inputs, because a revert can land up
+  to 90 days later.
+- `reverted_edits`: non-bot, non-revert edits reverted by the end of the
+  same day (mostly vandalism).
+- `reverts`: identity reverts by anyone, bots included. Knowable as soon as
+  they're saved.
+- `bot_edits`: bot edits that aren't reverts.
+- `kept_edits`: non-bot, non-revert edits never reverted within the revert
+  window. This depends on future revisions, so it's the *label* channel and
+  must never feed an input feature.
+"""
+
+from __future__ import annotations
+
+from bisect import bisect_left, bisect_right
+from collections import Counter, defaultdict
+from datetime import date
+from itertools import accumulate
+from typing import Mapping
+
+from src.common import is_bot_edit
+from src.features.bursts import baseline_window, burst_zscore, is_burst
+
+CHANNELS = ("edits", "reverted_edits", "reverts", "bot_edits", "kept_edits")
+
+FEATURE_NAMES = (
+    "page_age_days",
+    "days_since_last_edit",
+    "edits_1d",
+    "edits_7d",
+    "edits_30d",
+    "edits_365d",
+    "editors_1d",
+    "editors_7d",
+    "reverted_edits_7d",
+    "reverts_7d",
+    "bot_edits_30d",
+    "burst_z_1d",
+    "is_burst_1d",
+    "burst_days_30d",
+)
+
+
+def day_ordinal(timestamp: str) -> int:
+    """UTC day of a MediaWiki timestamp (`YYYY-MM-DDTHH:MM:SSZ`) as a date ordinal."""
+    return date.fromisoformat(timestamp[:10]).toordinal()
+
+
+class DailySeries:
+    """Sparse per-day counts (days as date ordinals) with O(log n) window sums."""
+
+    def __init__(self, counts: Mapping[int, int]):
+        self.days = sorted(counts)
+        self._prefix = list(accumulate((counts[d] for d in self.days), initial=0))
+
+    def window_sum(self, start: int, end: int) -> int:
+        """Total over calendar days `start`..`end` inclusive (0 if empty)."""
+        if end < start:
+            return 0
+        return self._prefix[bisect_right(self.days, end)] - self._prefix[bisect_left(self.days, start)]
+
+    def last_day_before(self, day: int) -> int | None:
+        i = bisect_left(self.days, day)
+        return self.days[i - 1] if i > 0 else None
+
+
+class PageActivity:
+    """One page's daily activity channels, burst days and editors."""
+
+    def __init__(self, revisions: list[dict]):
+        """`revisions`: one page's revisions, labeled by `detect_page_reverts`."""
+        timestamps = {r["revision_id"]: r["timestamp"] for r in revisions}
+        counts: dict[str, Counter[int]] = {name: Counter() for name in CHANNELS}
+        editors: defaultdict[int, set[str]] = defaultdict(set)
+
+        for r in revisions:
+            day = day_ordinal(r["timestamp"])
+            if r["is_revert"]:
+                counts["reverts"][day] += 1
+            elif is_bot_edit(r["user_text"]):
+                counts["bot_edits"][day] += 1
+            else:
+                reverted_by = r["reverted_by_revision_id"]
+                if reverted_by is not None and day_ordinal(timestamps[reverted_by]) <= day:
+                    counts["reverted_edits"][day] += 1
+                else:
+                    counts["edits"][day] += 1
+                    if r["user_text"]:
+                        editors[day].add(r["user_text"])
+                if not r["is_reverted"]:
+                    counts["kept_edits"][day] += 1
+
+        self.page_id: int = revisions[0]["page_id"]
+        self.first_day = min(day_ordinal(r["timestamp"]) for r in revisions)
+        self.days = sorted(set().union(*counts.values()))  # days with any revision
+        self.counts = counts
+        self.channels = {name: DailySeries(c) for name, c in counts.items()}
+        self.editors: dict[int, set[str]] = dict(editors)
+        self._edit_squares = DailySeries({d: c * c for d, c in counts["edits"].items()})
+        self.burst_days = {d for d, c in counts["edits"].items() if is_burst(c, self.burst_zscore(d))}
+        self._bursts = DailySeries(dict.fromkeys(self.burst_days, 1))
+
+    def burst_zscore(self, day: int) -> float:
+        """z-score of `day`'s `edits` against its causal baseline."""
+        start, end = baseline_window(self.first_day, day)
+        edits = self.channels["edits"]
+        return burst_zscore(
+            edits.window_sum(day, day),
+            edits.window_sum(start, end),
+            self._edit_squares.window_sum(start, end),
+            max(end - start + 1, 0),
+        )
+
+    def editor_count(self, day: int) -> int:
+        return len(self.editors.get(day, ()))
+
+    def features(self, day: int) -> dict:
+        """Point-in-time features for prediction day `day` (reads days < `day` only)."""
+        prev = day - 1
+        edits = self.channels["edits"]
+        last_edit = edits.last_day_before(day)
+        return {
+            "page_age_days": day - self.first_day,
+            "days_since_last_edit": day - last_edit if last_edit is not None else None,
+            "edits_1d": edits.window_sum(prev, prev),
+            "edits_7d": edits.window_sum(day - 7, prev),
+            "edits_30d": edits.window_sum(day - 30, prev),
+            "edits_365d": edits.window_sum(day - 365, prev),
+            "editors_1d": self.editor_count(prev),
+            "editors_7d": len(set().union(*(self.editors.get(d, ()) for d in range(day - 7, day)))),
+            "reverted_edits_7d": self.channels["reverted_edits"].window_sum(day - 7, prev),
+            "reverts_7d": self.channels["reverts"].window_sum(day - 7, prev),
+            "bot_edits_30d": self.channels["bot_edits"].window_sum(day - 30, prev),
+            "burst_z_1d": self.burst_zscore(prev),
+            "is_burst_1d": prev in self.burst_days,
+            "burst_days_30d": self._bursts.window_sum(day - 30, prev),
+        }
