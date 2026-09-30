@@ -9,10 +9,13 @@ instead: the "predicted events" target (PLAN.md §6 step 9). A burst day is
 one in `burst_days` with mass editors left out (`is_burst_excl_mass`), by
 at least `--min-editors` distinct editors (default 2). Most edited pages
 are edited out of habit; bursts are mostly new each day.
-- The panel's negatives were sampled by whether D had a kept edit, not by
-  the burst label. Unweighted, a model would learn P(burst) / P(edited)
-  and favor rarely edited pages. So this target trains with the panel's
-  sample weights, in validation too.
+- Training is unweighted, as for the edit target. The panel's negatives
+  were sampled by whether D had a kept edit, not by the burst label, so an
+  unweighted model learns P(burst) / P(edited) rather than P(burst). But
+  the top of the ranking is all active pages anyway. `--weighted` trains
+  with the panel's sample weights instead: that halved per-day average
+  precision on both validation (0.021 vs 0.041, habits+burst) and test, as
+  the weight-200 negatives dominate the loss (PLAN.md §5).
 - A "burst z yesterday" baseline scores persistence: pages bursting
   yesterday burst again.
 
@@ -208,10 +211,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--corpus", choices=sorted(CORPORA), default="simplewiki")
     parser.add_argument("--target", choices=("edit", "burst"), default="edit")
     parser.add_argument("--min-editors", type=int, default=2, help="for --target burst")
+    parser.add_argument("--weighted", action="store_true", help="for --target burst: train with the panel's sample weights")
     args = parser.parse_args(argv)
     corpus = CORPORA[args.corpus]
     burst = args.target == "burst"
-    tag = f"_burst{args.min_editors}" if burst else ""
+    weighted = burst and args.weighted
+    tag = (f"_burst{args.min_editors}" + ("_weighted" if weighted else "")) if burst else ""
     meta = json.loads(corpus.meta.read_text())
     splits = make_splits(date.fromisoformat(meta["labels_final_through"]), **corpus.split_days)
     for name in ("train", "validation", "test"):
@@ -249,7 +254,7 @@ def main(argv: list[str] | None = None) -> int:
     context = {
         "target": args.target,
         "min_editors": args.min_editors if burst else None,
-        "weighted_training": burst,
+        "weighted_training": weighted,
         "splits": {n: [str(getattr(splits, n).start), str(getattr(splits, n).end)] for n in ("train", "validation", "test")},
         "train_rows": train.num_rows,
         "validation_rows": validation.num_rows,
@@ -287,7 +292,7 @@ def main(argv: list[str] | None = None) -> int:
     corpus.models.mkdir(parents=True, exist_ok=True)
     print("Training LightGBM:")
     for name, columns in feature_sets.items():
-        booster = train_model(name, columns, train, validation, weighted=burst)
+        booster = train_model(name, columns, train, validation, weighted=weighted)
         booster.save_model(str(corpus.models / f"stage1{tag}_{name.replace('+', '_')}.txt"))
         scores = booster.predict(feature_matrix(evaluation, columns), num_iteration=booster.best_iteration)
         per_day = per_day_metrics(scores, y_eval, eval_days, SEED)
