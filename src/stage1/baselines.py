@@ -36,4 +36,6 @@ BASELINES: dict[str, Callable[[pa.Table], np.ndarray]] = {
     "edits last 30 days": lambda t: lexicographic_score(_column(t, "edits_30d"), _column(t, "edits_365d")),
     "most recent edit": lambda t: lexicographic_score(_recency(t), _column(t, "edits_365d")),
     "edits last year": lambda t: lexicographic_score(_column(t, "edits_365d")),
+    # Persistence, for the burst target: the pages bursting hardest yesterday.
+    "burst z yesterday": lambda t: lexicographic_score(_column(t, "burst_z_1d"), _column(t, "edits_1d")),
 }

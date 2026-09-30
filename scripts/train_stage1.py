@@ -4,6 +4,18 @@ For each prediction day D, rank every existing page by how likely it is to
 get a kept edit on D (non-bot, not a revert, never reverted), using only
 information from before D.
 
+`--target burst` ranks pages by how likely they are to *burst* on D
+instead: the "predicted events" target (PLAN.md §6 step 9). A burst day is
+one in `burst_days` with mass editors left out (`is_burst_excl_mass`), by
+at least `--min-editors` distinct editors (default 2). Most edited pages
+are edited out of habit; bursts are mostly new each day.
+- The panel's negatives were sampled by whether D had a kept edit, not by
+  the burst label. Unweighted, a model would learn P(burst) / P(edited)
+  and favor rarely edited pages. So this target trains with the panel's
+  sample weights, in validation too.
+- A "burst z yesterday" baseline scores persistence: pages bursting
+  yesterday burst again.
+
 - Heuristic baselines (`src.stage1.baselines`): yesterday's edits, the last
   30 days' edits, recency, last year's edits.
 - LightGBM on the feature sets of `src.stage1.features`: page habits, then
@@ -23,7 +35,7 @@ Corpora (`--corpus`):
 Writes a results JSON and the models next to the corpus's data.
 
 Usage:
-    python scripts/train_stage1.py [--corpus simplewiki|enwiki]
+    python scripts/train_stage1.py [--corpus simplewiki|enwiki] [--target edit|burst] [--min-editors N]
 """
 
 from __future__ import annotations
@@ -112,7 +124,7 @@ EARLY_STOPPING_ROUNDS = 100
 # heuristic, each feature set against the one it extends, and the two burst
 # definitions for link neighbors against each other.
 COMPARISONS = (
-    [("edits yesterday", "habits")]
+    [("edits yesterday", "habits"), ("burst z yesterday", "habits+burst")]
     + [(parent, child) for child, parent in FEATURE_SET_PARENTS.items()]
     + [("habits+burst+links", "habits+burst+links_excl_mass")]
 )
@@ -158,12 +170,27 @@ def labels(table: pa.Table) -> np.ndarray:
     return pc.cast(table["y"], pa.int8()).to_numpy(zero_copy_only=False)
 
 
-def train_model(name: str, columns: tuple[str, ...], train: pa.Table, validation: pa.Table) -> lgb.Booster:
+def _page_day_keys(table: pa.Table) -> np.ndarray:
+    days = pc.cast(table["date"], pa.int32()).to_numpy(zero_copy_only=False).astype(np.int64)  # < 2**16 until 2149
+    return (pc.cast(table["page_id"], pa.int64()).to_numpy(zero_copy_only=False) << 16) | days
+
+
+def with_burst_labels(table: pa.Table, bursts: pa.Table) -> pa.Table:
+    """`table` with `y` replaced by whether the page burst that day (`bursts`: its page_id and date rows)."""
+    y = np.isin(_page_day_keys(table), _page_day_keys(bursts))
+    return table.set_column(table.schema.get_field_index("y"), "y", pa.array(y))
+
+
+def train_model(name: str, columns: tuple[str, ...], train: pa.Table, validation: pa.Table,
+                weighted: bool = False) -> lgb.Booster:
     categorical = [c for c in CATEGORICAL_FEATURES if c in columns]
+    weight = (lambda t: t["sample_weight"].to_numpy()) if weighted else (lambda t: None)
     train_set = lgb.Dataset(
-        feature_matrix(train, columns), labels(train), feature_name=list(columns), categorical_feature=categorical
+        feature_matrix(train, columns), labels(train), weight=weight(train), feature_name=list(columns),
+        categorical_feature=categorical,
     )
-    validation_set = lgb.Dataset(feature_matrix(validation, columns), labels(validation), reference=train_set)
+    validation_set = lgb.Dataset(feature_matrix(validation, columns), labels(validation), weight=weight(validation),
+                                 reference=train_set)
     start = time.monotonic()
     booster = lgb.train(
         PARAMS,
@@ -179,7 +206,12 @@ def train_model(name: str, columns: tuple[str, ...], train: pa.Table, validation
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--corpus", choices=sorted(CORPORA), default="simplewiki")
-    corpus = CORPORA[parser.parse_args(argv).corpus]
+    parser.add_argument("--target", choices=("edit", "burst"), default="edit")
+    parser.add_argument("--min-editors", type=int, default=2, help="for --target burst")
+    args = parser.parse_args(argv)
+    corpus = CORPORA[args.corpus]
+    burst = args.target == "burst"
+    tag = f"_burst{args.min_editors}" if burst else ""
     meta = json.loads(corpus.meta.read_text())
     splits = make_splits(date.fromisoformat(meta["labels_final_through"]), **corpus.split_days)
     for name in ("train", "validation", "test"):
@@ -189,6 +221,12 @@ def main(argv: list[str] | None = None) -> int:
     site_totals = site_edit_totals(pq.read_table(corpus.site, columns=["date", "edits"]))
     train, validation = split_panel(load(corpus.panel, site_totals), splits)
     evaluation = load(corpus.eval, site_totals)
+    if burst:
+        days = pq.read_table(corpus.daily, columns=["page_id", "date", "is_burst_excl_mass", "editors_excl_mass"])
+        days = days.filter(pc.and_(days["is_burst_excl_mass"], pc.greater_equal(days["editors_excl_mass"], args.min_editors)))
+        train, validation, evaluation = (with_burst_labels(t, days) for t in (train, validation, evaluation))
+        print(f"target: bursts by {args.min_editors}+ editors, mass editors left out ({days.num_rows:,} burst page-days)")
+        del days
     variants: list[str] = []
     if corpus.links is not None:
         tables = [train, validation, evaluation]
@@ -209,6 +247,9 @@ def main(argv: list[str] | None = None) -> int:
     eval_days = pc.cast(evaluation["date"], pa.int32()).to_numpy()
     positives = pc.filter(evaluation, evaluation["y"])
     context = {
+        "target": args.target,
+        "min_editors": args.min_editors if burst else None,
+        "weighted_training": burst,
         "splits": {n: [str(getattr(splits, n).start), str(getattr(splits, n).end)] for n in ("train", "validation", "test")},
         "train_rows": train.num_rows,
         "validation_rows": validation.num_rows,
@@ -246,8 +287,8 @@ def main(argv: list[str] | None = None) -> int:
     corpus.models.mkdir(parents=True, exist_ok=True)
     print("Training LightGBM:")
     for name, columns in feature_sets.items():
-        booster = train_model(name, columns, train, validation)
-        booster.save_model(str(corpus.models / f"stage1_{name.replace('+', '_')}.txt"))
+        booster = train_model(name, columns, train, validation, weighted=burst)
+        booster.save_model(str(corpus.models / f"stage1{tag}_{name.replace('+', '_')}.txt"))
         scores = booster.predict(feature_matrix(evaluation, columns), num_iteration=booster.best_iteration)
         per_day = per_day_metrics(scores, y_eval, eval_days, SEED)
         gain = booster.feature_importance("gain")
@@ -266,7 +307,8 @@ def main(argv: list[str] | None = None) -> int:
         }
         for baseline, candidate in comparisons_to_run
     }
-    corpus.results.write_text(json.dumps({"context": context, "results": results, "comparisons": comparisons}, indent=2))
+    results_path = corpus.results.with_name(corpus.results.stem + tag + corpus.results.suffix)
+    results_path.write_text(json.dumps({"context": context, "results": results, "comparisons": comparisons}, indent=2))
 
     header = ["model"] + list(METRIC_NAMES)
     print("\n| " + " | ".join(header) + " |\n|" + "---|" * len(header))
@@ -280,7 +322,7 @@ def main(argv: list[str] | None = None) -> int:
             if m in ("precision@100", "average_precision")
         ]
         print(f"  {label}: " + "; ".join(cells))
-    print(f"\nWrote {corpus.results}")
+    print(f"\nWrote {results_path}")
     return 0
 
 
