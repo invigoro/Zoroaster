@@ -363,6 +363,17 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
       `score()` now frees the cache and chunks the loss.
     - Results are in §5, "Stage 2: relevance-ranked sentences and
       Qwen2.5-1.5B".
+17. **Step 9, daily input (2026-09-30)**:
+    - `fetch_recent_changes.py` fetched the 11.5 hours that recent changes
+      (30 days kept) and the history dump still both covered, from
+      2026-08-31T15:00Z: 91,515 edits in 3.6 minutes. That's about 190K
+      mainspace edits a day, 40% of them bot-flagged, so a day takes about
+      7 minutes to fetch.
+    - `check_recent_changes_parity.py` compares the two sources edit by
+      edit. The results are in §5, "Recent changes vs the history dumps".
+    - The overlap was about to expire: from 2026-10-01, recent changes no
+      longer reach the dump's last hours. The window is kept in
+      `data/processed/enwiki/daily/rc_dump_overlap.parquet`.
 
 ## 4. Data state — important for resuming on a new machine
 
@@ -406,6 +417,8 @@ python scripts/build_stage2_titles.py      # ~4 min: titles at the time, from th
 python scripts/train_stage2.py             # ~3.3 h on an RTX 3070: 3 prompt variants x 2 seeds
 python scripts/analyze_stage2.py           # ~1 min: the §5 comparisons, from results.json
 python scripts/train_stage2.py --model Qwen/Qwen2.5-1.5B --variants context context+triggers context+triggers+relevant --out data/processed/enwiki/stage2/qwen2.5-1.5b  # ~8 h
+python scripts/fetch_recent_changes.py --start 2026-09-29T00:00:00Z --end 2026-09-30T00:00:00Z --out data/processed/enwiki/daily/2026-09-29.parquet  # ~7 min a day
+python scripts/check_recent_changes_parity.py   # recent changes vs the dump on their overlap (the saved window)
 ```
 
 To re-run revert detection after changing it, use `--from-parquet` on the
@@ -1008,6 +1021,36 @@ What this means:
   than seed 1234 in every variant. Paired, within-seed comparisons cancel
   that out.
 
+### Recent changes vs the history dumps (2026-09-30)
+
+The deployed pipeline reads yesterday's edits from the API's recent changes
+(`src/ingest/recent_changes.py`), but the models were trained on the
+history dumps. The two sources overlapped for 11.5 hours when checked,
+2026-08-31T15:00Z to 2026-09-01T02:30Z. That gave 91,515 recent-changes
+records and 92,162 dump records, 91,469 in both:
+
+| field | agreement | why they differ |
+|---|---|---|
+| page id, parent id, timestamp | 100% | |
+| sha1 | 100% where both have one | the dump lacks 2,677 in its last hours; 17 are hidden by revision deletion |
+| byte size | 99.99% | 12 missing in the dump |
+| anonymous | 99.93% | |
+| bot | 99.83% | the dumps also flag bot-named or bot-group accounts' unflagged edits |
+| title | 99.86% | pages moved since; the dump has snapshot titles |
+| user name | 99.77% | users renamed since |
+| page creation time | 96% of 889 creations | |
+
+- **Hashes needed converting.** The API gives sha1 in hex and the dumps in
+  base 36. Unconverted, 99.99% disagreed, which would have hidden every
+  revert crossing from dump history into daily data.
+- **The dumps count 0.75% more revisions** (693 not in recent changes).
+  They're mostly revisions that page moves and protections create: 229
+  repeat their parent's content exactly. Recent changes list those as log
+  entries, so daily edit counts will run about 0.75% low. A feature-level
+  check should confirm the model doesn't notice.
+- **Missing hashes are rare in the dumps**, 0.04–0.31% a month, except in
+  the snapshot's final hours (10.5%). So they don't affect training.
+
 ## 6. Next steps, in order
 
 Re-planned 2026-09-28 after the code review in §5, and again after the
@@ -1155,8 +1198,9 @@ old step 2 (move to English Wikipedia) is now step 5.
      at the end, so a crash loses the whole run).
 
 9. **Deployment: a static "predicted events for tomorrow" page** (planned
-   2026-09-29). Host on GitHub Pages only (free, static), not an app
-   hosting service.
+   2026-09-29; **daily input done 2026-09-30**, see §3 item 17 and §5
+   "Recent changes vs the history dumps"). Host on GitHub Pages only (free,
+   static), not an app hosting service.
    - **Precompute, don't serve.** Tomorrow's prediction is the same for
      every visitor. A daily batch job writes it as static JSON and the page
      only displays it, so no inference server is needed. The model could run
@@ -1166,8 +1210,8 @@ old step 2 (move to English Wikipedia) is now step 5.
      standard runners for a public repo (2,000 minutes a month if private).
      The local machine is the fallback. Steps:
      1. Just after 00:00 UTC, pull day D−1's edits from the MediaWiki API
-        (`list=recentchanges`). English Wikipedia's ~100K edits a day take a
-        few hundred requests.
+        (`scripts/fetch_recent_changes.py`). About 190K mainspace edits a
+        day take ~400 requests, about 7 minutes.
      2. Update a rolling state of per-page daily counts.
      3. Compute the Stage 1 features and score them with LightGBM. The model
         is a few MB and cheap on CPU.
@@ -1175,22 +1219,32 @@ old step 2 (move to English Wikipedia) is now step 5.
         merged into the base model and quantized for llama.cpp (~400 MB,
         pulled from the Hugging Face Hub each run). That's a few dozen
         short generations on CPU.
-     5. Deploy `predictions/YYYY-MM-DD.json` and the page to Pages
-        (`actions/deploy-pages`).
+     5. Publish `predictions/YYYY-MM-DD.json` and the page (see
+        "Hosting").
    - **Limits:**
      - Pages: sites up to 1 GB and 100 GB/month of bandwidth (soft). Git
        rejects files over 100 MB.
      - Runners: 4 CPUs, 16 GB RAM, ~14 GB of disk, 6-hour jobs.
-     - Scheduled workflows in public repos are disabled after 60 days
-       without repository activity. Check that the daily deploy counts as
-       activity.
+     - Scheduled workflows in *public* repos are disabled after 60 days
+       without repository activity. That doesn't apply while the workflow
+       lives in this private repo.
+   - **Hosting.** This repo is private, and Pages is free only for public
+     repos. Two options, both keeping the site's files out of `main` (only
+     the daily job writes them, and their history is a record of every past
+     prediction):
+     - a small public repo for the site, which the daily job pushes to. The
+       code stays private. This is the recommended option;
+     - making this repo public, and publishing from an orphan `gh-pages`
+       branch.
    - **Work needed first:**
-     - **Incremental ingestion.** The pipeline is built on monthly dumps.
-       Production needs a daily path from the API to the same point-in-time
-       features. `recentchanges` keeps only about 30 days, so the job must
+     - **Daily input: done.** `src/ingest/recent_changes.py` turns recent
+       changes into the dumps' revision records, checked edit by edit
+       against the dump (§5).
+     - **Rolling state.** Recent changes keep only 30 days, so the job must
        carry its own state for the 90-day burst baseline and the 365-day
-       counts. That's a few hundred MB at most, kept as a release asset or
-       in the Actions cache.
+       counts, starting from the dump data. That's a few hundred MB at most,
+       kept as a release asset or in the Actions cache. The first version
+       can run on the local machine, which already has the dump data.
      - **Train/serve parity.** A test should compute features for the same
        days through the dump path and the daily path, and check that they
        match, like the point-in-time tests.
