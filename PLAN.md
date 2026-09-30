@@ -1273,18 +1273,19 @@ old step 2 (move to English Wikipedia) is now step 5.
        then move it to GitHub Actions once it works.
      - **The model is habits+burst, trained unweighted on the burst target**
        (§5 "Stage 1 burst target"). It needs no link graph.
-   - **Hosting.** This repo is private, and Pages is free only for public
-     repos. Two options, both keeping the site's files out of `main` (only
-     the daily job writes them, and their history is a record of every past
-     prediction):
-     - a small public repo for the site, which the daily job pushes to. The
-       code stays private;
-     - making this repo public, and publishing from an orphan `gh-pages`
-       branch. Nothing in the repo or its history is sensitive (checked
-       2026-09-30): no credentials, and no data files. The public parts
-       would be the two email addresses (the User-Agent contact in
-       `src/common.py`, and the author of four early commits) and all of
-       PLAN.md. Undecided.
+   - **Hosting (decided 2026-09-30):** this repo goes public once the page
+     works, and the site is published from an orphan `gh-pages` branch that
+     only the daily job writes. Its history is then a record of every past
+     prediction, kept out of `main`. Pages is free only for public repos.
+     - The history was rewritten on 2026-09-30 so that only GitHub noreply
+       addresses appear. The personal emails were on four early commits'
+       metadata and in the User-Agent, which now gives the repo URL as its
+       contact. Messages, dates and every other file are unchanged. A
+       bundle of the old history is in
+       `C:\Users\Tim\Documents\Zoroaster-backups\`.
+   - **The page's voice:** the repo is named for Zoroaster, the prophet, so
+     the page frames its predictions as his prophecy: "Also sprach
+     Zarathustra" (thus spoke Zarathustra), over tomorrow's list.
    - **Work needed first:**
      - **Daily input: done.** `src/ingest/recent_changes.py` turns recent
        changes into the dumps' revision records, checked edit by edit
