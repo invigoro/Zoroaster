@@ -333,7 +333,7 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
     - `train_stage2.py`: three prompt variants × two seeds, 1 epoch each:
       28.5, 31.6 and 33.5 minutes per run, 3.3 hours in all, with a 4.6 GB
       peak. Results are in §5, "Stage 2: seeds and change snippets".
-16. **Stage 2, relevance and model size (2026-09-29, running)**:
+16. **Stage 2, relevance and model size (2026-09-29 to 30)**:
     - **What the seeds run showed** (`scripts/analyze_stage2.py`):
       - The trigger gain comes from edits whose inserted text names a
         bursting neighbor: 40 test edits, −0.19 per token.
@@ -349,11 +349,20 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
     - `build_stage2_neighbor_changes.py` now covers all shown neighbors (up
       to 8): 3,559 more page-days, 13,464 in all, 8,905 with a prose
       snippet.
-    - **Runs**, launched as a one-off Windows scheduled task so they survive
-      a disconnect. Logs are in `data/processed/enwiki/stage2/logs/`.
-      1. Qwen2.5-0.5B: +triggers vs +relevant, 2 seeds.
-      2. Qwen2.5-1.5B: context, +triggers and +relevant, 2 seeds. It takes
-         6.4 s/step at micro-batch 8, with a 5.7 GB peak.
+    - **Runs**, launched as a one-off Windows scheduled task so they'd
+      survive a disconnect. Logs are in `data/processed/enwiki/stage2/logs/`.
+      1. Qwen2.5-0.5B, +triggers vs +relevant, 2 seeds: 32–33 minutes of
+         training per run, 3 hours in all.
+      2. Qwen2.5-1.5B, context, +triggers and +relevant, 2 seeds: 58–80
+         minutes of training per run (5.1–7.3 s/step; longer prompts are
+         slower), a 5.6 GB peak, 9 hours in all.
+    - **GPU memory ran short while scoring.** Training's cached blocks plus
+      desktop apps filled the 8 GB, and test scoring took 2–60 minutes
+      instead of about 3, most likely from spilling into system RAM (GPU
+      memory read 7.9 of 8 GB whenever it was slow). Nothing failed, and
+      `score()` now frees the cache and chunks the loss.
+    - Results are in §5, "Stage 2: relevance-ranked sentences and
+      Qwen2.5-1.5B".
 
 ## 4. Data state — important for resuming on a new machine
 
@@ -919,7 +928,7 @@ What this means:
   that day, so a snippet shown isn't always one of the top three
   neighbors. That's harmless: it's still a bursting neighbor, point-in-time.
 
-### Stage 2: relevance-ranked sentences (2026-09-29, English Wikipedia)
+### Stage 2: relevance-ranked sentences and Qwen2.5-1.5B (2026-09-29 to 30, English Wikipedia)
 
 Qwen2.5-0.5B, `+relevant` vs `+triggers`, two seeds (§3 item 16).
 `+relevant` shows the bursting neighbors' new sentences most relevant to
@@ -954,7 +963,50 @@ What this means:
   scored 1.88934 test NLL/token, against 1.88919 in the seeds run. GPU
   nondeterminism moves individual examples by 0.008 on average, but the
   mean by only ±0.0004, far less than a different seed does (±0.003).
-- Qwen2.5-1.5B with all three prompts is still running (§3 item 16).
+
+**Qwen2.5-1.5B**, all three prompts, two seeds, on the same examples and
+comparisons (`python scripts/analyze_stage2.py
+data/processed/enwiki/stage2/qwen2.5-1.5b/results.json`). Test NLL per
+inserted-text token, pooled over seeds:
+
+| model | untuned | tuned, context | tuned, + triggers | tuned, + relevant |
+|---|---|---|---|---|
+| Qwen2.5-0.5B | 2.750 | 1.894 | 1.890 | 1.891 |
+| Qwen2.5-1.5B | 2.372 | 1.667 | 1.665 | 1.666 |
+
+(The 0.5B's context score is from the seeds run, the rest from this one.)
+
+Paired per-example differences in mean NLL/token, neither prompt
+shortened:
+
+| comparison | subset | n | 1.5B, seed 1234 | 1.5B, seed 2345 | 1.5B, pooled | 0.5B, pooled |
+|---|---|---|---|---|---|---|
+| triggers − context | bursting linked page | 927 | −0.0118 ± 0.0033 | −0.0077 ± 0.0031 | **−0.0098 ± 0.0031** | −0.0138 ± 0.0032 |
+| triggers − context | … its title in the inserted text | 40 | −0.186 ± 0.056 | −0.178 ± 0.053 | −0.182 ± 0.055 | −0.193 ± 0.053 |
+| triggers − context | … no title in it | 887 | −0.0040 ± 0.0020 | −0.0001 ± 0.0019 | −0.0020 ± 0.0018 | −0.0058 ± 0.0020 |
+| relevant − triggers | relevant text shown | 239 | +0.0007 ± 0.0043 | −0.0030 ± 0.0061 | −0.0012 ± 0.0051 | −0.0070 ± 0.0066 |
+| relevant − triggers | … sharing ≥25% of the answer's words | 35 | −0.015 ± 0.025 | −0.041 ± 0.039 | −0.028 ± 0.032 | −0.043 ± 0.040 |
+| relevant − triggers | none shown (identical prompts) | 2,535 | +0.0006 ± 0.0005 | +0.0011 ± 0.0004 | +0.0008 ± 0.0003 | +0.0007 ± 0.0005 |
+
+What this means:
+- **The larger model is much better at the task.** Fine-tuned, it cuts
+  NLL per inserted token from 1.894 to 1.667 (perplexity 6.6 → 5.3), and
+  untuned from 2.750 to 2.372.
+- **It gets no more from the "something is happening" signal.** The
+  trigger gain is −0.010 per token, against −0.014 at 0.5B, within noise.
+  It comes from the same place: the 40 edits whose inserted text names a
+  bursting neighbor (−0.18 in both seeds). On the rest, triggers do almost
+  nothing (−0.002).
+- **Relevant content still shows no detectable gain** (−0.001 ± 0.005 on
+  239 edits). Where the shown text shares the answer's words, both sizes
+  lean the same way (−0.03 and −0.04), but 35 edits are too few to tell.
+- **For Stage 2, then, the useful signal is which linked pages are
+  bursting:** names the edit is likely to add, not what those pages said.
+  Content might help where it overlaps the edit, but this test set has
+  too few such edits to show it.
+- **Seed effects are larger at 1.5B.** Seed 2345 scores 0.005–0.007 worse
+  than seed 1234 in every variant. Paired, within-seed comparisons cancel
+  that out.
 
 ## 6. Next steps, in order
 
@@ -1066,28 +1118,30 @@ old step 2 (move to English Wikipedia) is now step 5.
      burst signal is real but tiny.
 7. **Pageview-based popularity stratum.** Unchanged; deferred until ready
    to pull the pageviews dumps.
-8. **Stage 2 QLoRA fine-tuning** on the RTX 3070 (**first run and seed
-   replication done 2026-09-29**, see §3 items 14–15 and §5 "Stage 2
-   results" and "Stage 2: seeds and change snippets"; started once the
-   Stage 1 burst and link signals proved real, if small).
+8. **Stage 2 QLoRA fine-tuning** on the RTX 3070 (**done through the
+   model-size run, 2026-09-30**; see §3 items 14–16 and §5's Stage 2
+   sections). It started once the Stage 1 burst and link signals proved
+   real, if small.
 
-   Done: a second seed (the trigger effect replicates, −0.014 per token);
-   snippets of what changed on bursting linked pages (no detectable gain);
-   point-in-time titles; a repetition penalty for generations.
+   Done:
+   - A second seed: the trigger effect replicates, −0.014 per token.
+   - Snippets of what changed on bursting linked pages: no detectable gain.
+   - Relevance-ranked sentences instead: no detectable gain either.
+   - Qwen2.5-1.5B: much better at the task (perplexity 6.6 → 5.3), with
+     the same trigger effect.
+   - Point-in-time titles, a repetition penalty for generations, and
+     scoring that stays inside GPU memory.
 
-   Next, in rough order:
-   - Pick neighbors by relevance to this page, not by editor count. For
-     example, show a neighbor only if its new text that day links to or
-     names this page. High-degree pages get incidental neighbors, and that
-     may be why snippets didn't help.
-   - Try Qwen2.5-1.5B; with QLoRA it should fit in 8GB. A larger model may
-     use content the 0.5B one ignores.
-   - Use more seeds, or average runs, for effects under ~0.005 per token:
-     run-to-run noise is about ±0.003.
-   - Give longer prompts room. At 512 tokens, the snippet prompts lost
-     context on 66 test examples, against 14 with triggers alone. Memory
-     peaked at 4.6 of 8 GB, so raise the budget (or cap the snippets) until
-     no variant is shortened.
+   Left, if Stage 2 is revisited:
+   - **A targeted test set** of edits whose neighbors' new text shares
+     their content, to tell whether content helps where it exists. This
+     test set has only about 35 such edits.
+   - **More seeds, or averaged runs,** for effects under ~0.005 per token.
+     Run-to-run noise is about ±0.003, and seeds differ by up to 0.007 at
+     1.5B.
+   - **Room for longer prompts.** At 512 tokens, 35 relevant-sentence
+     prompts were shortened on test, against 14 with triggers alone. The
+     1.5B peaked at 5.6 of 8 GB, so there's room to raise the budget.
 
    The pre-fetch checklist below is done (word-level diffs, bots and
    reverts excluded, 50-revision batches, incremental output). Before any

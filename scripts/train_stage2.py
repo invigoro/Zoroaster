@@ -46,8 +46,9 @@ Memory on 8GB:
   effective batch at EFFECTIVE_BATCH either way.
 - Scoring frees the memory PyTorch cached during training, and computes
   the full-precision loss SCORE_CHUNK rows at a time. Without that, a
-  1.5B run's test scoring spilled into system RAM and took up to an hour
-  instead of minutes, with desktop apps holding part of the 8GB.
+  1.5B run's test scoring took up to an hour instead of minutes, most
+  likely spilling into system RAM, with desktop apps holding part of the
+  8GB.
 
 Usage:
     python scripts/train_stage2.py [--model Qwen/Qwen2.5-1.5B] [--micro-batch 4]

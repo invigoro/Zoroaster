@@ -179,14 +179,16 @@ Wikipedia, which is roughly 100× the test corpus.
   disasters, the World Cup final). Details are in `PLAN.md` §5.
 
 - **Stage 2: generating the edit's text** (`src/stage2/`). This fine-tunes
-  Qwen2.5-0.5B with QLoRA on an 8GB GPU to write the text an edit inserts,
-  given the page, date, section and surrounding text. It compares three
+  Qwen2.5-0.5B or 1.5B with QLoRA on an 8GB GPU to write the text an edit
+  inserts, given the page, date, section and surrounding text. It compares
   prompts, each trained with two seeds:
   - context only;
   - plus *trigger text*: the Stage 1 signals, including the titles of
     linked pages that were bursting the day before;
-  - plus what changed on those linked pages that day: a snippet of the
-    new prose each one gained (`src/stage2/wikitext.py` strips the markup).
+  - plus what changed on those linked pages that day, either as a snippet
+    of the new prose each one gained (`src/stage2/wikitext.py` strips the
+    markup), or as their new sentences most relevant to the page being
+    edited (`src/stage2/relevance.py`).
 
   Pages are named by their titles at the time, from the history dumps. The
   snapshot's titles would leak later renames.
@@ -203,17 +205,22 @@ Wikipedia, which is roughly 100× the test corpus.
   python scripts/build_stage2_neighbor_changes.py  # ~20 min: what changed on bursting linked pages
   python scripts/build_stage2_titles.py     # ~4 min: titles at the time, from the history dumps
   python scripts/train_stage2.py            # ~3.3 hours on an RTX 3070: 3 prompts x 2 seeds
+  python scripts/train_stage2.py --model Qwen/Qwen2.5-1.5B --out data/processed/enwiki/stage2/qwen2.5-1.5b
+  python scripts/analyze_stage2.py          # per-seed and pooled comparisons from results.json
   ```
 
   Results, on 2,809 test edits from Dec 2025–Jun 2026:
-  - Fine-tuning cuts the perplexity of the inserted text from 15.6 to 6.6.
-  - Trigger text helps on edits whose linked pages were bursting: −0.014
-    nats per token, t ≈ 4 in each of two seeds. It does nothing measurable
-    elsewhere.
-  - Snippets of what changed on those pages add nothing detectable; the
-    neighbor's name is what helps. Most of the gain comes from edits that
-    add that name, often as a link (e.g. a singer's page gaining "She
+  - Fine-tuning Qwen2.5-0.5B cuts the perplexity of the inserted text
+    from 15.6 to 6.6. Qwen2.5-1.5B gets to 5.3.
+  - Trigger text helps on edits whose linked pages were bursting, by about
+    0.01 nats per token at both sizes and in every seed. It does nothing
+    measurable elsewhere.
+  - What helps is the neighbor's name. Most of the gain comes from edits
+    that add that name, often as a link (e.g. a singer's page gaining "She
     performed at the [[2026 Winter Olympics opening ceremony]]").
+  - What changed on those pages adds nothing detectable, whether as each
+    page's longest new prose or as the sentences most relevant to the page
+    being edited.
 
   Details are in `PLAN.md` §5.
 
