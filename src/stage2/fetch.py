@@ -1,14 +1,8 @@
 """Fetch many revisions' wikitext from the MediaWiki action API, 50 at a time.
 
-Etiquette for Wikimedia's servers:
-- sequential requests with a pause between them;
-- a descriptive User-Agent (`src.common`);
-- `maxlag`, so the API can tell a bot to back off while replication lags.
-
-Rate limits, server errors and maxlag responses are retried with backoff,
-honoring Retry-After. When a batch's content exceeds the API's response size
-limit, the API returns part of it plus a continuation token, which is
-followed.
+Requests go through `src.mediawiki_api.api_get`, which handles etiquette
+and retries. When a batch's content exceeds the API's response size limit,
+the API returns part of it plus a continuation token, which is followed.
 """
 
 from __future__ import annotations
@@ -18,28 +12,9 @@ from typing import Iterator, Sequence
 
 import requests
 
-from src.common import USER_AGENT
+from src.mediawiki_api import API_URL, PAUSE_SECONDS, api_get
 
-API_URL = "https://{lang}.wikipedia.org/w/api.php"
 BATCH_SIZE = 50  # the API's limit for `revids`
-PAUSE_SECONDS = 1.0
-MAX_RETRIES = 6
-_RETRY_STATUS = {429, 500, 502, 503, 504}
-
-
-def _get(session: requests.Session, url: str, params: dict, pause: float) -> dict:
-    for attempt in range(MAX_RETRIES):
-        response = session.get(url, params=params, headers={"User-Agent": USER_AGENT}, timeout=60)
-        maxlag = response.ok and response.json().get("error", {}).get("code") == "maxlag"
-        if response.status_code in _RETRY_STATUS or maxlag:
-            time.sleep(float(response.headers.get("Retry-After", pause * 5 * 2**attempt)))
-            continue
-        response.raise_for_status()
-        payload = response.json()
-        if "error" in payload:
-            raise RuntimeError(f"API error: {payload['error']}")
-        return payload
-    raise RuntimeError(f"gave up after {MAX_RETRIES} attempts: {url} {params.get('revids', '')[:80]}")
 
 
 def fetch_contents(
@@ -62,7 +37,7 @@ def fetch_contents(
         found: dict[int, str | None] = {}
         continuation: dict = {}
         while True:
-            payload = _get(session, url, {**params, **continuation}, pause)
+            payload = api_get(session, url, {**params, **continuation}, pause)
             for page in payload.get("query", {}).get("pages", []):
                 for revision in page.get("revisions", []):
                     found[revision["revid"]] = revision.get("slots", {}).get("main", {}).get("content")
