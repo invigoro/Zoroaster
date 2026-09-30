@@ -7,6 +7,8 @@ The feature sets are the project's core ablation. Each extends a parent
   site-wide context. `site_edits_1d` controls for how busy the whole wiki
   was yesterday, so cross-page signals get credit only for more than that.
 - `habits+burst`: adds the page's own causal burst features.
+- `habits+burst+weekly`: adds the page's edits, editors and bursts on the
+  same weekday one and two weeks before D, for weekly schedules.
 - `habits+burst+co_burst`: adds how many *other* pages were bursting,
   site-wide.
 - `habits+burst+degrees`: adds the page's own in/out link counts, the
@@ -44,6 +46,7 @@ HABIT_FEATURES = (
 )
 CONTEXT_FEATURES = ("day_of_week", "site_edits_1d")
 BURST_FEATURES = ("burst_z_1d", "is_burst_1d", "burst_days_30d")
+WEEKLY_FEATURES = ("edits_lag7", "edits_lag14", "editors_lag7", "is_burst_lag7", "is_burst_lag14")
 EXCL_MASS_SUFFIX = "_excl_mass"
 LINK_FEATURES = DEGREE_FEATURES + NEIGHBOR_BURST_FEATURES
 LINK_FEATURES_EXCL_MASS = DEGREE_FEATURES + tuple(f + EXCL_MASS_SUFFIX for f in NEIGHBOR_BURST_FEATURES)
@@ -52,6 +55,7 @@ _HABITS = HABIT_FEATURES + CONTEXT_FEATURES
 FEATURE_SETS: dict[str, tuple[str, ...]] = {
     "habits": _HABITS,
     "habits+burst": _HABITS + BURST_FEATURES,
+    "habits+burst+weekly": _HABITS + BURST_FEATURES + WEEKLY_FEATURES,
     "habits+burst+co_burst": _HABITS + BURST_FEATURES + CO_BURST_COLUMNS,
     "habits+burst+degrees": _HABITS + BURST_FEATURES + DEGREE_FEATURES,
     "habits+burst+links": _HABITS + BURST_FEATURES + LINK_FEATURES,
@@ -64,6 +68,7 @@ FEATURE_SETS: dict[str, tuple[str, ...]] = {
 # predicted.
 FEATURE_SET_PARENTS = {
     "habits+burst": "habits",
+    "habits+burst+weekly": "habits+burst",
     "habits+burst+co_burst": "habits+burst",
     "habits+burst+degrees": "habits+burst",
     "habits+burst+links": "habits+burst+degrees",

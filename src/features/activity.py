@@ -49,6 +49,13 @@ FEATURE_NAMES = (
     "burst_z_1d",
     "is_burst_1d",
     "burst_days_30d",
+    # The same weekday one and two weeks before D: weekly schedules (TV
+    # episodes, fixtures, weekly shows) that the rolling windows smear out.
+    "edits_lag7",
+    "edits_lag14",
+    "editors_lag7",
+    "is_burst_lag7",
+    "is_burst_lag14",
 )
 
 
@@ -238,4 +245,9 @@ class PageActivity:
             "burst_z_1d": self.burst_zscore(prev),
             "is_burst_1d": prev in self.burst_days,
             "burst_days_30d": self._bursts.window_sum(day - 30, prev),
+            "edits_lag7": edits.window_sum(day - 7, day - 7),
+            "edits_lag14": edits.window_sum(day - 14, day - 14),
+            "editors_lag7": self.editor_count(day - 7),
+            "is_burst_lag7": day - 7 in self.burst_days,
+            "is_burst_lag14": day - 14 in self.burst_days,
         }

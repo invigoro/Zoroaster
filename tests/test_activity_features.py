@@ -207,6 +207,19 @@ class BurstTest(unittest.TestCase):
         p = page([revision(1, START, "A", "Alice")])
         self.assertEqual(tuple(p.features(p.first_day + 1)), FEATURE_NAMES)
 
+    def test_weekly_lags_read_the_same_weekday_one_and_two_weeks_back(self):
+        at = lambda day, hour: START + timedelta(days=day, hours=hour)
+        revisions = [revision(1, at(0, 1), "A", "Alice")]
+        revisions += [revision(2 + i, at(7, 1 + i), f"B{i}", user) for i, user in enumerate(["Alice", "Bob", "Alice", "Bob"])]
+        revisions += [revision(6, at(14, 1), "C", "Carol")]
+        p = page(revisions)
+        day = p.first_day + 21
+        self.assertIn(p.first_day + 7, p.burst_days)  # 4 edits after a quiet week
+        f = p.features(day)
+        self.assertEqual((f["edits_lag7"], f["editors_lag7"], f["is_burst_lag7"]), (1, 1, False))  # day 14
+        self.assertEqual((f["edits_lag14"], f["is_burst_lag14"]), (4, True))  # day 7
+        self.assertEqual(p.features(day + 1)["edits_lag7"], 0)  # day 15 had no edits
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -4,6 +4,7 @@ import threading
 import unittest
 from urllib.parse import parse_qs, urlparse
 
+from scripts.fetch_recent_changes import day_files
 from src.ingest.recent_changes import recent_changes, sha1_base36, to_record
 
 EDIT = {"type": "edit", "ns": 0, "title": "2023–2024 Spanish protests", "pageid": 75263703, "revid": 1377674291,
@@ -78,6 +79,18 @@ class RecentChangesTest(unittest.TestCase):
         first, second = _FakeApi.calls
         self.assertEqual((first["rcdir"], first["rcnamespace"], first["rcstart"]), ("newer", "0", "2026-09-29T00:00:00Z"))
         self.assertEqual(second["rccontinue"], "20260929010000|2")
+
+
+class DayFilesTest(unittest.TestCase):
+    def test_days_without_a_file_oldest_first(self):
+        import tempfile
+        from datetime import date
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "2026-09-02.parquet").touch()
+            todo = day_files(date(2026, 9, 1), date(2026, 9, 4), Path(tmp))
+        self.assertEqual([d.isoformat() for d, _ in todo], ["2026-09-01", "2026-09-03", "2026-09-04"])
+        self.assertEqual(todo[0][1].name, "2026-09-01.parquet")
 
 
 if __name__ == "__main__":

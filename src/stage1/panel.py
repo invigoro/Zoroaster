@@ -23,6 +23,8 @@ _FEATURE_TYPES = {
     "days_since_last_edit": pa.int32(),
     "burst_z_1d": pa.float64(),
     "is_burst_1d": pa.bool_(),
+    "is_burst_lag7": pa.bool_(),
+    "is_burst_lag14": pa.bool_(),
 }
 PANEL_BASE_SCHEMA = pa.schema(
     [
