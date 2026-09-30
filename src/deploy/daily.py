@@ -35,7 +35,7 @@ import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.parquet as pq
 
-from src.features.activity import FEATURE_NAMES, PageActivity, day_ordinal
+from src.features.activity import FEATURE_NAMES, MASS_EDITOR_PAGES_PER_DAY, PageActivity, day_ordinal
 from src.ingest.revert_detect import detect_page_reverts
 from src.parquet_io import RowGroupWriter
 from src.stage1.panel import PANEL_BASE_SCHEMA
@@ -43,6 +43,7 @@ from src.stage1.panel import PANEL_BASE_SCHEMA
 LIVE_START = date(2026, 9, 1)  # dump data before this day, recent changes from it on
 HISTORY_START = date(2023, 6, 1)  # the history dumps' first month (download_enwiki_history.FIRST_MONTH)
 LOOKBACK_DAYS = 30
+BURST_MIN_EDITORS = 2  # the Stage 1 burst target (train_stage1.py --min-editors)
 N_BUCKETS = 128
 COLUMNS = ("page_id", "page_title", "revision_id", "parent_id", "timestamp", "user_text", "is_anon", "is_bot",
            "byte_size", "sha1", "page_created")
@@ -80,6 +81,18 @@ def _created_day(revisions: list[dict]) -> int:
     return day_ordinal(created) if created else HISTORY_START.toordinal()
 
 
+def _merged_history(dump_files: Iterable[Path], live: pa.Table, pages: pa.Array, dump_until: str) -> pa.Table:
+    """`pages`' revisions: the dump's before `dump_until`, then `live`'s, sorted by page and revision."""
+    live = live.filter(pc.is_in(live["page_id"], value_set=pages))
+    dump_parts = []
+    for path in dump_files if len(pages) else ():
+        part = pq.read_table(path, columns=list(COLUMNS), filters=[("page_id", "in", pages.to_pylist())])
+        if part.num_rows:
+            dump_parts.append(part.filter(pc.less(part["timestamp"], dump_until)))
+    return pa.concat_tables(dump_parts + [live], promote_options="default").sort_by(
+        [("page_id", "ascending"), ("revision_id", "ascending")])
+
+
 def bucket_features(day: date, dump_files: Iterable[Path], live_file: Path, out: Path,
                     dump_until: str | None = None) -> int:
     """Feature rows for day `day` for one bucket's candidate pages, written to `out`; returns the row count.
@@ -89,19 +102,11 @@ def bucket_features(day: date, dump_files: Iterable[Path], live_file: Path, out:
     favor of the live data. `live_file`: the bucket's live revisions
     (`split_by_bucket`); rows from `day` on are dropped.
     """
-    dump_until = dump_until or _iso(LIVE_START)
     live = pq.read_table(live_file, columns=list(COLUMNS))
     live = live.filter(pc.less(live["timestamp"], _iso(day)))
     recent = live.filter(pc.greater_equal(live["timestamp"], _iso(day - timedelta(days=LOOKBACK_DAYS))))
     candidates = pa.array(pc.unique(recent["page_id"]).to_pylist(), pa.int64())
-    live = live.filter(pc.is_in(live["page_id"], value_set=candidates))
-    dump_parts = []
-    for path in dump_files:
-        part = pq.read_table(path, columns=list(COLUMNS), filters=[("page_id", "in", candidates.to_pylist())]) \
-            if len(candidates) else None
-        if part is not None and part.num_rows:
-            dump_parts.append(part.filter(pc.less(part["timestamp"], dump_until)))
-    table = pa.concat_tables(dump_parts + [live], promote_options="default").sort_by([("page_id", "ascending"), ("revision_id", "ascending")])
+    table = _merged_history(dump_files, live, candidates, dump_until or _iso(LIVE_START))
     target = day.toordinal()
     count = 0
     with RowGroupWriter(out, FEATURE_SCHEMA) as writer:
@@ -111,6 +116,38 @@ def bucket_features(day: date, dump_files: Iterable[Path], live_file: Path, out:
                           | activity.features(target))
             count += 1
     return count
+
+
+def live_mass_editors(day_file: Path, day: date) -> frozenset[tuple[str, int]]:
+    """The day's mass editors, from its live records: non-bot editors of more
+    than MASS_EDITOR_PAGES_PER_DAY distinct pages.
+
+    Training counts only non-revert edits, which takes each page's revert
+    detection. This counts reverts too, so it can only add editors near the
+    threshold whose reverts tip them over; reverts never count as edits.
+    """
+    table = pq.read_table(day_file, columns=["user_text", "page_id", "is_bot"])
+    table = table.filter(pc.and_(pc.invert(table["is_bot"]), pc.is_valid(table["user_text"])))
+    pages = table.group_by("user_text").aggregate([("page_id", "count_distinct")])
+    mass = pages.filter(pc.greater(pages["page_id_count_distinct"], MASS_EDITOR_PAGES_PER_DAY))
+    return frozenset((user, day.toordinal()) for user in mass["user_text"].to_pylist())
+
+
+def bucket_outcomes(day: date, dump_files: Iterable[Path], live_file: Path, pages: list[int],
+                    mass: frozenset[tuple[str, int]]) -> list[dict]:
+    """Whether each of `pages` (one bucket's) burst on `day`, by the Stage 1
+    burst target: a burst with mass editors left out, by BURST_MIN_EDITORS+
+    editors. It reads revisions through the end of `day`."""
+    live = pq.read_table(live_file, columns=list(COLUMNS))
+    live = live.filter(pc.less(live["timestamp"], _iso(day + timedelta(days=1))))
+    table = _merged_history(dump_files, live, pa.array(pages, pa.int64()), _iso(LIVE_START))
+    target, out = day.toordinal(), []
+    for page_rows in _pages(table):
+        activity = PageActivity(detect_page_reverts(page_rows), mass, _created_day(page_rows))
+        editors = activity.editor_count_excl_mass(target)
+        out.append({"page_id": activity.page_id, "edits": activity.counts["edits"][target], "editors": editors,
+                    "burst": target in activity.burst_days_excl_mass and editors >= BURST_MIN_EDITORS})
+    return out
 
 
 def _pages(table: pa.Table) -> Iterator[list[dict]]:

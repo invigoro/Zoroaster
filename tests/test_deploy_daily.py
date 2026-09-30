@@ -6,7 +6,8 @@ from pathlib import Path
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from src.deploy.daily import COLUMNS, HISTORY_START, LIVE_START, bucket_features, live_files, split_by_bucket
+from src.deploy.daily import (COLUMNS, HISTORY_START, LIVE_START, bucket_features, bucket_outcomes, live_files,
+                              live_mass_editors, split_by_bucket)
 from src.features.activity import PageActivity, day_ordinal
 from src.ingest.revert_detect import detect_page_reverts
 
@@ -73,6 +74,35 @@ class BucketFeaturesTest(unittest.TestCase):
             odd = pq.read_table(tmp / "buckets" / "bucket=001.parquet")["page_id"].to_pylist()
         self.assertEqual((sorted(even), sorted(odd)), ([4], [1, 1, 1, 1, 3, 5]))
         self.assertEqual(LIVE_START, date(2026, 9, 1))
+
+
+class OutcomesTest(unittest.TestCase):
+    def test_bursts_on_the_day_by_two_or_more_non_mass_editors(self):
+        quiet = [rev(p, p * 100 + 1, "2026-09-02T10:00:00Z", f"{p}q", created="2020-01-01T00:00:00Z") for p in (1, 2, 3, 4)]
+        on_day = lambda p, users: [rev(p, p * 100 + 10 + i, f"2026-09-15T0{i}:00:00Z", f"{p}s{i}", u)
+                                   for i, u in enumerate(users)]
+        live = (quiet + on_day(1, ["Alice", "Bob", "Alice", "Bob"]) + on_day(2, ["Alice"] * 4)
+                + on_day(3, ["Mass", "Mass", "Mass", "Bob"])
+                + [rev(4, 499, "2026-09-16T01:00:00Z", "4x", "Carol"), rev(4, 498, "2026-09-16T02:00:00Z", "4y", "Dan")])
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            write(live, tmp / "live.parquet")
+            out = {r["page_id"]: r for r in bucket_outcomes(DAY, [], tmp / "live.parquet", [1, 2, 3, 4],
+                                                             frozenset({("Mass", DAY.toordinal())}))}
+        self.assertEqual({p: out[p]["burst"] for p in out}, {1: True, 2: False, 3: False, 4: False})
+        self.assertEqual((out[1]["edits"], out[1]["editors"]), (4, 2))
+        self.assertEqual(out[2]["editors"], 1)  # one editor's saves are not an event
+        self.assertEqual(out[3]["editors"], 1)  # the mass editor is left out
+        self.assertEqual(out[4]["edits"], 0)  # the next day's edits don't count
+
+    def test_live_mass_editors(self):
+        rows = ([rev(p, p, "2026-09-15T10:00:00Z", "a", "Busy") for p in range(26)]
+                + [rev(p, 100 + p, "2026-09-15T10:00:00Z", "a", "Nearly") for p in range(25)]
+                + [dict(rev(p, 200 + p, "2026-09-15T10:00:00Z", "a", "SomeBot"), is_bot=True) for p in range(40)])
+        with tempfile.TemporaryDirectory() as tmp:
+            write(rows, Path(tmp) / "day.parquet")
+            mass = live_mass_editors(Path(tmp) / "day.parquet", DAY)
+        self.assertEqual(mass, frozenset({("Busy", DAY.toordinal())}))
 
 
 if __name__ == "__main__":
