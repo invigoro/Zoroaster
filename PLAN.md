@@ -1084,6 +1084,12 @@ What this means:
   0.037). The weight-200 negatives dominate the loss, and two feature sets
   early-stopped after 32 and 52 rounds. The difference showed up on test
   first, and the 182 validation days confirmed it.
+- **Weekly lags don't reliably help** (habits+burst+weekly: the same
+  weekday's edits, editors and bursts one and two weeks back). On test they
+  add +0.0026 ± 0.0006 AP (12 of 14 days), with P@100 unchanged at 0.110.
+  On the 182 validation days they add +0.0002 ± 0.0003 (98 better, 84
+  worse). So the test gain is seasonal or chance, and habits+burst stays
+  the production model. The features remain in the panel.
 
 ## 6. Next steps, in order
 
@@ -1301,10 +1307,8 @@ old step 2 (move to English Wikipedia) is now step 5.
      - **Link features: not needed.** They don't help the burst target
        (§5), which is just as well, since the full English Wikipedia graph
        (1B+ links) is too big for a free runner.
-     - **Weekly periodicity, maybe.** TV episodes, fixtures and weekly
-       shows burst on a schedule, but the features only count 1, 7, 30 and
-       365 days back. Same-weekday lags (the edits and bursts one and two
-       weeks before D) might catch those. Worth one ablation run.
+     - **Weekly periodicity: tried, no reliable gain** (§5 "Stage 1 burst
+       target"). Same-weekday lags help on test but not on validation.
 
 ## 7. Open questions
 
