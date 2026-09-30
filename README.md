@@ -224,6 +224,29 @@ Wikipedia, which is roughly 100× the test corpus.
 
   Details are in `PLAN.md` §5.
 
+- **The daily prophecy** (`src/deploy/`, `web/`). Each day, this ranks
+  English Wikipedia's recently edited pages by how likely each is to
+  *burst* the next day: far more edits than usual, from 2+ editors. It uses
+  the Stage 1 burst model (`train_stage1.py --target burst`). The page,
+  headed "Also sprach Zarathustra", shows the top pages and how the
+  previous day's prophecy turned out.
+  - Yesterday's edits come from the API's recent changes, turned into the
+    dumps' records (`src/ingest/recent_changes.py`).
+  - Features are computed by the training code itself, from dump history
+    plus those live days (`src/deploy/daily.py`).
+
+  ```bash
+  python scripts/fetch_recent_changes.py --days 2026-09-01 2026-09-29   # live days (recent changes keep 30)
+  python scripts/daily_predictions.py --day 2026-09-30                  # rank ~1.5M pages, ~2 min
+  python scripts/score_predictions.py --day 2026-09-29                  # how a finished day's prophecy did
+  python scripts/build_site.py --serve                                  # preview the page at localhost:8000
+  ```
+
+  A 22-day backtest (September 2026) found about one in five of each day's
+  top 100 burst the next day, and one in three of the top 10. That's double
+  the "most edits yesterday" baseline, better on every day. Details are in
+  `PLAN.md` §5, "Daily job backtest".
+
 Run the tests (no network or data files needed) with:
 
 ```bash

@@ -366,14 +366,32 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
 17. **Step 9, daily input (2026-09-30)**:
     - `fetch_recent_changes.py` fetched the 11.5 hours that recent changes
       (30 days kept) and the history dump still both covered, from
-      2026-08-31T15:00Z: 91,515 edits in 3.6 minutes. That's about 190K
-      mainspace edits a day, 40% of them bot-flagged, so a day takes about
-      7 minutes to fetch.
+      2026-08-31T15:00Z: 91,515 edits in 3.6 minutes, 40% of them
+      bot-flagged. That window was unusually busy: the September days that
+      followed averaged 114K mainspace edits, 4–7 minutes each to fetch.
     - `check_recent_changes_parity.py` compares the two sources edit by
       edit. The results are in §5, "Recent changes vs the history dumps".
     - The overlap was about to expire: from 2026-10-01, recent changes no
       longer reach the dump's last hours. The window is kept in
       `data/processed/enwiki/daily/rc_dump_overlap.parquet`.
+18. **Step 9, the local daily job (2026-09-30)**:
+    - **Backfill:** `fetch_recent_changes.py --days 2026-09-01 2026-09-29`
+      bridged the dump's end to today, oldest first, since September 1 was
+      about to expire. That's 3,317,159 mainspace edits, 94K–175K a day.
+      - A dropped connection ended the first run after 10 days, and
+        `api_get` now retries those.
+      - It moved to a one-off scheduled task so an SSH disconnect wouldn't
+        kill it.
+    - **The job** (`daily_predictions.py`) ranks every page edited in the
+      30 days before D: 1.2–1.6M pages, in about 2 minutes on 8 workers.
+    - **Feature parity:** the burst model's top 100 is identical whether
+      the features come from recent changes or the dump (§5, "Recent
+      changes vs the history dumps").
+    - **Backtest:** `backtest_daily.py --days 2026-09-08 2026-09-29`
+      predicted and scored 22 days in 40 minutes. The results are in §5,
+      "Daily job backtest".
+    - **The page** (`web/`, assembled by `build_site.py`) was checked in
+      headless Edge with the 2026-09-30 prophecy and 2026-09-29's record.
 
 ## 4. Data state — important for resuming on a new machine
 
@@ -419,6 +437,12 @@ python scripts/analyze_stage2.py           # ~1 min: the §5 comparisons, from r
 python scripts/train_stage2.py --model Qwen/Qwen2.5-1.5B --variants context context+triggers context+triggers+relevant --out data/processed/enwiki/stage2/qwen2.5-1.5b  # ~8 h
 python scripts/fetch_recent_changes.py --start 2026-09-29T00:00:00Z --end 2026-09-30T00:00:00Z --out data/processed/enwiki/daily/2026-09-29.parquet  # ~7 min a day
 python scripts/check_recent_changes_parity.py   # recent changes vs the dump on their overlap (the saved window)
+python scripts/fetch_recent_changes.py --days 2026-09-01 2026-09-29 --out-dir data/processed/enwiki/live  # live days
+python scripts/check_daily_parity.py        # the daily job's features, recent changes vs dump
+python scripts/daily_predictions.py --day 2026-09-30   # ~2 min once the live days are fetched
+python scripts/score_predictions.py --day 2026-09-29   # after the day is over
+python scripts/backtest_daily.py --days 2026-09-08 2026-09-29
+python scripts/build_site.py --serve        # the page, previewed at localhost:8000
 ```
 
 To re-run revert detection after changing it, use `--from-parquet` on the
@@ -1107,6 +1131,35 @@ What this means:
   worse). So the test gain is seasonal or chance, and habits+burst stays
   the production model. The features remain in the panel.
 
+### Daily job backtest (2026-09-30, English Wikipedia)
+
+The local daily job predicted each day from 2026-09-08 to 2026-09-29, then
+scored its top pages against what actually burst that day. It ranked the
+whole wiki (1.2–1.6M recently edited pages a day), not a sample. The
+target is the Stage 1 burst: a burst by 2+ editors, with mass editors left
+out.
+
+| mean precision over 22 days | P@10 | P@50 | P@100 | P@1000 |
+|---|---|---|---|---|
+| **model** (habits+burst) | **0.318** | **0.249** | **0.203** | 0.070 |
+| most edits yesterday | 0.118 | 0.107 | 0.097 | 0.049 |
+| model − baseline | +0.200 ± 0.047 (16/2 days) | +0.142 ± 0.017 (21/0) | +0.106 ± 0.007 (22/0) | +0.021 ± 0.002 (22/0) |
+
+- **About one in five of each day's top 100 bursts the next day**, and
+  about one in three of the top 10. That's double the baseline, better on
+  all 22 days at P@100.
+- **Higher than the offline P@100 (0.110), as expected.** Ranking the whole
+  wiki makes the top 100 far more selective than in a 20% page sample.
+- **The hits are recognizably the day's events:** elections the day after
+  the vote, sports fixtures, launches, crashes, anniversaries (the 125th of
+  William McKinley's assassination).
+- **Caveats:**
+  - Mass editors are approximated from each day's live records, reverts
+    included (`live_mass_editors`).
+  - Before 2026-10-01, candidates come only from live days since
+    2026-09-01, so pages last edited in August are missed. That's
+    irrelevant at the top of the list.
+
 ## 6. Next steps, in order
 
 Re-planned 2026-09-28 after the code review in §5, and again after the
@@ -1254,8 +1307,9 @@ old step 2 (move to English Wikipedia) is now step 5.
      at the end, so a crash loses the whole run).
 
 9. **Deployment: a static "predicted events for tomorrow" page** (planned
-   2026-09-29; **daily input done 2026-09-30**, see §3 item 17 and §5
-   "Recent changes vs the history dumps"). Host on GitHub Pages only (free,
+   2026-09-29; **daily input, local daily job and the page done
+   2026-09-30**, see §3 items 17–18 and §5 "Recent changes vs the history
+   dumps" and "Daily job backtest"). Host on GitHub Pages only (free,
    static), not an app hosting service.
    - **Precompute, don't serve.** Tomorrow's prediction is the same for
      every visitor. A daily batch job writes it as static JSON and the page
@@ -1266,8 +1320,8 @@ old step 2 (move to English Wikipedia) is now step 5.
      standard runners for a public repo (2,000 minutes a month if private).
      The local machine is the fallback. Steps:
      1. Just after 00:00 UTC, pull day D−1's edits from the MediaWiki API
-        (`scripts/fetch_recent_changes.py`). About 190K mainspace edits a
-        day take ~400 requests, about 7 minutes.
+        (`scripts/fetch_recent_changes.py`). About 114K mainspace edits a
+        day take ~230 requests, 4–7 minutes.
      2. Update a rolling state of per-page daily counts.
      3. Compute the Stage 1 features and score them with LightGBM. The model
         is a few MB and cheap on CPU.
@@ -1312,14 +1366,24 @@ old step 2 (move to English Wikipedia) is now step 5.
      - **Daily input: done.** `src/ingest/recent_changes.py` turns recent
        changes into the dumps' revision records, checked edit by edit
        against the dump (§5).
-     - **Rolling state.** Recent changes keep only 30 days, so the job must
-       carry its own state for the 90-day burst baseline and the 365-day
-       counts, starting from the dump data. That's a few hundred MB at most,
-       kept as a release asset or in the Actions cache. The first version
-       can run on the local machine, which already has the dump data.
-     - **Train/serve parity.** A test should compute features for the same
-       days through the dump path and the daily path, and check that they
-       match, like the point-in-time tests.
+     - **The local daily job: done** (§3 item 18). It computes features
+       with the training code from dump history plus live days, so it
+       carries no state of its own yet. Its features match the dump path's
+       on real data (`check_daily_parity.py`), and backtesting puts 20 of
+       each day's top 100 bursts in the next day (§5).
+     - **The page: done, locally** (`web/`, `build_site.py`).
+     - **Still to do:**
+       - A daily schedule on this machine, shortly after 00:00 UTC: fetch
+         the day just ended, predict the new day, score yesterday, build
+         and publish the site.
+       - Publishing, once the repo is public: push the built site to an
+         orphan `gh-pages` branch and turn Pages on.
+       - For GitHub Actions: a compact rolling state, since recent changes
+         keep only 30 days and a runner can't hold the 7 GB of dump
+         revisions. It needs the per-page daily counts for the 90-day burst
+         baseline and the 365-day windows, a few hundred MB. It should be
+         checked against the local job's features, as the local job was
+         checked against the dump path's.
      - **Link features: not needed.** They don't help the burst target
        (§5), which is just as well, since the full English Wikipedia graph
        (1B+ links) is too big for a free runner.
