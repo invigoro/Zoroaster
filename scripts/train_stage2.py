@@ -44,6 +44,10 @@ Memory on 8GB:
   checkpointing silently doesn't apply.
 - `--micro-batch` trades memory for speed. Gradient accumulation keeps the
   effective batch at EFFECTIVE_BATCH either way.
+- Scoring frees the memory PyTorch cached during training, and computes
+  the full-precision loss SCORE_CHUNK rows at a time. Without that, a
+  1.5B run's test scoring spilled into system RAM and took up to an hour
+  instead of minutes, with desktop apps holding part of the 8GB.
 
 Usage:
     python scripts/train_stage2.py [--model Qwen/Qwen2.5-1.5B] [--micro-batch 4]
@@ -86,6 +90,7 @@ MAX_PROMPT_TOKENS = 512
 TARGET_TOKENS = 128
 MAX_CHANGES = 3
 MICRO_BATCH, EFFECTIVE_BATCH = 8, 16
+SCORE_CHUNK = 2
 LEARNING_RATE, WARMUP_STEPS = 2e-4, 50
 N_GENERATIONS = 12
 
@@ -191,11 +196,20 @@ def collate(pairs: list[tuple[list[int], list[int]]], pad_id: int) -> tuple[torc
     return ids, mask, labels, max(len(t) for _, t in pairs) + 1
 
 
-def target_nll(model, ids, mask, labels, keep: int) -> tuple[torch.Tensor, torch.Tensor]:
-    """Per-example summed NLL of target tokens, and their counts."""
+def target_nll(model, ids, mask, labels, keep: int, chunk: int | None = None) -> tuple[torch.Tensor, torch.Tensor]:
+    """Per-example summed NLL of target tokens, and their counts.
+
+    The loss runs in full precision over `chunk` rows at a time (default:
+    all). That caps its memory when scoring; in training, autograd keeps
+    every row's intermediates anyway."""
     logits = model(input_ids=ids, attention_mask=mask, logits_to_keep=keep).logits[:, :-1]
     tail = labels[:, -(keep - 1) :]
-    token_nll = F.cross_entropy(logits.float().transpose(1, 2), tail, ignore_index=-100, reduction="none")
+    step = chunk or len(logits)
+    token_nll = torch.cat([
+        F.cross_entropy(logits[i : i + step].float().transpose(1, 2), tail[i : i + step], ignore_index=-100,
+                        reduction="none")
+        for i in range(0, len(logits), step)
+    ])
     counts = (tail != -100).sum(dim=1)
     return token_nll.sum(dim=1), counts
 
@@ -256,9 +270,10 @@ def train(model, pairs: list, pad_id: int, validation: list, seed: int, micro_ba
 def score(model, pairs: list, pad_id: int, batch: int = 2 * MICRO_BATCH) -> list[tuple[float, int]]:
     """(summed target NLL, target tokens) per example, in order."""
     model.eval()
+    torch.cuda.empty_cache()  # training's cached blocks, so scoring doesn't spill out of GPU memory
     out = []
     for i in range(0, len(pairs), batch):
-        nll, counts = target_nll(model, *_batch(pairs[i : i + batch], pad_id))
+        nll, counts = target_nll(model, *_batch(pairs[i : i + batch], pad_id), chunk=SCORE_CHUNK)
         out += list(zip(nll.tolist(), counts.tolist()))
     return out
 

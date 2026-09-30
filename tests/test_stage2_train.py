@@ -19,6 +19,14 @@ class _Oracle(torch.nn.Module):
         return SimpleNamespace(logits=logits[:, -logits_to_keep:])
 
 
+class _Random(torch.nn.Module):
+    """Fixed random logits, so every row and position has a different loss."""
+
+    def forward(self, input_ids, attention_mask, logits_to_keep):
+        logits = torch.randn(*input_ids.shape, VOCAB, generator=torch.Generator().manual_seed(0))
+        return SimpleNamespace(logits=logits[:, -logits_to_keep:])
+
+
 class CollateTest(unittest.TestCase):
     def test_left_padding_and_labels(self):
         ids, mask, labels, keep = collate([([5, 6, 7], [8, 9]), ([1], [2, 3, 4])], pad_id=0)
@@ -40,6 +48,16 @@ class CollateTest(unittest.TestCase):
         wrong, wrong_counts = target_nll(_Oracle(), ids, mask, shifted, keep + 1)
         self.assertEqual(wrong_counts.tolist(), [2, 3, 1])
         self.assertTrue(torch.all(wrong / wrong_counts > 1.0), wrong)
+
+    def test_chunked_loss_matches_the_whole_batch(self):
+        pairs = [([5, 6, 7], [8, 9]), ([1], [2, 3, 4]), ([11, 12, 13, 14], [15])]
+        ids, mask, labels, keep = collate(pairs, pad_id=0)
+        whole, counts = target_nll(_Random(), ids, mask, labels, keep)
+        for chunk in (1, 2):  # 2 leaves an uneven last chunk
+            nll, chunk_counts = target_nll(_Random(), ids, mask, labels, keep, chunk=chunk)
+            self.assertTrue(torch.allclose(nll, whole), (chunk, nll, whole))
+            self.assertEqual(chunk_counts.tolist(), counts.tolist())
+        self.assertEqual(len(set(whole.tolist())), 3)  # rows differ, so a misaligned chunk would show
 
 
 class PooledAndChangesTest(unittest.TestCase):
