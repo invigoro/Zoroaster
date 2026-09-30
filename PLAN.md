@@ -1051,6 +1051,40 @@ records and 92,162 dump records, 91,469 in both:
 - **Missing hashes are rare in the dumps**, 0.04–0.31% a month, except in
   the snapshot's final hours (10.5%). So they don't affect training.
 
+### Stage 1 burst target (2026-09-30, English Wikipedia)
+
+`python scripts/train_stage1.py --corpus enwiki --target burst` ranks pages
+by how likely they are to burst on day D: a burst by 2+ editors, with mass
+editors left out (the target decided in §6 step 9). It uses the same panel,
+splits and 14 full test days as the edit target. The 20% page sample has
+137 such bursts a day, a 0.008% base rate.
+
+| model | P@100 | P@1000 | R@10000 | AP |
+|---|---|---|---|---|
+| edits yesterday | 0.066 | 0.025 | 0.326 | 0.017 |
+| burst z yesterday (persistence) | 0.043 | 0.021 | 0.264 | 0.010 |
+| habits | 0.102 | 0.028 | 0.451 | 0.036 |
+| habits+burst | **0.110** | 0.029 | 0.450 | **0.037** |
+| habits+burst+links (mass editors left out) | 0.096 | 0.029 | 0.463 | 0.030 |
+
+What this means:
+- **Bursts are predictable, modestly.** In the page sample, the model's top
+  100 pages hold 11 of the next day's bursts on average, against 6.6 for
+  the busiest pages yesterday and 4.3 for yesterday's bursts.
+  - habits+burst beats persistence on all 14 days (+0.067 ± 0.009 P@100).
+  - habits beats "edits yesterday" on 11 days and loses on 2 (+0.036 ±
+    0.008).
+- **The page's own burst features help a little at the top** (+0.008 ±
+  0.004 P@100, 9 days better and 3 worse). Co-burst adds nothing.
+- **Link features don't help this target.** The link sets score below
+  habits+burst (P@100 0.091–0.096 vs 0.110). So the daily job needs no
+  link graph.
+- **Train unweighted.** With the panel's sample weights, per-day AP halved
+  on both validation (0.021 vs 0.041, habits+burst) and test (0.013 vs
+  0.037). The weight-200 negatives dominate the loss, and two feature sets
+  early-stopped after 32 and 52 rounds. The difference showed up on test
+  first, and the 182 validation days confirmed it.
+
 ## 6. Next steps, in order
 
 Re-planned 2026-09-28 after the code review in §5, and again after the
@@ -1237,6 +1271,8 @@ old step 2 (move to English Wikipedia) is now step 5.
        target.
      - **Run the daily job locally first**, on the dump data already here,
        then move it to GitHub Actions once it works.
+     - **The model is habits+burst, trained unweighted on the burst target**
+       (§5 "Stage 1 burst target"). It needs no link graph.
    - **Hosting.** This repo is private, and Pages is free only for public
      repos. Two options, both keeping the site's files out of `main` (only
      the daily job writes them, and their history is a record of every past
@@ -1261,12 +1297,13 @@ old step 2 (move to English Wikipedia) is now step 5.
      - **Train/serve parity.** A test should compute features for the same
        days through the dump path and the daily path, and check that they
        match, like the point-in-time tests.
-     - **Link features.** The full English Wikipedia graph (1B+ links) is
-       too big for a free runner. Start without them, since they add only
-       +1.6% relative AP (§5), or refresh a trimmed graph monthly.
-     - **The target.** Stage 1's top pages are mostly ones edited out of
-       habit (ongoing lists, sports seasons). An events page should rank by
-       lift over habit, e.g. predicted bursts or the neighbor signal.
+     - **Link features: not needed.** They don't help the burst target
+       (§5), which is just as well, since the full English Wikipedia graph
+       (1B+ links) is too big for a free runner.
+     - **Weekly periodicity, maybe.** TV episodes, fixtures and weekly
+       shows burst on a schedule, but the features only count 1, 7, 30 and
+       365 days back. Same-weekday lags (the edits and bursts one and two
+       weeks before D) might catch those. Worth one ablation run.
 
 ## 7. Open questions
 
