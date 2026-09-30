@@ -1228,14 +1228,27 @@ old step 2 (move to English Wikipedia) is now step 5.
      - Scheduled workflows in *public* repos are disabled after 60 days
        without repository activity. That doesn't apply while the workflow
        lives in this private repo.
+   - **Decided 2026-09-30:**
+     - **Rank predicted bursts**, not predicted edits. Most edited pages
+       are edited out of habit, so the page would show much the same list
+       every day. Bursts are mostly new: of the 797 a day by 2+ editors
+       (mass editors left out, test half-year), only 6.8% were bursting the
+       day before. `train_stage1.py --target burst` trains and scores that
+       target.
+     - **Run the daily job locally first**, on the dump data already here,
+       then move it to GitHub Actions once it works.
    - **Hosting.** This repo is private, and Pages is free only for public
      repos. Two options, both keeping the site's files out of `main` (only
      the daily job writes them, and their history is a record of every past
      prediction):
      - a small public repo for the site, which the daily job pushes to. The
-       code stays private. This is the recommended option;
+       code stays private;
      - making this repo public, and publishing from an orphan `gh-pages`
-       branch.
+       branch. Nothing in the repo or its history is sensitive (checked
+       2026-09-30): no credentials, and no data files. The public parts
+       would be the two email addresses (the User-Agent contact in
+       `src/common.py`, and the author of four early commits) and all of
+       PLAN.md. Undecided.
    - **Work needed first:**
      - **Daily input: done.** `src/ingest/recent_changes.py` turns recent
        changes into the dumps' revision records, checked edit by edit
