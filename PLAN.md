@@ -919,6 +919,43 @@ What this means:
   that day, so a snippet shown isn't always one of the top three
   neighbors. That's harmless: it's still a bursting neighbor, point-in-time.
 
+### Stage 2: relevance-ranked sentences (2026-09-29, English Wikipedia)
+
+Qwen2.5-0.5B, `+relevant` vs `+triggers`, two seeds (§3 item 16).
+`+relevant` shows the bursting neighbors' new sentences most relevant to
+the page, or nothing if nothing relates (`src/stage2/relevance.py`). It
+shows text for 265 of the 940 test edits with bursting neighbors. The
+comparisons exclude prompts shortened in either variant: 14 with triggers
+and 35 with relevant sentences, on test. `python scripts/analyze_stage2.py
+data/processed/enwiki/stage2/relevant_0.5b/results.json` reproduces them.
+
+Paired differences in mean NLL/token, `+relevant` − `+triggers`:
+
+| subset | n | seed 1234 | seed 2345 | pooled |
+|---|---|---|---|---|
+| relevant text shown | 239 | −0.0071 ± 0.0067 | −0.0069 ± 0.0070 | −0.0070 ± 0.0066 |
+| … sharing ≥25% of the answer's words | 35 | −0.048 ± 0.040 | −0.039 ± 0.040 | −0.043 ± 0.040 |
+| … sharing fewer | 47 | +0.0010 ± 0.0024 | −0.0040 ± 0.0024 | −0.0015 ± 0.0022 |
+| … sharing none | 145 | +0.0006 ± 0.0048 | −0.0019 ± 0.0059 | −0.0007 ± 0.0049 |
+| none shown (identical prompts) | 2,535 | −0.0015 ± 0.0006 | +0.0029 ± 0.0007 | +0.0007 ± 0.0005 |
+
+What this means:
+- **Relevance ranking fixes what went wrong with snippets, but the gain
+  isn't significant.** Nothing is harmed, and the sign is right where text
+  is shown, in both seeds. But −0.007 ± 0.007 on 239 edits is about 1 SE.
+  An effect this size needs roughly 4× as many edits with relevant text to
+  resolve.
+- **The model uses content when the content holds the answer.** The whole
+  gain is in the 35 edits whose shown text shares at least a quarter of
+  the answer's words: −0.043, in both seeds, and nothing elsewhere. That's
+  13% of the edits with text. The 90th-percentile share of answer words is
+  0.43, against 0.05 for the longest-prose snippets.
+- **Same-seed reruns agree in aggregate.** `+triggers` with seed 1234
+  scored 1.88934 test NLL/token, against 1.88919 in the seeds run. GPU
+  nondeterminism moves individual examples by 0.008 on average, but the
+  mean by only ±0.0004, far less than a different seed does (±0.003).
+- Qwen2.5-1.5B with all three prompts is still running (§3 item 16).
+
 ## 6. Next steps, in order
 
 Re-planned 2026-09-28 after the code review in §5, and again after the
