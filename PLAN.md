@@ -1050,6 +1050,22 @@ records and 92,162 dump records, 91,469 in both:
   check should confirm the model doesn't notice.
 - **Missing hashes are rare in the dumps**, 0.04–0.31% a month, except in
   the snapshot's final hours (10.5%). So they don't affect training.
+- **Feature-level parity** (`scripts/check_daily_parity.py`): the daily
+  job's features for 2026-09-01 compared on the 50,347 pages edited in the
+  window, once from the dump and once with the window's recent changes in
+  its place.
+  - Edit counts and burst z differ on 0.33% of pages, editors on 0.1%, and
+    burst flags on 0.04%, from the missing log-action revisions and
+    renamed users.
+  - The burst model's top 100 is identical, and 989 of its top 1,000 match
+    (rank correlation 0.995).
+  - The check caught one skew, now fixed. Recent changes give a creation
+    date only for pages created that day, so a page first edited in years
+    looked brand new. Such a page must predate the history, so it now gets
+    HISTORY_START (2023-06-01) as a lower bound.
+  - That still leaves `page_age_days` short of the true age on 8% of pages
+    (4.4% of the model's importance). Page ids are assigned in creation
+    order, so ids could give estimated dates if it ever matters.
 
 ### Stage 1 burst target (2026-09-30, English Wikipedia)
 

@@ -6,7 +6,7 @@ from pathlib import Path
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from src.deploy.daily import COLUMNS, LIVE_START, bucket_features, live_files, split_by_bucket
+from src.deploy.daily import COLUMNS, HISTORY_START, LIVE_START, bucket_features, live_files, split_by_bucket
 from src.features.activity import PageActivity, day_ordinal
 from src.ingest.revert_detect import detect_page_reverts
 
@@ -32,6 +32,7 @@ LIVE = [
     rev(1, 15, "2026-09-15T01:00:00Z", "e", title="Page_One_D"),  # on day D itself
     rev(3, 30, "2026-09-10T12:00:00Z", "n", created="2026-09-10T12:00:00Z"),  # created live
     rev(4, 40, "2026-09-15T03:00:00Z", "z"),  # only active on day D
+    rev(5, 50, "2026-09-08T12:00:00Z", "o"),  # first edit in years: no dump rows, no creation in the live days
 ]
 
 
@@ -47,8 +48,8 @@ class BucketFeaturesTest(unittest.TestCase):
             write(LIVE, tmp / "live.parquet")
             count = bucket_features(DAY, [tmp / "dump.parquet"], tmp / "live.parquet", tmp / "out.parquet")
             rows = {r["page_id"]: r for r in pq.read_table(tmp / "out.parquet").to_pylist()}
-        self.assertEqual(count, 2)
-        self.assertEqual(set(rows), {1, 3})  # 2 is dormant, 4's only edit is on D
+        self.assertEqual(count, 3)
+        self.assertEqual(set(rows), {1, 3, 5})  # 2 is dormant, 4's only edit is on D
         merged = [r for r in DUMP[:2]] + [r for r in LIVE[:3]]  # dump before LIVE_START, live before D
         labeled = detect_page_reverts(merged)
         self.assertTrue(labeled[1]["is_reverted"] and labeled[1]["reverted_by_revision_id"] == 14)  # across sources
@@ -56,6 +57,7 @@ class BucketFeaturesTest(unittest.TestCase):
         self.assertEqual({k: rows[1][k] for k in expected}, expected)
         self.assertEqual(rows[1]["page_title"], "Page_One_renamed")  # latest title before D
         self.assertEqual(rows[3]["page_age_days"], 5)  # creation from the live data
+        self.assertEqual(rows[5]["page_age_days"], (DAY - HISTORY_START).days)  # predates the history, not new
         self.assertEqual(rows[1]["date"], DAY)
 
     def test_split_and_live_files(self):
@@ -69,7 +71,7 @@ class BucketFeaturesTest(unittest.TestCase):
             split_by_bucket(files, tmp / "buckets", n_buckets=2)
             even = pq.read_table(tmp / "buckets" / "bucket=000.parquet")["page_id"].to_pylist()
             odd = pq.read_table(tmp / "buckets" / "bucket=001.parquet")["page_id"].to_pylist()
-        self.assertEqual((sorted(even), sorted(odd)), ([4], [1, 1, 1, 1, 3]))
+        self.assertEqual((sorted(even), sorted(odd)), ([4], [1, 1, 1, 1, 3, 5]))
         self.assertEqual(LIVE_START, date(2026, 9, 1))
 
 

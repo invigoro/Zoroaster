@@ -10,7 +10,14 @@ longer essentially never rank. For each candidate:
 - then the training code's own `PageActivity` computes the features.
 
 So the only difference from training is the input source (PLAN.md §5,
-"Recent changes vs the history dumps"). Mass-editor days don't enter any
+"Recent changes vs the history dumps"). One gap needs filling: recent
+changes carry a creation date only for pages created that day. A page with
+no dump revisions (none since HISTORY_START) and no creation in the live
+days must predate the history, since its creation revision would otherwise
+be there, so its creation day is taken as HISTORY_START, a lower bound on
+its age. Without that, a page untouched for years looked brand new: 7.9% of
+pages differed from the dump path on `page_age_days`
+(`scripts/check_daily_parity.py`). Mass-editor days don't enter any
 feature, only the excl-mass burst flags, so scoring doesn't need them.
 
 Work is split by the dumps' page buckets (page_id % N_BUCKETS). Each bucket
@@ -34,6 +41,7 @@ from src.parquet_io import RowGroupWriter
 from src.stage1.panel import PANEL_BASE_SCHEMA
 
 LIVE_START = date(2026, 9, 1)  # dump data before this day, recent changes from it on
+HISTORY_START = date(2023, 6, 1)  # the history dumps' first month (download_enwiki_history.FIRST_MONTH)
 LOOKBACK_DAYS = 30
 N_BUCKETS = 128
 COLUMNS = ("page_id", "page_title", "revision_id", "parent_id", "timestamp", "user_text", "is_anon", "is_bot",
@@ -67,9 +75,9 @@ def split_by_bucket(files: Iterable[Path], out_dir: Path, n_buckets: int = N_BUC
         pq.write_table(part, out_dir / f"bucket={bucket:03d}.parquet", compression="zstd")
 
 
-def _created_day(revisions: list[dict]) -> int | None:
+def _created_day(revisions: list[dict]) -> int:
     created = next((r["page_created"] for r in revisions if r["page_created"]), None)
-    return day_ordinal(created) if created else None
+    return day_ordinal(created) if created else HISTORY_START.toordinal()
 
 
 def bucket_features(day: date, dump_files: Iterable[Path], live_file: Path, out: Path,
