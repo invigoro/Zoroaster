@@ -1403,6 +1403,82 @@ old step 2 (move to English Wikipedia) is now step 5.
      - **Weekly periodicity: tried, no reliable gain** (§5 "Stage 1 burst
        target"). Same-weekday lags help on test but not on validation.
 
+10. **Version 2: forecast what the edits will say** (planned 2026-10-01).
+    For the top pages of each day's prophecy, forecast what each page will
+    gain that day, not just whether it bursts.
+    - **Decided 2026-10-01:**
+      - **The most important guardrail is labeling.** Every forecast is
+        shown as non-factual: a machine-generated guess at what editors
+        might add, not news and not a claim about anyone.
+        - The label sits next to each forecast, so a screenshot of one
+          still carries it.
+        - The page's header and explainer say the same.
+      - **Living people get structured forecasts only**: which sections
+        and what kind of edit, never free text. They're not left out, but
+        nothing is generated that reads as a claim about a person.
+        - Free text is the riskiest form: fluent and specific, in
+          Wikipedia's voice, and often wrong.
+        - The base model knows nothing after 2024, so for 2026 it can only
+          extrapolate.
+      - **20 pages a day, short output**, to start.
+    - **Why Stage 2 doesn't drop in:** it predicts an edit's text given
+      where it goes (the parent revision around the insertion point).
+      Tomorrow's edit locations and parent states are unknown. So the
+      target becomes the page's net change over day D, from its state at
+      the end of D−1. That's the same start-to-end diff as the neighbor
+      snippets (`build_stage2_neighbor_changes.py`).
+    - **The task:**
+      - **Input**, all as of the end of D−1:
+        - the title as of then, and the date;
+        - the page's lead and section headings;
+        - its own net changes over the previous days, likely the strongest
+          signal, since ongoing stories continue;
+        - the Stage 1 signals;
+        - the titles of bursting linked pages. They helped Stage 2, while
+          the neighbors' text didn't.
+      - **Output:**
+        - first, a structured header: the sections the day's new text goes
+          into, and the kinds of change (prose, new section, table rows,
+          infobox, references);
+        - then the day's new prose, in page order, cleaned of markup and
+          capped at about 256 tokens.
+        - Living people's pages show only the header.
+    - **Phases:**
+      1. **Data (in progress).** Page-days like the ones the page will
+         forecast.
+         - On each day: the burst model's top-ranked pages that did get
+           edited, plus a random sample of edited pages for contrast.
+         - Train and validation come from the panel's windows, test from
+           the 14 evaluation days.
+         - Each example needs the page at the ends of D−2, D−1 and D, about
+           60K revisions and an hour of API fetching.
+      2. **Baselines and metrics.**
+         - Baselines: "yesterday again" (today's change says what
+           yesterday's did), and title only.
+         - Metrics: NLL per token of the new prose, and new-word recall:
+           the share of the day's new content words, absent from the page
+           at the end of D−1, that a generation contains.
+      3. **Model.** QLoRA on Qwen2.5-1.5B, with prompts of about 1,500
+         tokens.
+         - Variants: the page alone; plus its own recent changes; plus the
+           signals and neighbor names.
+         - Two seeds for the final comparison.
+      4. **Deployment.** A "foretell" step in `run_daily.py`, after the
+         predictions.
+         - Fetch the top 20 pages' current text (one request), generate
+           (about a minute on the GPU), and add the result to `D.json`.
+         - The page shows each forecast with its label.
+         - Score the forecasts the next day by new-word recall, and publish
+           that too.
+      5. **With the Actions move:** CPU inference via llama.cpp, with a
+         quantized model of about 1 GB.
+    - **Other guardrails:**
+      - Filter generations that touch death, crime, legal trouble and
+        similar topics.
+      - For living people, also leave sensitive section names ("Death",
+        "Legal issues", "Controversies", "Personal life") out of the
+        structured forecast.
+
 ## 7. Open questions
 
 - Co-burst signal validity at Simple-Wikipedia scale (§5). Needs English
