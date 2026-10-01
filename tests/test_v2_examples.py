@@ -17,6 +17,8 @@ class DeriveTest(unittest.TestCase):
         self.assertEqual(row["yesterday_prose"], "She was re-elected in 2024 with a larger majority.")
         self.assertEqual(row["prose"], "In 2026 she was appointed to the cabinet as chancellor.")
         self.assertEqual((row["sections"], row["kinds"]), (["Career"], ["prose"]))
+        self.assertEqual(len(row["section_chars"]), 1)
+        self.assertTrue(any("appointed to the cabinet" in b for b in row["blocks"]))
         self.assertEqual(row["page_text"], D1)  # the page as the forecaster saw it
         self.assertTrue(row["yesterday_known"])
 

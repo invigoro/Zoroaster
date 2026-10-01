@@ -11,8 +11,10 @@ revisions a request) and derives them with `src/forecast/changes.py`:
 - **The target**, the day's change from the end of D-1 to the end of D: new
   prose, sections and kinds of change.
 
-The page at the end of D-1 (capped) and the target's new spans are stored
-too, so prompts and targets can be redesigned without refetching.
+The page at the end of D-1 (capped) is stored too, and so are the
+target's new spans and its changed paragraphs as they read at the end of D,
+so prompts and targets (e.g. whole changed sentences) can be redesigned
+without refetching.
 
 Writes `data/processed/enwiki/v2/examples/part-NNNNN.parquet`. A rerun
 skips page-days already in a part.
@@ -48,8 +50,9 @@ DERIVED = [
     ("lead", pa.string()), ("heading_levels", pa.list_(pa.int8())), ("heading_titles", _LIST), ("living", pa.bool_()),
     ("yesterday_prose", pa.string()), ("yesterday_sections", _LIST), ("yesterday_kinds", _LIST),
     ("yesterday_known", pa.bool_()),
-    ("prose", pa.string()), ("sections", _LIST), ("kinds", _LIST), ("inserted_chars", pa.int64()),
-    ("removed_chars", pa.int64()), ("spans", _LIST), ("page_text", pa.string()),
+    ("prose", pa.string()), ("sections", _LIST), ("section_chars", pa.list_(pa.int64())), ("kinds", _LIST),
+    ("inserted_chars", pa.int64()), ("removed_chars", pa.int64()), ("spans", _LIST), ("blocks", _LIST),
+    ("page_text", pa.string()),
 ]
 
 
@@ -83,9 +86,9 @@ def derive(target: dict, texts: dict[int, str | None]) -> dict | None:
         "living": bool(LIVING.search(page)),
         "yesterday_prose": yesterday["prose"], "yesterday_sections": yesterday["sections"],
         "yesterday_kinds": yesterday["kinds"], "yesterday_known": known,
-        "prose": change["prose"], "sections": change["sections"], "kinds": change["kinds"],
-        "inserted_chars": change["inserted_chars"], "removed_chars": change["removed_chars"],
-        "spans": _capped(change["spans"]), "page_text": page[:MAX_PAGE_CHARS],
+        "prose": change["prose"], "sections": change["sections"], "section_chars": change["section_chars"],
+        "kinds": change["kinds"], "inserted_chars": change["inserted_chars"], "removed_chars": change["removed_chars"],
+        "spans": _capped(change["spans"]), "blocks": _capped(change["blocks"]), "page_text": page[:MAX_PAGE_CHARS],
     }
 
 

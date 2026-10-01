@@ -2,9 +2,13 @@
 
 Given a page's wikitext at the start and end of a day, `day_change` gives:
 - `prose`: the day's new prose, in page order, cleaned of markup
-  (`src.stage2.wikitext.prose`) and capped;
-- `sections`: the sections that new text went into, in page order;
-- `kinds`: what kinds of change it was (KINDS);
+  (`src.stage2.wikitext.prose`) and capped. Words inserted into an existing
+  sentence come out as fragments; `blocks` (the changed paragraphs, as
+  they read at the end) can give whole sentences instead;
+- `sections`: the sections that new text went into, in page order, with
+  `section_chars`, how much of it each got;
+- `kinds`: what kinds of change it was (KINDS). "prose" means new text of
+  at least MIN_SPAN_CHARS; smaller wording changes are "copyedits";
 - sizes, for filtering.
 
 Text already in the start text doesn't count as new. That covers a whole
@@ -19,11 +23,11 @@ from __future__ import annotations
 
 import re
 
-from src.stage2.diff import word_diff
+from src.stage2.diff import WordDiff, word_diff
 from src.stage2.wikitext import plain_text, prose
 
 MIN_SPAN_CHARS = 25  # shorter inserted spans can't hold a sentence; they're kept only for the kinds
-KINDS = ("new section", "prose", "references", "table", "template fields", "categories", "links")
+KINDS = ("new section", "prose", "copyedits", "references", "table", "template fields", "categories", "links")
 LEAD = "(lead)"
 _HEADING = re.compile(r"^(={2,6})[ \t]*(.*?)[ \t]*\1[ \t]*$", re.M)
 _CATEGORY = re.compile(r"\[\[\s*Category\s*:", re.I)
@@ -59,8 +63,11 @@ def classify(span: str, old_headings: set[str]) -> set[str]:
     kinds = set()
     if any(title not in old_headings for _, title in headings(span)):
         kinds.add("new section")
-    if prose(span):
+    pieces = prose(_HEADING.sub("", span))
+    if any(len(piece) >= MIN_SPAN_CHARS for piece in pieces):
         kinds.add("prose")
+    elif pieces:
+        kinds.add("copyedits")
     if "<ref" in span.lower():
         kinds.add("references")
     if _TABLE_LINE.search(span) or "||" in span:
@@ -83,7 +90,10 @@ def span_sections(end: str, offset: int, span: str) -> list[str]:
 
 def new_spans(start: str | None, end: str) -> tuple[list[str], int, int]:
     """The day's new inserted spans (moved text left out), and all inserted and removed chars."""
-    diff = word_diff(start, end)
+    return _new_spans(word_diff(start, end), start)
+
+
+def _new_spans(diff: WordDiff, start: str | None) -> tuple[list[str], int, int]:
     old_lines = {line.strip() for line in start.split("\n")} if start else set()
     spans = []
     for s in diff.inserted:
@@ -97,20 +107,22 @@ def new_spans(start: str | None, end: str) -> tuple[list[str], int, int]:
 
 def day_change(start: str | None, end: str, max_prose_chars: int = 1200) -> dict:
     """What the page gained from `start` to `end` (see the module docstring)."""
-    spans, inserted, removed = new_spans(start, end)
+    diff = word_diff(start, end)
+    spans, inserted, removed = _new_spans(diff, start)
     old_headings = {title for _, title in headings(start or "")}
-    sections: list[str] = []
+    section_chars: dict[str, int] = {}
     kinds: set[str] = set()
     pieces: list[str] = []
     for span in spans:
         kinds |= classify(span, old_headings)
         body = _HEADING.sub("", span)  # a new section's title goes in `sections`, not the prose
         pieces += [p for p in prose(body) if len(p) >= MIN_SPAN_CHARS] if len(body) >= MIN_SPAN_CHARS else []
-        for section in span_sections(end, end.find(span), span):
-            if section not in sections:
-                sections.append(section)
+        targets = span_sections(end, end.find(span), span)
+        for section in targets:
+            section_chars[section] = section_chars.get(section, 0) + len(span) // len(targets)
     text = " ".join(pieces)
     if len(text) > max_prose_chars:
         text = text[:max_prose_chars].rsplit(" ", 1)[0] + " …"
-    return {"prose": text, "sections": sections, "kinds": [k for k in KINDS if k in kinds],
-            "inserted_chars": inserted, "removed_chars": removed, "spans": spans}
+    return {"prose": text, "sections": list(section_chars), "section_chars": list(section_chars.values()),
+            "kinds": [k for k in KINDS if k in kinds], "inserted_chars": inserted, "removed_chars": removed,
+            "spans": spans, "blocks": diff.new_blocks}

@@ -45,6 +45,13 @@ class DayChangeTest(unittest.TestCase):
         self.assertNotIn("moves to the end", change["prose"])  # moved, not new
         self.assertEqual(change["sections"], ["Career", "Results", "Legacy"])
         self.assertEqual(change["kinds"], ["new section", "prose", "references", "table", "template fields"])
+        self.assertEqual(len(change["section_chars"]), 3)
+        self.assertGreater(change["section_chars"][0], change["section_chars"][1])  # Career's sentence > Results' row
+        self.assertTrue(any("Chancellor of the Exchequer" in block for block in change["blocks"]))
+
+    def test_a_wording_fix_is_a_copyedit_not_prose(self):
+        change = day_change(START, START.replace("She was elected in 2010.", "She was first elected in 2010."))
+        self.assertEqual((change["kinds"], change["prose"], change["sections"]), (["copyedits"], "", ["Career"]))
 
     def test_page_created_that_day(self):
         change = day_change(None, END)
@@ -53,8 +60,8 @@ class DayChangeTest(unittest.TestCase):
         self.assertIn("new section", change["kinds"])
 
     def test_no_change(self):
-        self.assertEqual(day_change(START, START), {"prose": "", "sections": [], "kinds": [], "inserted_chars": 0,
-                                                    "removed_chars": 0, "spans": []})
+        self.assertEqual(day_change(START, START), {"prose": "", "sections": [], "section_chars": [], "kinds": [],
+                                                    "inserted_chars": 0, "removed_chars": 0, "spans": [], "blocks": []})
         self.assertEqual(new_spans(START, START), ([], 0, 0))
 
 
