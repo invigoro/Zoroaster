@@ -15,6 +15,7 @@ class DeriveTest(unittest.TestCase):
         self.assertEqual((row["heading_levels"], row["heading_titles"]), ([2], ["Career"]))
         self.assertTrue(row["living"])
         self.assertEqual(row["yesterday_prose"], "She was re-elected in 2024 with a larger majority.")
+        self.assertEqual(len(row["yesterday_section_chars"]), len(row["yesterday_sections"]))
         self.assertEqual(row["prose"], "In 2026 she was appointed to the cabinet as chancellor.")
         self.assertEqual((row["sections"], row["kinds"]), (["Career"], ["prose"]))
         self.assertEqual(len(row["section_chars"]), 1)

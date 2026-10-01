@@ -48,7 +48,8 @@ LIVING = re.compile(r"\[\[\s*Category\s*:\s*Living[ _]people\s*[\]|]", re.I)
 _LIST = pa.list_(pa.string())
 DERIVED = [
     ("lead", pa.string()), ("heading_levels", pa.list_(pa.int8())), ("heading_titles", _LIST), ("living", pa.bool_()),
-    ("yesterday_prose", pa.string()), ("yesterday_sections", _LIST), ("yesterday_kinds", _LIST),
+    ("yesterday_prose", pa.string()), ("yesterday_sections", _LIST),
+    ("yesterday_section_chars", pa.list_(pa.int64())), ("yesterday_kinds", _LIST),
     ("yesterday_known", pa.bool_()),
     ("prose", pa.string()), ("sections", _LIST), ("section_chars", pa.list_(pa.int64())), ("kinds", _LIST),
     ("inserted_chars", pa.int64()), ("removed_chars", pa.int64()), ("spans", _LIST), ("blocks", _LIST),
@@ -85,6 +86,7 @@ def derive(target: dict, texts: dict[int, str | None]) -> dict | None:
         "heading_titles": [title for _, title in sections],
         "living": bool(LIVING.search(page)),
         "yesterday_prose": yesterday["prose"], "yesterday_sections": yesterday["sections"],
+        "yesterday_section_chars": yesterday["section_chars"],
         "yesterday_kinds": yesterday["kinds"], "yesterday_known": known,
         "prose": change["prose"], "sections": change["sections"], "section_chars": change["section_chars"],
         "kinds": change["kinds"], "inserted_chars": change["inserted_chars"], "removed_chars": change["removed_chars"],

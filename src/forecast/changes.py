@@ -5,16 +5,19 @@ Given a page's wikitext at the start and end of a day, `day_change` gives:
   (`src.stage2.wikitext.prose`) and capped. Words inserted into an existing
   sentence come out as fragments; `blocks` (the changed paragraphs, as
   they read at the end) can give whole sentences instead;
-- `sections`: the sections that new text went into, in page order, with
-  `section_chars`, how much of it each got;
+- `sections`: the sections that changed, in page order, with
+  `section_chars`, how much changed in each (new text, and removed text in
+  the section it came from);
 - `kinds`: what kinds of change it was (KINDS). "prose" means new text of
-  at least MIN_SPAN_CHARS; smaller wording changes are "copyedits";
+  at least MIN_SPAN_CHARS; smaller wording changes are "copyedits".
+  "removals" means removed text of that size;
 - sizes, for filtering.
 
 Text already in the start text doesn't count as new. That covers a whole
 span found there, and any whole line found there as a line, since a line
 diff can report a moved paragraph as deleted and reinserted next to new
-text (`new_spans`).
+text (`new_spans`). Likewise, removed text still found at the end was
+moved, not removed.
 
 `lead` and `headings` describe the page at the start, for the prompt.
 """
@@ -27,7 +30,8 @@ from src.stage2.diff import WordDiff, word_diff
 from src.stage2.wikitext import plain_text, prose
 
 MIN_SPAN_CHARS = 25  # shorter inserted spans can't hold a sentence; they're kept only for the kinds
-KINDS = ("new section", "prose", "copyedits", "references", "table", "template fields", "categories", "links")
+KINDS = ("new section", "prose", "copyedits", "removals", "references", "table", "template fields", "categories",
+         "links")
 LEAD = "(lead)"
 _HEADING = re.compile(r"^(={2,6})[ \t]*(.*?)[ \t]*\1[ \t]*$", re.M)
 _CATEGORY = re.compile(r"\[\[\s*Category\s*:", re.I)
@@ -120,6 +124,14 @@ def day_change(start: str | None, end: str, max_prose_chars: int = 1200) -> dict
         targets = span_sections(end, end.find(span), span)
         for section in targets:
             section_chars[section] = section_chars.get(section, 0) + len(span) // len(targets)
+    end_lines = {line.strip() for line in end.split("\n")}
+    for span in diff.removed:
+        gone = "\n".join(line for line in span.split("\n") if line.strip() not in end_lines).strip()
+        if len(gone) < MIN_SPAN_CHARS or span in end:
+            continue  # moved, or a word swapped in a copyedit
+        kinds.add("removals")
+        section = section_at(start or "", (start or "").find(span))
+        section_chars[section] = section_chars.get(section, 0) + len(gone)
     text = " ".join(pieces)
     if len(text) > max_prose_chars:
         text = text[:max_prose_chars].rsplit(" ", 1)[0] + " …"

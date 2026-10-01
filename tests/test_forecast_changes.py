@@ -53,6 +53,13 @@ class DayChangeTest(unittest.TestCase):
         change = day_change(START, START.replace("She was elected in 2010.", "She was first elected in 2010."))
         self.assertEqual((change["kinds"], change["prose"], change["sections"]), (["copyedits"], "", ["Career"]))
 
+    def test_removals_count_but_moves_do_not(self):
+        trimmed = START.replace(f"{MOVED}\n", "")
+        change = day_change(START, trimmed)
+        self.assertEqual((change["kinds"], change["sections"]), (["removals"], ["Career"]))
+        self.assertGreaterEqual(change["section_chars"][0], len(MOVED))
+        self.assertNotIn("removals", day_change(START, END)["kinds"])  # END moved that paragraph to Legacy
+
     def test_page_created_that_day(self):
         change = day_change(None, END)
         self.assertTrue(change["prose"].startswith("Jane Roe is a British politician."))
