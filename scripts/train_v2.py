@@ -146,17 +146,30 @@ def forecast_headers(model, tokenizer, prompts: list[list[int]], pad_id: int) ->
     """Greedy-decoded headers for each prompt, in order: up to the text line, which isn't generated.
 
     Prompts are batched by length (`length_batches`). On the longest
-    prompts, a full batch of GENERATION_BATCH peaked at 6.1GB in a probe."""
+    prompts, a full batch of GENERATION_BATCH peaked at 6.1GB in a probe.
+
+    Batches go longest first, and PyTorch's cache is freed after each one.
+    In the first full runs they went shortest first, so each batch needed
+    bigger blocks than any cached:
+    - reserved memory grew from 2.3 to 6.3GB over 38 batches, with 1.7GB
+      allocated between them;
+    - the runs spilled up to 13.4GB into system RAM, because on Windows
+      the driver backs allocations with system RAM instead of failing
+      them, so PyTorch never frees its cache to retry.
+    Now reserved memory stays at 2.2GB between batches, and the headers
+    are identical."""
     model.eval()
     model.config.use_cache = True
     torch.cuda.empty_cache()
     out = [""] * len(prompts)
-    for batch in length_batches([len(p) for p in prompts], GENERATION_BATCH, GENERATION_TOKENS):
+    for batch in reversed(length_batches([len(p) for p in prompts], GENERATION_BATCH, GENERATION_TOKENS)):
         ids, mask = left_padded([prompts[i] for i in batch], pad_id)
         new = model.generate(input_ids=ids.cuda(), attention_mask=mask.cuda(), max_new_tokens=HEADER_TOKENS,
                              do_sample=False, stop_strings=[TEXT_MARK], tokenizer=tokenizer, pad_token_id=pad_id)
         for i, text in zip(batch, tokenizer.batch_decode(new[:, ids.shape[1] :], skip_special_tokens=True)):
             out[i] = text
+        del new
+        torch.cuda.empty_cache()
     model.config.use_cache = False
     return out
 
@@ -233,7 +246,7 @@ def main(argv: list[str] | None = None) -> int:
         "base_model": args.model, "micro_batch": args.micro_batch, "seeds": args.seeds, "variants": args.variants,
         "examples": {s: len(v) for s, v in by_split.items()}, "group_sizes": {g: sum(m) for g, m in subsets.items()},
         "renamed": renamed, "shortened": shortened, "longest": longest, "common_kinds": common,
-        "training": {}, "seconds": {}, "peak_gpu_gb": {}, "nll": {}, "validity": {},
+        "training": {}, "seconds": {}, "peak_gpu_gb": {}, "peak_reserved_gb": {}, "nll": {}, "validity": {},
     }
     nll: dict[str, list] = {}
     texts: dict[str, list[str]] = {}
@@ -257,11 +270,13 @@ def main(argv: list[str] | None = None) -> int:
             results["nll"][name] = {"header": token_mean([(h, hc) for h, hc, _, _ in nll[name]]),
                                     "text": token_mean(with_text) if with_text else math.nan}
             results["peak_gpu_gb"][name] = torch.cuda.max_memory_allocated() / 1e9
+            results["peak_reserved_gb"][name] = torch.cuda.max_memory_reserved() / 1e9  # with PyTorch's cache
             results["seconds"][name] = time.monotonic() - began
             model.save_pretrained(str(args.out / "adapters" / f"{v}_seed{seed}"))
             (args.out / "results.partial.json").write_text(json.dumps(results, default=str))  # in case of a crash
             print(f"  {name}: header NLL {results['nll'][name]['header']:.4f}, text NLL {results['nll'][name]['text']:.4f}, "
-                  f"{results['seconds'][name]:,.0f}s, peak {results['peak_gpu_gb'][name]:.1f} GB", flush=True)
+                  f"{results['seconds'][name]:,.0f}s, peak {results['peak_gpu_gb'][name]:.1f} GB "
+                  f"({results['peak_reserved_gb'][name]:.1f} GB reserved)", flush=True)
             del model
             torch.cuda.empty_cache()
 
