@@ -197,8 +197,8 @@ def collate(pairs: list[tuple[list[int], list[int]]], pad_id: int) -> tuple[torc
     return ids, mask, labels, max(len(t) for _, t in pairs) + 1
 
 
-def target_nll(model, ids, mask, labels, keep: int, chunk: int | None = None) -> tuple[torch.Tensor, torch.Tensor]:
-    """Per-example summed NLL of target tokens, and their counts.
+def token_nll(model, ids, mask, labels, keep: int, chunk: int | None = None) -> tuple[torch.Tensor, torch.Tensor]:
+    """The NLL of each of the last `keep` - 1 positions (0 off target), and their labels.
 
     The loss runs in full precision over `chunk` rows at a time (default:
     all). That caps its memory when scoring; in training, autograd keeps
@@ -206,13 +206,18 @@ def target_nll(model, ids, mask, labels, keep: int, chunk: int | None = None) ->
     logits = model(input_ids=ids, attention_mask=mask, logits_to_keep=keep).logits[:, :-1]
     tail = labels[:, -(keep - 1) :]
     step = chunk or len(logits)
-    token_nll = torch.cat([
+    nll = torch.cat([
         F.cross_entropy(logits[i : i + step].float().transpose(1, 2), tail[i : i + step], ignore_index=-100,
                         reduction="none")
         for i in range(0, len(logits), step)
     ])
-    counts = (tail != -100).sum(dim=1)
-    return token_nll.sum(dim=1), counts
+    return nll, tail
+
+
+def target_nll(model, ids, mask, labels, keep: int, chunk: int | None = None) -> tuple[torch.Tensor, torch.Tensor]:
+    """Per-example summed NLL of target tokens, and their counts."""
+    nll, tail = token_nll(model, ids, mask, labels, keep, chunk)
+    return nll.sum(dim=1), (tail != -100).sum(dim=1)
 
 
 def load_model(name: str, adapters: bool):
