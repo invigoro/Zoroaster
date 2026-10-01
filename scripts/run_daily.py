@@ -8,7 +8,8 @@ windowless via pythonw (PLAN.md §6 step 9). For today's UTC date D:
 2. Score D-1's prophecy, now that D-1 is over (`score_predictions.py`). If
    D-1 was never predicted (the machine was off), predict it first, as it
    would have been then, so the record has no gaps.
-3. Build the site (`build_site.py`).
+3. Build the site (`build_site.py`) and publish it to the `gh-pages`
+   branch (`publish_site.py`).
 4. Delete the full candidate tables (`D.parquet`, ~50 MB a day) older than
    KEEP_DAYS; the JSON files stay.
 
@@ -45,7 +46,7 @@ def _ok(exit_code: int) -> None:
 
 def plan(day: date, predictions: Path) -> list[Step]:
     """The steps still to do for `day`, in order."""
-    from scripts import build_site, daily_predictions, score_predictions
+    from scripts import build_site, daily_predictions, publish_site, score_predictions
 
     steps: list[Step] = []
     prev = day - timedelta(days=1)
@@ -57,6 +58,7 @@ def plan(day: date, predictions: Path) -> list[Step]:
     if not (predictions / f"{prev}.outcomes.json").exists():
         steps.append((f"score {prev}", lambda: _ok(score_predictions.main(["--day", prev.isoformat()]))))
     steps.append(("build the site", lambda: _ok(build_site.main([]))))
+    steps.append(("publish the site", lambda: _ok(publish_site.main([]))))
     steps.append(("prune old candidate tables", lambda: print(f"removed {prune(predictions, day)} tables")))
     return steps
 

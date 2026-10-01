@@ -19,16 +19,16 @@ class PlanTest(unittest.TestCase):
             # a missed day: nothing for yesterday
             self.assertEqual(names(plan(DAY, predictions)), [
                 "predict 2026-09-30 (missed)", "predict 2026-10-01", "score 2026-09-30", "build the site",
-                "prune old candidate tables"])
+                "publish the site", "prune old candidate tables"])
             # the normal day: yesterday was predicted, not yet scored
             (predictions / "2026-09-30.parquet").touch()
             (predictions / "2026-09-30.json").touch()
             self.assertEqual(names(plan(DAY, predictions)), [
-                "predict 2026-10-01", "score 2026-09-30", "build the site", "prune old candidate tables"])
+                "predict 2026-10-01", "score 2026-09-30", "build the site", "publish the site", "prune old candidate tables"])
             # already done today
             (predictions / "2026-10-01.json").touch()
             (predictions / "2026-09-30.outcomes.json").touch()
-            self.assertEqual(names(plan(DAY, predictions)), ["build the site", "prune old candidate tables"])
+            self.assertEqual(names(plan(DAY, predictions)), ["build the site", "publish the site", "prune old candidate tables"])
 
 
 class RunTest(unittest.TestCase):
