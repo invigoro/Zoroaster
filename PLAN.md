@@ -423,6 +423,55 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
         later, and yesterday's per-section sizes.
     - **Baselines:** `v2_baselines.py`. The results are in §5, "Version 2
       data and baselines".
+21. **Version 2, phase 3 (2026-10-01)**:
+    - **Prompts** (`src/forecast/prompts.py`) are far shorter than planned.
+      - The full variant averages 318 tokens (99th percentile 650), and
+        the page alone 206.
+      - Targets average 64 tokens, 22 of them the header.
+      - So `train_v2.py` allows 1,024 prompt tokens and 256 target tokens.
+        Only 6 of 18,575 prompts needed a shorter lead.
+      - Prompts list up to 60 headings. At 40, 1.7% of the most-changed
+        sections would have been cut off; at 60, 0.5% are.
+    - **Memory on 8 GB:**
+      - Training on the longest sequences, four at a time, peaked at
+        4.8 GB.
+      - Generating for 16 of the longest prompts at once peaked at 6.1 GB.
+        So generation batches prompts by length under a 10K-token budget,
+        which peaks at 2.8 GB and takes 0.45 s a header.
+    - **Smoke run** (1,000 training examples): 97% of generated headers
+      parsed. One forecast repeated "(lead)" up to the token cap, so
+      parsing now drops repeated sections.
+      - By my mistake, a backgrounded command chain started a second copy
+        of the smoke run. The two shared the GPU, both spilled into system
+        RAM, and both slowed about 3×. The second copy was stopped at its
+        time limit.
+    - **Runs:** the full prompt, then the page-only control, with one seed
+      each. They were launched at 08:19 as a one-off scheduled task, with
+      the log in `data/processed/enwiki/logs/v2_train.log`.
+      - Full prompt: 107 minutes of training (7.1 s/step), 2.5 hours in
+        all.
+      - Page alone: 82 minutes of training, 1.8 hours in all.
+      - Peak allocated memory was 4.7 GB.
+      - Results and adapters are in `data/processed/enwiki/v2/qwen2.5-1.5b/`,
+        including every test header in `generations.json`. The results are
+        in §5, "Version 2 model: structured forecasts".
+    - **Generation spilled into system RAM** in both runs. Each run's
+      generation took about 40 minutes instead of 25.
+      - At the peak, the process held 7.8 GB on the GPU and 13.4 GB in
+        shared memory, and free RAM fell to 6.9 GB. The memory log is
+        `data/processed/enwiki/logs/v2_train_gpu_memory.csv`.
+      - **Cause:** batches went shortest first, so each needed bigger
+        blocks than PyTorch had cached, and its cache kept growing. On
+        Windows the driver backs allocations with system RAM instead of
+        failing them, so PyTorch never frees its cache to retry. The same
+        thing probably slowed Stage 2's scoring (item 16).
+      - **Fix:** batches now go longest first, and the cache is freed
+        after each one.
+      - **Re-run on 1,200 test prompts:**
+        - The old loop's reserved memory grew from 2.3 to 6.3 GB over 38
+          batches, with 1.7 GB allocated between them.
+        - The fixed loop's stayed at 2.2 GB between batches.
+        - The headers were identical.
 
 ## 4. Data state — important for resuming on a new machine
 
@@ -1223,6 +1272,66 @@ Structured-forecast baselines on the test days (`src/forecast/metrics.py`):
 - **Validation runs higher than test** (main section 0.540 for "yesterday
   again"), so all comparisons are within one split.
 
+### Version 2 model: structured forecasts (2026-10-01, English Wikipedia)
+
+QLoRA on Qwen2.5-1.5B (`train_v2.py`), with one seed (§3 item 21). The
+headers were greedy-decoded on all 2,796 test days, so 2,097 of them are
+the burst model's top pages, the kind the site shows. Each cell gives all
+test days / top pages:
+
+| forecaster | section precision | main section named | kinds Jaccard |
+|---|---|---|---|
+| yesterday again | 0.448 / 0.451 | **0.490 / 0.503** | 0.412 / 0.457 |
+| most common | **0.474 / 0.486** | 0.313 / 0.279 | 0.398 / 0.438 |
+| model, full prompt | 0.449 / 0.458 | 0.447 / 0.459 | **0.430 / 0.486** |
+| model, page alone | 0.431 / 0.441 | 0.360 / 0.343 | 0.400 / 0.444 |
+
+Paired per-example differences, with standard errors (all / top):
+
+| comparison | section precision | main section named | kinds Jaccard |
+|---|---|---|---|
+| full prompt − yesterday again | −0.001 ± 0.005 / +0.007 ± 0.006 | **−0.042 ± 0.008 / −0.044 ± 0.010** | **+0.018 ± 0.004 / +0.029 ± 0.004** |
+| full prompt − page alone | +0.017 ± 0.006 / +0.017 ± 0.008 | +0.088 ± 0.009 / +0.116 ± 0.011 | +0.030 ± 0.004 / +0.042 ± 0.005 |
+
+- **The full prompt doesn't beat "yesterday again" overall.** It's better
+  on the kinds of change, ties on section precision, and is worse at
+  naming the main section.
+  - The agreed rule was that the middle variant and second seeds would
+    run only if it won. So they haven't run.
+  - On random pages it trails "yesterday again" on all three metrics.
+- **It names fewer sections:** 1.76 on average, against up to 3 for
+  "yesterday again".
+  - It names exactly yesterday's sections on 45% of days.
+  - When it names fewer, it misses the main section more often.
+  - On days the page changed the day before (1,914), it beats "yesterday
+    again" on kinds (0.504 vs 0.467) and on section precision (0.453 vs
+    0.442), but names the main section less often (0.466 vs 0.518).
+- **Greedy decoding never predicts the rare kinds.**
+  - "New section" (10% of days) is never predicted, and categories almost
+    never (2% recall).
+  - The common kinds are nearly always predicted: copyedits, removals and
+    template fields each get 0.94 recall.
+  - So ranking candidates by the model's own probabilities may do better
+    than its single most likely header.
+- **The prompt's extra information helps.** The full prompt beats the page
+  alone on every metric, and on likelihood:
+  - header: −0.016 ± 0.001 nats per token;
+  - new text: −0.085 ± 0.009 nats per token, on days with new prose.
+  - Mean NLL per token was 0.460 vs 0.476 for the header, and 2.545 vs
+    2.610 for the text.
+- **Living people (557 test days):**
+  - The full prompt is better on kinds (+0.029 ± 0.008) and worse on the
+    main section (−0.053 ± 0.017).
+  - All headers parsed, and 0.7% (full) and 1.0% (page) of the sections
+    they named aren't on the page.
+  - Most of those invented names state outcomes, e.g. "2026 Four
+    Continents champion", "2025–2026 season: World bronze" and "2026:
+    Return to the Cup Series" (page alone). So a section name is free
+    text in disguise.
+  - The full prompt's "2026: Dementia diagnosis and guardianship"
+    (Wendy Williams) added a year to an existing section, one that the
+    day before's edits had touched.
+
 ## 6. Next steps, in order
 
 Re-planned 2026-09-28 after the code review in §5, and again after the
@@ -1518,11 +1627,24 @@ old step 2 (move to English Wikipedia) is now step 5.
          - For the prose, measured but not published: NLL per token, and
            new-word recall, the share of the day's new content words absent
            from the page at the end of D−1 that a generation contains.
-      3. **Model.** QLoRA on Qwen2.5-1.5B, with prompts of about 1,500
-         tokens.
+      3. **Model (first runs done 2026-10-01, §3 item 21 and §5 "Version
+         2 model: structured forecasts").** QLoRA on Qwen2.5-1.5B
+         (`train_v2.py`), with prompts of about 300 tokens.
          - Variants: the page alone; plus its own recent changes; plus the
            signals and neighbor names.
-         - Two seeds for the final comparison.
+         - First: the full prompt and the page-only control, one seed each.
+           The middle variant and second seeds follow only if the full
+           prompt beats "yesterday again".
+         - **Result:** it didn't. It's better on kinds and worse at naming
+           the main section, so the follow-up runs haven't been started.
+         - **Open: what next.** Options:
+           - Rank instead of decoding greedily. Score each heading on the
+             page, plus the lead, by the model's probability of naming it,
+             and name the top 3, as "yesterday again" does. Set each
+             kind's threshold on validation. No retraining is needed.
+           - The middle variant and a second seed.
+           - Combine yesterday's sections with the model's kinds, judged
+             on validation, not test.
       4. **Deployment.** A "foretell" step in `run_daily.py`, after the
          predictions.
          - Fetch the top 20 pages' current text (one request), generate
@@ -1533,11 +1655,15 @@ old step 2 (move to English Wikipedia) is now step 5.
       5. **With the Actions move:** CPU inference via llama.cpp, with a
          quantized model of about 1 GB.
     - **Other guardrails:**
-      - Filter generations that touch death, crime, legal trouble and
-        similar topics.
+      - Filter generations that touch death, crime, legal trouble, health
+        and similar topics.
       - For living people, also leave sensitive section names ("Death",
-        "Legal issues", "Controversies", "Personal life") out of the
-        structured forecast.
+        "Legal issues", "Controversies", "Personal life", and health ones
+        such as diagnoses) out of the structured forecast.
+      - **Publish only section names already on the page**, verbatim, for
+        every page. Phase 3's invented names mostly stated outcomes
+        ("2026 Four Continents champion"), so a predicted new section is
+        shown only as the kind "new section", without its name.
 
 ## 7. Open questions
 

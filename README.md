@@ -252,6 +252,27 @@ Wikipedia, which is roughly 100× the test corpus.
   the "most edits yesterday" baseline, better on every day. Details are in
   `PLAN.md` §5, "Daily job backtest".
 
+- **Version 2: what the edits will be** (in progress, `src/forecast/`).
+  For a page in the prophecy, this forecasts which sections the day's
+  edits will touch and what kinds of change they'll make (new prose,
+  references, tables, …), from the page as it stood the day before. When
+  it's published, each forecast will be labeled as a machine-generated
+  guess, not news, and kept structured for pages about living people.
+
+  ```bash
+  python scripts/build_v2_targets.py      # choose page-days: the burst model's top pages, plus random ones
+  python scripts/fetch_v2_examples.py     # fetch each page at the ends of D-2, D-1 and D, and derive the changes
+  python scripts/build_stage2_titles.py --v2   # titles as of D-1, from the history dumps
+  python scripts/v2_baselines.py          # score the baselines
+  python scripts/train_v2.py              # QLoRA on Qwen2.5-1.5B; greedy-decoded test forecasts
+  ```
+
+  First result: with the page's recent changes and the Stage 1 signals in
+  its prompt, the model beats the baseline of repeating yesterday's
+  changes on the kinds of change. It's worse at naming the section that
+  changes most, so nothing is published yet. Details are in `PLAN.md` §5,
+  "Version 2 model: structured forecasts".
+
 Run the tests (no network or data files needed) with:
 
 ```bash
