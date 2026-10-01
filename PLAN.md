@@ -1413,9 +1413,17 @@ old step 2 (move to English Wikipedia) is now step 5.
         - The label sits next to each forecast, so a screenshot of one
           still carries it.
         - The page's header and explainer say the same.
-      - **Living people get structured forecasts only**: which sections
-        and what kind of edit, never free text. They're not left out, but
-        nothing is generated that reads as a claim about a person.
+      - **Structured forecasts only, for every page, to start** (decided
+        later the same day): which sections, and what kind of edit. The
+        model still learns the day's new prose after the header, and its
+        quality is measured but not published.
+        - Header tokens come first, so the prose doesn't affect how they're
+          predicted.
+        - Switching to free text later needs no new data or retraining:
+          it's a display change plus the free-text guardrails below.
+      - **Living people get structured forecasts only, even then**: never
+        free text. They're not left out, but nothing is generated that
+        reads as a claim about a person.
         - Free text is the riskiest form: fluent and specific, in
           Wikipedia's voice, and often wrong.
         - The base model knows nothing after 2024, so for 2026 it can only
@@ -1454,10 +1462,13 @@ old step 2 (move to English Wikipedia) is now step 5.
            60K revisions and an hour of API fetching.
       2. **Baselines and metrics.**
          - Baselines: "yesterday again" (today's change says what
-           yesterday's did), and title only.
-         - Metrics: NLL per token of the new prose, and new-word recall:
-           the share of the day's new content words, absent from the page
-           at the end of D−1, that a generation contains.
+           yesterday's did, in the same sections), and title only.
+         - For the structured forecast, which is what's published: section
+           precision and recall (did it name the sections that got new
+           text?), and accuracy on the kinds of change.
+         - For the prose, measured but not published: NLL per token, and
+           new-word recall, the share of the day's new content words absent
+           from the page at the end of D−1 that a generation contains.
       3. **Model.** QLoRA on Qwen2.5-1.5B, with prompts of about 1,500
          tokens.
          - Variants: the page alone; plus its own recent changes; plus the
