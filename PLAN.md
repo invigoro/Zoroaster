@@ -407,6 +407,22 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
       - It published.
     - **Publishing:** `publish_site.py` pushes the built site to an orphan
       `gh-pages` branch, from a worktree inside the ignored `data/`.
+20. **Version 2, phases 1 and 2 (2026-10-01)**:
+    - **Selection:** `build_v2_targets.py` chose 18,634 edited page-days in
+      43 seconds: each day's top pages by the burst model, plus a random
+      sample. Of these, 68% had a bursting linked page the day before.
+    - **Point-in-time titles:** `build_stage2_titles.py --v2` scanned 36
+      monthly dumps in 8 minutes. It found every revision, and 4.5% of
+      pages had a different title then.
+    - **The fetch:** `fetch_v2_examples.py` fetched 44,010 revisions in 50
+      minutes, as a one-off scheduled task, giving 18,575 examples (314 MB).
+      - It was restarted twice in its first minutes, after checking real
+        examples. Word fixes had counted as new prose (now "copyedits"),
+        and deletion-only days had no kind (now "removals").
+      - It also stores the changed paragraphs, for whole-sentence targets
+        later, and yesterday's per-section sizes.
+    - **Baselines:** `v2_baselines.py`. The results are in §5, "Version 2
+      data and baselines".
 
 ## 4. Data state — important for resuming on a new machine
 
@@ -1175,6 +1191,38 @@ out.
     2026-09-01, so pages last edited in August are missed. That's
     irrelevant at the top of the list.
 
+### Version 2 data and baselines (2026-10-01, English Wikipedia)
+
+Version 2's page-days, from `fetch_v2_examples.py`:
+
+| split | examples | gained new prose | about living people | changed the day before |
+|---|---|---|---|---|
+| train | 14,507 | 41% | 23% | 75% |
+| validation | 1,272 | 47% | 24% | 73% |
+| test | 2,796 | 38% | 20% | 68% |
+
+The kinds of change, across all examples: copyedits 59%, removals 58%,
+template fields 57%, links 51%, new prose 41%, references 37%, tables 11%,
+new sections 10%, categories 7%. About 9% of page-days have no detected
+kind. They look like small value changes inside templates (a number in an
+infobox), and the stored spans allow a "data" kind to be added without
+refetching.
+
+Structured-forecast baselines on the test days (`src/forecast/metrics.py`):
+
+| baseline | section precision | main section named | kinds Jaccard |
+|---|---|---|---|
+| yesterday again | 0.448 | **0.490** | **0.412** |
+| most common (the lead; copyedits, removals, template fields, links) | **0.474** | 0.313 | 0.398 |
+
+- **The bar for a model** is "yesterday again" on the burst model's top
+  pages, the site's kind: it names the main changed section for half of
+  them (0.503), with a kinds Jaccard of 0.457.
+- **The lead changes often**, so always naming it gives decent section
+  precision but rarely the main section.
+- **Validation runs higher than test** (main section 0.540 for "yesterday
+  again"), so all comparisons are within one split.
+
 ## 6. Next steps, in order
 
 Re-planned 2026-09-28 after the code review in §5, and again after the
@@ -1452,15 +1500,16 @@ old step 2 (move to English Wikipedia) is now step 5.
           capped at about 256 tokens.
         - Living people's pages show only the header.
     - **Phases:**
-      1. **Data (in progress).** Page-days like the ones the page will
-         forecast.
+      1. **Data (done 2026-10-01, §3 item 20).** Page-days like the ones
+         the page will forecast.
          - On each day: the burst model's top-ranked pages that did get
            edited, plus a random sample of edited pages for contrast.
          - Train and validation come from the panel's windows, test from
            the 14 evaluation days.
          - Each example needs the page at the ends of D−2, D−1 and D, about
            60K revisions and an hour of API fetching.
-      2. **Baselines and metrics.**
+      2. **Baselines and metrics (done 2026-10-01, §5 "Version 2 data and
+         baselines").**
          - Baselines: "yesterday again" (today's change says what
            yesterday's did, in the same sections), and title only.
          - For the structured forecast, which is what's published: section
