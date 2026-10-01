@@ -47,7 +47,7 @@ import requests
 from scripts.build_enwiki_labels import LABELS_DIR
 from scripts.build_stage2_targets import OUT_DIR
 from scripts.fetch_stage2_diffs import EXAMPLES_DIR
-from src.stage2.diff import word_diff
+from src.forecast.changes import new_spans
 from src.stage2.examples import MAX_NEIGHBORS_SHOWN
 from src.stage2.fetch import fetch_contents
 from src.stage2.wikitext import prose
@@ -68,15 +68,8 @@ SCHEMA = pa.schema([
 def snippet(start: str | None, end: str) -> tuple[str | None, int, list[str]]:
     """The day's longest new prose (cut short) or None, the total inserted
     chars, and each span's new text, where long enough to hold a snippet."""
-    inserted = word_diff(start, end).inserted
-    old_lines = {line.strip() for line in start.split("\n")} if start else set()
-    spans = []
-    for s in inserted:
-        if start and s in start:
-            continue
-        new = "\n".join(line for line in s.split("\n") if line.strip() not in old_lines).strip()
-        if len(new) >= MIN_SNIPPET_CHARS:
-            spans.append(new)
+    new, inserted_chars, _ = new_spans(start, end)
+    spans = [s for s in new if len(s) >= MIN_SNIPPET_CHARS]
     best = max((p for s in spans for p in prose(s)), key=len, default="")
     if len(best) < MIN_SNIPPET_CHARS:
         best = None
@@ -88,7 +81,7 @@ def snippet(start: str | None, end: str) -> tuple[str | None, int, list[str]]:
             break
         kept.append(s[:MAX_SPAN_CHARS])
         total += len(kept[-1])
-    return best, sum(len(s) for s in inserted), kept
+    return best, inserted_chars, kept
 
 
 def day_bounds(titles: list[str], days: list) -> list[dict]:
