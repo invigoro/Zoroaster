@@ -392,6 +392,21 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
       "Daily job backtest".
     - **The page** (`web/`, assembled by `build_site.py`) was checked in
       headless Edge with the 2026-09-30 prophecy and 2026-09-29's record.
+19. **Step 9, the daily schedule and publishing (2026-10-01)**:
+    - `run_daily.py` orchestrates a day: predict D (fetching missing live
+      days first), score D−1, build and publish the site, and prune
+      candidate tables after 14 days.
+    - A Windows scheduled task, "Zoroaster daily", runs it windowless with
+      pythonw at 18:30 local time, which is 00:30 UTC (01:30 after daylight
+      saving ends). It catches up after a missed start.
+    - **First run (00:24–00:32 UTC):**
+      - It fetched 2026-09-30 (121,388 edits) and ranked 1,603,914 pages
+        for 2026-10-01.
+      - It scored 2026-09-30: 15 of the top 100 burst, against 7 for the
+        baseline.
+      - It published.
+    - **Publishing:** `publish_site.py` pushes the built site to an orphan
+      `gh-pages` branch, from a worktree inside the ignored `data/`.
 
 ## 4. Data state — important for resuming on a new machine
 
@@ -1307,9 +1322,8 @@ old step 2 (move to English Wikipedia) is now step 5.
      at the end, so a crash loses the whole run).
 
 9. **Deployment: a static "predicted events for tomorrow" page** (planned
-   2026-09-29; **daily input, local daily job and the page done
-   2026-09-30**, see §3 items 17–18 and §5 "Recent changes vs the history
-   dumps" and "Daily job backtest"). Host on GitHub Pages only (free,
+   2026-09-29; **running daily since 2026-10-01**, see §3 items 17–19 and
+   §5 "Recent changes vs the history dumps" and "Daily job backtest"). Host on GitHub Pages only (free,
    static), not an app hosting service.
    - **Precompute, don't serve.** Tomorrow's prediction is the same for
      every visitor. A daily batch job writes it as static JSON and the page
@@ -1372,12 +1386,11 @@ old step 2 (move to English Wikipedia) is now step 5.
        on real data (`check_daily_parity.py`), and backtesting puts 20 of
        each day's top 100 bursts in the next day (§5).
      - **The page: done, locally** (`web/`, `build_site.py`).
+     - **The daily schedule and publishing: done** (§3 item 19). The
+       repo is public, and the site is pushed to `gh-pages` daily.
      - **Still to do:**
-       - A daily schedule on this machine, shortly after 00:00 UTC: fetch
-         the day just ended, predict the new day, score yesterday, build
-         and publish the site.
-       - Publishing, once the repo is public: push the built site to an
-         orphan `gh-pages` branch and turn Pages on.
+       - Turn Pages on: Settings → Pages, deploying from `gh-pages`.
+       - Choose a license (none yet, so the code is all rights reserved).
        - For GitHub Actions: a compact rolling state, since recent changes
          keep only 30 days and a runner can't hold the 7 GB of dump
          revisions. It needs the per-page daily counts for the 90-day burst

@@ -240,7 +240,12 @@ Wikipedia, which is roughly 100× the test corpus.
   python scripts/daily_predictions.py --day 2026-09-30                  # rank ~1.5M pages, ~2 min
   python scripts/score_predictions.py --day 2026-09-29                  # how a finished day's prophecy did
   python scripts/build_site.py --serve                                  # preview the page at localhost:8000
+  python scripts/run_daily.py                                           # a whole day: predict, score, build, publish
   ```
+
+  A Windows scheduled task runs `run_daily.py` every evening, shortly after
+  00:00 UTC. `publish_site.py` pushes the page to the `gh-pages` branch,
+  which GitHub Pages serves.
 
   A 22-day backtest (September 2026) found about one in five of each day's
   top 100 burst the next day, and one in three of the top 10. That's double
