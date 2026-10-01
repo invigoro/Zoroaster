@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zoroaster: tomorrow's Wikipedia bursts</title>
+  <meta name="description" content="Each night, Zoroaster reads the day's edits to English Wikipedia and foretells which pages will see a burst of editing tomorrow.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <p class="kicker">Zoroaster</p>
+    <h1>Also sprach Zarathustra</h1>
+    <p class="lede">Thus spoke Zarathustra: the English Wikipedia pages most likely to see a burst of editing
+      on <strong id="day">…</strong> (UTC).</p>
+  </header>
+
+  <main>
+    <section id="record" class="record" hidden>
+      <h2>Yesterday's prophecy</h2>
+      <p id="record-text"></p>
+    </section>
+
+    <section>
+      <h2>The prophecy</h2>
+      <ol id="pages" class="pages"><li class="placeholder">Consulting the flames…</li></ol>
+    </section>
+
+    <section class="about">
+      <h2>How the prophecy is made</h2>
+      <p>Every night just after midnight UTC, Zoroaster reads the day's edits to English Wikipedia and ranks
+        about half a million recently edited pages by how likely each is to <em>burst</em> the next day: far more
+        edits than usual for that page, from at least two editors (accounts editing dozens of pages a day are
+        left out).</p>
+      <p>The ranking comes from a gradient-boosted model trained on three years of Wikipedia's edit history.
+        It sees only each page's own recent activity and the calendar, not the news. Pages already busy are
+        likelier to stay busy, but most of tomorrow's bursts are new, so most of the prophecy won't come true:
+        in testing, about one in five of the top 100 did.</p>
+      <p>A listed page is a statistical forecast of editing activity, not a claim that anything has happened or
+        will happen.</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>Data: <a href="https://www.mediawiki.org/wiki/API:RecentChanges">Wikipedia's recent changes</a> and
+      <a href="https://dumps.wikimedia.org/other/mediawiki_history/readme.html">MediaWiki history dumps</a>,
+      courtesy of the Wikimedia Foundation. Page titles link to Wikipedia; its content is available under
+      <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.
+      Code: <a href="https://github.com/invigoro/Zoroaster">github.com/invigoro/Zoroaster</a>.</p>
+    <p id="generated"></p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

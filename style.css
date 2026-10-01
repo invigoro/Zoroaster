@@ -1,0 +1,65 @@
+:root {
+  --bg: #fbf8f2;
+  --text: #22201c;
+  --muted: #6b655b;
+  --accent: #9a4a12;
+  --rule: #e4ddd0;
+  --bar: #e9c9a6;
+  --hit: #2f6b3a;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17150f;
+    --text: #ece6da;
+    --muted: #a39b8c;
+    --accent: #e39a5c;
+    --rule: #332e25;
+    --bar: #5a3d22;
+    --hit: #7fc28c;
+  }
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0 auto;
+  max-width: 46rem;
+  padding: 2.5rem 1rem 3rem;
+  background: var(--bg);
+  color: var(--text);
+  font: 1.02rem/1.55 Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+}
+a { color: var(--accent); }
+h1 { font-size: 2.3rem; line-height: 1.1; margin: 0.2rem 0 0.6rem; font-style: italic; }
+h2 { font-size: 1.05rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 2.2rem 0 0.6rem; }
+.kicker { margin: 0; color: var(--accent); letter-spacing: 0.2em; text-transform: uppercase; font-size: 0.85rem; }
+.lede { margin: 0; color: var(--muted); }
+.lede strong { color: var(--text); }
+
+.record p { margin: 0; }
+.record .hit { color: var(--hit); }
+
+.pages { list-style: none; padding: 0; margin: 0; }
+.pages li {
+  display: grid;
+  grid-template-columns: 2.2rem 1fr auto;
+  gap: 0.2rem 0.75rem;
+  align-items: baseline;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.pages .rank { color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+.pages .title { font-size: 1.05rem; overflow-wrap: anywhere; }
+.pages .chance { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pages .detail { grid-column: 2 / 4; color: var(--muted); font-size: 0.88rem; }
+.pages .meter { grid-column: 2 / 4; height: 3px; background: var(--rule); border-radius: 2px; }
+.pages .meter span { display: block; height: 100%; background: var(--bar); border-radius: 2px; }
+.pages .placeholder { display: block; color: var(--muted); border: 0; }
+
+.about p { margin: 0 0 0.8rem; }
+footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+footer p { margin: 0 0 0.5rem; }
+
+@media (max-width: 30rem) {
+  h1 { font-size: 1.8rem; }
+  .pages li { grid-template-columns: 1.8rem 1fr auto; }
+}

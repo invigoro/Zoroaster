@@ -1,0 +1,36 @@
+{
+ "date": "2026-09-30",
+ "target": "a burst of edits by 2+ editors (mass editors left out)",
+ "mass_editors": 306,
+ "precision": {
+  "model": {
+   "10": 0.3,
+   "50": 0.22,
+   "100": 0.15,
+   "1000": 0.052
+  },
+  "edits yesterday": {
+   "10": 0.2,
+   "50": 0.06,
+   "100": 0.07,
+   "1000": 0.04
+  }
+ },
+ "hits": [
+  "Case Keenum",
+  "2026 American League Wild Card Series",
+  "2026 NRL Grand Final",
+  "2026 National League Wild Card Series",
+  "2026 Major League Baseball postseason",
+  "Christa Pike",
+  "Ace Combat 8: Wings of Theve",
+  "Cornell University",
+  "Adrian Rurawhe",
+  "Primetime (film)",
+  "Futurama",
+  "X2 (roller coaster)",
+  "Pepijn van der Stap",
+  "Grover Cleveland",
+  "Digger (2026 film)"
+ ]
+}
