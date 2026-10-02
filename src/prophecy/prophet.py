@@ -82,6 +82,10 @@ Leave out anything decided after {last}."""
 SOON_MARK = re.compile(r"\[(?:today|tomorrow|in (\d+) days)\]|\[starts (?:today|tomorrow|in (\d+) days)"
                        r"|ends (?:today|tomorrow|in (\d+) days)\]")
 NOTHING = ("nothing", "none", "no ", "there is nothing", "the evidence does not")
+# The prompt's own words, which the model sometimes repeats before its question.
+ECHO = re.compile(r"the main question (?:that day|it) will settle is\s+", re.I)
+QUESTION_WORD = re.compile(r"(?:(?:in|at|by|for|to|from) )?(?:who|whom|whose|what|which|when|where|whether|why|how|"
+                           r"will|would|does|do|did|is|are|can)\b", re.I)
 
 PREDICTION = PAGE + """
 
@@ -133,19 +137,28 @@ def marked_within(block: str, horizon: int = HORIZON) -> bool:
 
 def parse_question(answer: str, day: date, horizon: int = HORIZON) -> tuple[str, date] | None:
     """The question in step 1's answer, and the day it's due: its "Question:" and "Date:" lines. None if the
-    "Event:" line says nothing is decided (the model sometimes writes a question anyway), if the question
-    doesn't end in "?", or if its date can't be read or falls outside the horizon."""
+    "Event:" line says nothing is decided (the model sometimes writes a question anyway), if there's no
+    question ("none", "None, as the release date is already set"), or if its date can't be read or falls
+    outside the horizon. The date may be a bare mark ("[tomorrow]").
+
+    The question needn't end in "?". Run 8's first attempt required one and lost 160 of 186 questions
+    with good dates ("Who wins the gold medal"); a question word then gets one."""
     fields: dict[str, str] = {}
     for line in answer.splitlines():
         label, _, rest = line.partition(":")
         fields.setdefault(label.strip().strip("*").lower(), " ".join(rest.split()).strip('"“”* '))
-    event, when, question = fields.get("event", ""), fields.get("date", ""), fields.get("question", "")
-    if event.lower().startswith(NOTHING) or not question.endswith("?"):
+    event, when = fields.get("event", ""), fields.get("date", "")
+    question = ECHO.sub("", fields.get("question", "")).rstrip(". ")
+    if event.lower().startswith(NOTHING) or not question or question.lower().startswith(NOTHING):
         return None
     due = {"today": day, "tomorrow": day + timedelta(days=1)}.get(when.lower().strip(". ")) or first_date(when, day)
+    mark = SOON_MARK.search(when)
+    if due is None and mark:
+        due = day + timedelta(days=_offset(mark))
     if due is None or not day <= due <= day + timedelta(days=horizon):
         return None
-    return question, due
+    question = question[0].upper() + question[1:]
+    return question + ("?" if QUESTION_WORD.match(question) and not question.endswith("?") else ""), due
 
 
 def _objects(answer: str) -> list[object]:

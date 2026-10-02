@@ -129,7 +129,14 @@ class ProphetTest(unittest.TestCase):
                                         'Game 2?"', day), ("Who wins Game 2?", date(2026, 9, 30)))
         self.assertEqual(parse_question("Event: The vote.\nDate: tomorrow\nQuestion: Who wins?", day),
                          ("Who wins?", date(2026, 9, 25)))
+        # As in run 8's three-line answers: no "?", a bare mark for a date, the prompt's words repeated.
+        self.assertEqual(parse_question("Event: Final\nDate: [in 2 days]\nQuestion: who wins the gold medal.", day),
+                         ("Who wins the gold medal?", date(2026, 9, 26)))
+        self.assertEqual(parse_question("Event: The vote\nDate: [tomorrow]\nQuestion: The main question that day will "
+                                        "settle is the outcome of the FIDE presidential election.", day),
+                         ("The outcome of the FIDE presidential election", date(2026, 9, 25)))
         for answer in ("Event: nothing\nDate: none\nQuestion: none", "Event: The final.\nDate: today\nQuestion: none",
+                       "Event: Release\nDate: 25 September 2026\nQuestion: None, as the release date is already set.",
                        "Event: The final.\nDate: next week\nQuestion: Who wins?",  # no date to read
                        "Event: The final.\nDate: 4 October 2026\nQuestion: Who wins?",  # 10 days away
                        # as for the NRL grand final: a question after saying nothing happens
