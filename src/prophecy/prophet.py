@@ -132,17 +132,28 @@ def _offset(mark: re.Match) -> int:
 def marked_within(block: str, horizon: int = HORIZON) -> bool:
     """Whether a page's evidence dates anything to the day foretold or the `horizon` days after:
     "[today]", "[in 3 days]", "ends tomorrow", "starts in 2 days"."""
-    return any(_offset(m) <= horizon for m in SOON_MARK.finditer(block))
+    return bool(marked_offsets(block, horizon))
 
 
-def parse_question(answer: str, day: date, horizon: int = HORIZON) -> tuple[str, date] | None:
+def marked_offsets(block: str, horizon: int = HORIZON) -> set[int]:
+    """The days after the day foretold that a page's evidence marks, up to `horizon`: 0 for "[today]"."""
+    return {_offset(m) for m in SOON_MARK.finditer(block) if _offset(m) <= horizon}
+
+
+def parse_question(answer: str, day: date, horizon: int = HORIZON, marked: set[int] | None = None
+                   ) -> tuple[str, date] | None:
     """The question in step 1's answer, and the day it's due: its "Question:" and "Date:" lines. None if the
     "Event:" line says nothing is decided (the model sometimes writes a question anyway), if there's no
     question ("none", "None, as the release date is already set"), or if its date can't be read or falls
     outside the horizon. The date may be a bare mark ("[tomorrow]").
 
     The question needn't end in "?". Run 8's first attempt required one and lost 160 of 186 questions
-    with good dates ("Who wins the gold medal"); a question word then gets one."""
+    with good dates ("Who wins the gold medal"); a question word then gets one.
+
+    `marked` holds the days after `day` that the page's evidence marks (`marked_offsets`). A due date on
+    none of them moves to the nearest that is, the later on a tie. Both prophets, given a page saying a
+    tournament "ends in 4 days", wrote the day itself or the horizon's last day: 26 of run 8's 181
+    questions, 68 of run 9's 197, nearly all on one of the two."""
     fields: dict[str, str] = {}
     for line in answer.splitlines():
         label, _, rest = line.partition(":")
@@ -157,6 +168,9 @@ def parse_question(answer: str, day: date, horizon: int = HORIZON) -> tuple[str,
         due = day + timedelta(days=_offset(mark))
     if due is None or not day <= due <= day + timedelta(days=horizon):
         return None
+    if marked and (due - day).days not in marked:
+        given = (due - day).days
+        due = day + timedelta(days=min(marked, key=lambda m: (abs(m - given), -m)))
     question = question[0].upper() + question[1:]
     return question + ("?" if QUESTION_WORD.match(question) and not question.endswith("?") else ""), due
 

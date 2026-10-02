@@ -53,8 +53,8 @@ from src.prophecy.checks import (NO_ANSWER, confirmed_orgs, confirmed_people, co
                                  kind_messages, listed_names, novelty_messages, one_persons_contest, orgs_messages,
                                  people_messages, person_messages, screen)
 from src.prophecy.evidence import TOP, eligible, evidence_blocks
-from src.prophecy.prophet import (HORIZON, PREDICTION, QUESTION, marked_within, parse_prediction, parse_question,
-                                  prediction_messages, question_messages)
+from src.prophecy.prophet import (HORIZON, PREDICTION, QUESTION, marked_offsets, marked_within, parse_prediction,
+                                  parse_question, prediction_messages, question_messages)
 from src.prophecy.selection import is_sport_page, select, title_messages, topic_messages
 
 INSTRUCT_MODEL = "Qwen/Qwen2.5-7B-Instruct"
@@ -167,7 +167,8 @@ def prophesy(model, tokenizer, day: date, rows: list[dict], forecasts: dict, mod
     blocks = evidence_blocks(pages, forecasts)
     dated = [i for i, b in enumerate(blocks) if marked_within(b, horizon)]
     asked = dict(zip(dated, ask([question_messages(day, blocks[i], horizon) for i in dated], QUESTION_TOKENS)))
-    questions = {i: q for i, q in ((i, parse_question(a, day, horizon)) for i, a in asked.items()) if q}
+    questions = {i: q for i, q in ((i, parse_question(a, day, horizon, marked_offsets(blocks[i], horizon)))
+                                   for i, a in asked.items()) if q}
     contests = dict(zip(questions, ask([contest_messages(titles[i], q) for i, (q, _) in questions.items()],
                                        YES_NO_TOKENS)))
     todo = [i for i, (q, _) in questions.items() if not one_persons_contest(titles[i], q, contests[i])]

@@ -135,6 +135,14 @@ class ProphetTest(unittest.TestCase):
         self.assertEqual(parse_question("Event: The vote\nDate: [tomorrow]\nQuestion: The main question that day will "
                                         "settle is the outcome of the FIDE presidential election.", day),
                          ("The outcome of the FIDE presidential election", date(2026, 9, 25)))
+        # A due date the evidence doesn't mark moves to the nearest one it does: the tournament "ends in 4 days",
+        # and the model wrote the horizon's last day (run 8, 2026-09-18), or the day itself (run 9).
+        day18, final = date(2026, 9, 18), "Event: The tournament's final\nDate: {}\nQuestion: Who wins?"
+        self.assertEqual(parse_question(final.format("Friday, 25 September 2026"), day18, 7, {4}), ("Who wins?", date(2026, 9, 22)))
+        self.assertEqual(parse_question(final.format("Friday, 18 September 2026"), day18, 7, {1, 5}), ("Who wins?", date(2026, 9, 19)))
+        self.assertEqual(parse_question(final.format("21 September"), day18, 7, {1, 3, 5}), ("Who wins?", date(2026, 9, 21)))
+        self.assertEqual(parse_question(final.format("20 September"), day18, 7, {1, 3}), ("Who wins?", date(2026, 9, 21)))  # a tie
+        self.assertEqual(parse_question(final.format("Friday, 25 September 2026"), day18, 7), ("Who wins?", date(2026, 9, 25)))
         for answer in ("Event: nothing\nDate: none\nQuestion: none", "Event: The final.\nDate: today\nQuestion: none",
                        "Event: Release\nDate: 25 September 2026\nQuestion: None, as the release date is already set.",
                        "Event: The final.\nDate: next week\nQuestion: Who wins?",  # no date to read
