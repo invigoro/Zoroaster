@@ -25,6 +25,10 @@ class JudgeTest(unittest.TestCase):
         self.assertIn("The prediction, for 2026-09-30 (UTC): I predict that the Astros win Game 1.", chat[1]["content"])
         self.assertIn("- Sports › x", chat[1]["content"])
         self.assertNotIn("kept", chat[1]["content"])  # the judge isn't told what the checks decided
+        later = judge_messages(pack(prediction | {"due": "2026-10-04"}, "2026-09-30", {}, {}, []))[1]["content"]
+        for phrase in ("made for 2026-09-30 and due on 2026-10-04", "from then to the end of 2026-10-04",
+                       "the major events on 2026-10-04"):
+            self.assertIn(phrase, later)
 
     def test_what_gets_graded(self):
         self.assertTrue(gradable({"dropped_because": []}))

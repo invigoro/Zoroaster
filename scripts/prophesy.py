@@ -86,7 +86,9 @@ def chat(model, tokenizer, conversations: list[list[dict]], max_new_tokens: int)
     """Greedy replies to a batch of chats."""
     if not conversations:
         return []
-    texts = [tokenizer.apply_chat_template(c, tokenize=False, add_generation_prompt=True) for c in conversations]
+    # Qwen3 thinks aloud unless told not to; Qwen2.5's template ignores the switch.
+    texts = [tokenizer.apply_chat_template(c, tokenize=False, add_generation_prompt=True, enable_thinking=False)
+             for c in conversations]
     batch = tokenizer(texts, return_tensors="pt", padding=True).to(model.device)
     out = model.generate(**batch, max_new_tokens=max_new_tokens, do_sample=False, temperature=None, top_p=None,
                          top_k=None, pad_token_id=tokenizer.pad_token_id or tokenizer.eos_token_id)

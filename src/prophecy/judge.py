@@ -63,7 +63,7 @@ LINES_SHOWN = 8
 JUDGE_SYSTEM = """You grade predictions against what actually happened. Use only the evidence given; your own knowledge ends years before these dates.
 
 Grade each prediction on four things:
-1. outcome: whether it had come true by the end of the day. "happened" if it had, as stated; "partly" if part of it had; "did not happen" if it hadn't, including when what it predicts comes only later (a final played after that day); "not possible" if it couldn't have come true as stated, whatever happened: it contradicts itself or the rules (both sides of one match winning, a score or record the rules don't allow) or is about a match that wasn't on, even if part of it came true; "unknown" if the evidence doesn't say.
+1. outcome: whether it had come true by the end of the day it was due. "happened" if it had, as stated; "partly" if part of it had; "did not happen" if it hadn't, including when what it predicts comes only later (a final played after that day); "not possible" if it couldn't have come true as stated, whatever happened: it contradicts itself or the rules (both sides of one match winning, a score or record the rules don't allow) or is about a match that wasn't on, even if part of it came true; "unknown" if the evidence doesn't say.
 2. already_known: true if it was known by the end of the day before: the evidence from then already reported or settled it (a date, venue, line-up, schedule or result already known, or a match already played), false if not.
 3. specificity: 0 if vague ("news about X will continue"), 1 if it names an outcome without detail ("X will win"), 2 if it names a precise result, score or number ("X will beat Y 3-1").
 4. grounded: false if it is about something other than its cited evidence, picks a team, party or other participant the evidence never mentions, or predicts for that day something the evidence says comes later; otherwise true.
@@ -108,10 +108,12 @@ def gradable(prediction: dict) -> bool:
 
 def pack(prediction: dict, day: str, known_before: dict[str, str], rows_by_title: dict[str, dict],
          current_events: list[str]) -> dict:
-    """Everything needed to grade one prediction: before, after, and the day's record of events."""
+    """Everything needed to grade one prediction: before, after, and the day's record of events. For a
+    prediction due after `day`, `rows_by_title` and `current_events` are its due day's (`fetch_due_pages.py`)."""
     cited = prediction["evidence"]
     return {
-        "date": day, "prediction": prediction["text"], "question": prediction.get("question", ""),
+        "date": day, "due": prediction.get("due") or day, "prediction": prediction["text"],
+        "question": prediction.get("question", ""),
         "confidence": prediction.get("confidence"), "cited": cited, "kept": prediction.get("kept", True),
         "dropped_because": prediction.get("dropped_because", []),
         "known_before": {t: known_before[t] for t in cited if t in known_before},
@@ -125,11 +127,14 @@ def judge_messages(p: dict) -> list[dict]:
     before = "\n\n".join(p["known_before"].values()) or "(no pages cited)"
     after = "\n\n".join(f"{t}:\n{text}" for t, text in p["day_brought"].items()) or "(no pages cited)"
     events = "\n".join(f"- {e}" for e in p["current_events"]) or "(none listed)"
+    due = p.get("due") or p["date"]
+    when = f"for {p['date']} (UTC)" if due == p["date"] else f"made for {p['date']} and due on {due} (UTC)"
+    gained = f"on {p['date']}" if due == p["date"] else f"from then to the end of {due}"
     return [{"role": "system", "content": JUDGE_SYSTEM},
-            {"role": "user", "content": f"The prediction, for {p['date']} (UTC): {p['prediction']}\n\n"
-                                        f"What was known by the end of the day before:\n{before}\n\n"
-                                        f"What the cited pages gained on {p['date']}:\n{after}\n\n"
-                                        f"Wikipedia's list of that day's major events:\n{events}\n\n"
+            {"role": "user", "content": f"The prediction, {when}: {p['prediction']}\n\n"
+                                        f"What was known by the end of the day before {p['date']}:\n{before}\n\n"
+                                        f"What the cited pages gained {gained}:\n{after}\n\n"
+                                        f"Wikipedia's list of the major events on {due}:\n{events}\n\n"
                                         "Grade the prediction. Answer with only the JSON object."}]
 
 
