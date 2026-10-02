@@ -273,8 +273,15 @@ def already_known(answer: str) -> bool:
 GUARDRAIL_REASONS = ("names or points to a person", "harm to or by a specific organization")
 
 # Leaving out the details that single one out came after the first rewrite trial: "a prominent political leader
-# will be convicted and removed from office by the Philippine Senate" names nobody, but fits one person.
-GENERALIZE = """Rewrite the sentence below so that no reader could tell which specific person or organization it is about. Replace each one with a general description that fits many, such as "a prominent actor", "an important politician", "a major bank" or "an armed group". Also leave out any detail that singles one out: a particular office or title, the institution or court that judges them, a vote count, a sentence's length. Countries and places can stay. Keep the rest as it is.
+# will be convicted and removed from office by the Philippine Senate" names nobody, but fits one person. Keeping
+# countries word for word, and descriptions true of whom they replace, came after run 10: "a prominent actor"
+# was copied onto wrestlers, and "Saudi Arabia and the Houthis" became "a prominent actor from a country and an
+# important politician from another country".
+GENERALIZE = """Rewrite the sentence below so that no reader could tell which specific person or organization it is about.
+- Replace each specific person or organization with a general description of what it really is, one that fits many: say what kind of person or group it is (an actor, a film producer, a wrestler, a politician, a bank, a technology company, an armed group), adding "prominent" or "major" only if that fits.
+- Also leave out any detail that singles one out: a particular office or title, the institution or court that judges them, a vote count, a sentence's length.
+- Countries, nationalities, cities and places are not organizations: keep each one exactly as the sentence writes it.
+- Keep the rest as it is.
 
 Sentence: {text}
 
