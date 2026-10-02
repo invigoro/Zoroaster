@@ -145,3 +145,49 @@ footer p { margin: 0 0 0.5rem; }
   .masthead { margin-top: -6%; }
   .pages li { grid-template-columns: 1.9rem 1fr auto; }
 }
+
+/* "How the prophet works" (how.html): a smaller banner, whole rather than
+   cropped, then the scores and every test forecast next to what happened. */
+.hero.compact .sky { max-width: 38rem; margin: 0 auto; }
+.hero.compact .masthead { margin-top: -4.5rem; }
+.kicker a { color: inherit; text-decoration: none; }
+.back { margin: 1.6rem 0 0; font-size: 0.95rem; }
+.back a { text-decoration: none; }
+.more-link { margin: 1.4rem 0 0; font-size: 1.05rem; }
+.more-link a { text-decoration: none; border-bottom: 1px solid var(--red); padding-bottom: 0.1rem; }
+.note { color: var(--muted); font-size: 0.88rem; }
+.label { margin: 0.4rem 0 1rem; padding: 0.8rem 1rem; background: rgba(110, 26, 18, 0.28);
+  border: 1px solid rgba(212, 65, 46, 0.35); border-radius: 6px; }
+.table-wrap { overflow-x: auto; }
+.scores { border-collapse: collapse; width: 100%; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+.scores th, .scores td { text-align: left; padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--rule); }
+.scores th { color: var(--muted); font-weight: 400; }
+.scores td:first-child { color: var(--text); }
+.scores tr:nth-child(3) td:first-child { color: var(--red-bright); }  /* the prophet */
+.controls { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; margin: 1rem 0; padding: 0.6rem 0;
+  border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); font-size: 0.9rem; }
+.controls select, .controls input { background: var(--stone-deep); color: var(--text); border: 1px solid var(--rule);
+  border-radius: 4px; padding: 0.25rem 0.4rem; font: inherit; }
+.day { padding: 0.9rem 1rem; margin: 0.8rem 0; background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; }
+.day h3 { margin: 0; font-size: 1.05rem; font-weight: 400; }
+.day h3 a { color: var(--text); text-decoration: none; }
+.day h3 a:hover { color: var(--red-bright); text-decoration: underline; }
+.badge { margin-left: 0.5rem; color: var(--muted); font-size: 0.78rem; white-space: nowrap; }
+.grid { display: grid; grid-template-columns: 13rem 1fr; gap: 0.35rem 0.8rem; margin-top: 0.6rem; font-size: 0.88rem; }
+.grid .who { color: var(--muted); }
+.chip { display: inline-block; margin: 0.1rem 0.15rem; padding: 0 0.4rem; border-radius: 4px; border: 1px solid var(--rule); }
+.chip.main { background: rgba(92, 160, 98, 0.2); color: #a8dca9; font-weight: 700; }
+.chip.hit { background: rgba(92, 160, 98, 0.14); color: #a8dca9; }
+.chip.miss { background: rgba(212, 65, 46, 0.14); color: #f19b8c; }
+.chip.withheld { font-style: italic; }
+.kinds { color: var(--muted); }
+.quote { margin: 0.35rem 0 0; color: var(--muted); font-style: italic; }
+.placeholder { color: var(--muted); }
+.more { margin: 0.6rem 0 0; padding: 0.4rem 1rem; background: transparent; color: var(--red-bright);
+  border: 1px solid var(--red); border-radius: 4px; font: inherit; cursor: pointer; }
+.more:hover { background: rgba(212, 65, 46, 0.15); }
+@media (max-width: 40rem) {
+  .hero.compact .masthead { margin-top: -2.5rem; }
+  .grid { grid-template-columns: 1fr; }
+  .grid .who { margin-top: 0.4rem; }
+}

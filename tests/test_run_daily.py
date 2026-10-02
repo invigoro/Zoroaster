@@ -17,21 +17,32 @@ class PlanTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             predictions = Path(tmp)
             # a missed day: nothing for yesterday
-            self.assertEqual(names(plan(DAY, predictions)), [
+            self.assertEqual(names(plan(DAY, predictions, forecasts_run=predictions)), [
                 "predict 2026-09-30 (missed)", "predict 2026-10-01", "score 2026-09-30", "build the site",
                 "publish the site", "prune old candidate tables"])
             # the normal day: yesterday was predicted, not yet scored
             (predictions / "2026-09-30.parquet").touch()
             (predictions / "2026-09-30.json").touch()
-            self.assertEqual(names(plan(DAY, predictions)), [
+            self.assertEqual(names(plan(DAY, predictions, forecasts_run=predictions)), [
                 "predict 2026-10-01", "score 2026-09-30", "build the site", "publish the site", "prune old candidate tables"])
             # already done today
             (predictions / "2026-10-01.json").touch()
             (predictions / "2026-09-30.outcomes.json").touch()
-            self.assertEqual(names(plan(DAY, predictions)), ["build the site", "publish the site", "prune old candidate tables"])
+            self.assertEqual(names(plan(DAY, predictions, forecasts_run=predictions)), ["build the site", "publish the site", "prune old candidate tables"])
 
 
 class RunTest(unittest.TestCase):
+    def test_forecasts_page_refreshed_when_ranked_forecasts_exist(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            predictions, run_dir = Path(tmp), Path(tmp) / "run"
+            run_dir.mkdir()
+            (predictions / "2026-10-01.json").touch()
+            (predictions / "2026-09-30.outcomes.json").touch()
+            self.assertNotIn("refresh the forecasts page", names(plan(DAY, predictions, forecasts_run=run_dir)))
+            (run_dir / "ranked.json").touch()
+            self.assertEqual(names(plan(DAY, predictions, forecasts_run=run_dir)), [
+                "refresh the forecasts page", "build the site", "publish the site", "prune old candidate tables"])
+
     def test_every_step_runs_and_a_failure_is_reported(self):
         ran, log = [], []
 

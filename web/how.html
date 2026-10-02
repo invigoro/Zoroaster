@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#151312">
+  <title>How the prophet works: Zoroaster</title>
+  <meta name="description" content="How Zoroaster foretells Wikipedia's bursts of editing, and how a second model's forecasts of what the edits will change have fared on six months of past days.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="hero compact">
+    <div class="sky">
+      <img class="banner" src="img/banner.webp" width="1536" height="1024"
+        alt="Silhouette of a prophet with a staff, one arm raised, addressing a crowd from a rocky outcrop">
+    </div>
+    <div class="masthead">
+      <p class="kicker"><a href="./">Zoroaster</a></p>
+      <h1>How the prophet works</h1>
+      <p class="lede">What the prophecy is made from, and how a second model, which forecasts what the edits
+        will change, has fared on six months of past days.</p>
+    </div>
+  </header>
+
+  <main>
+    <p class="back"><a href="./">← Back to the prophecy</a></p>
+
+    <section>
+      <h2>The prophecy</h2>
+      <p>Every night just after midnight UTC, Zoroaster reads the day's edits to English Wikipedia and ranks
+        about one and a half million recently edited pages by how likely each is to <em>burst</em> the next day:
+        far more edits than usual for that page, from at least two editors (accounts editing dozens of pages a
+        day are left out).</p>
+      <p>The ranking comes from a gradient-boosted model trained on three years of Wikipedia's edit history.
+        It sees only each page's own recent activity and the calendar, not the news. Pages already busy are
+        likelier to stay busy, but most of tomorrow's bursts are new, so most of the prophecy won't come true:
+        in testing, about one in five of the top 100 did.</p>
+    </section>
+
+    <section>
+      <h2>Forecasting the edits</h2>
+      <p>A second model, still being tested and not yet part of the prophecy, forecasts what a page's edits
+        will change: which sections they'll touch, and what kinds of change they'll make (new prose, references,
+        tables, links and so on). It's a small language model, Qwen2.5 with 1.5 billion parameters, fine-tuned on
+        14,500 past page-days. For each page it reads the page as it stood the night before: its opening, its
+        section headings, what changed that day, and the burst signals.</p>
+      <p>Its forecasts are scored against what editors actually changed, and against a simple rule: expect
+        yesterday's changes again. On <span id="count">2,796</span> page-days from December 2025 to June 2026,
+        none of which it saw in training, it foretells the kinds of change better than that rule, and the
+        sections about as well. Each score covers every day, then the pages the burst model ranked highest:</p>
+      <div class="table-wrap"><table id="scores" class="scores"></table></div>
+      <p class="note"><strong>Section precision:</strong> the share of the sections a forecast names that did change.
+        <strong>Main section named:</strong> how often it names the section that changed most.
+        <strong>Kinds of change:</strong> how well the kinds forecast match the kinds that happened, from 0 to 1
+        (the Jaccard index). The prophet names three sections a day and the rule about two, which is most of why
+        the prophet names the main section more often.</p>
+    </section>
+
+    <section>
+      <h2>Every forecast, next to what happened</h2>
+      <div class="label"><strong>Machine-generated forecasts, not facts.</strong> Each one is a model's guess at
+        what Wikipedia's editors would change on a page that day, shown next to what they actually changed. A
+        forecast makes no claim about any person or event.</div>
+      <p class="note">Section names the model made up aren't shown, and neither are sensitive ones: health, death,
+        crime, legal matters and personal life. New text isn't quoted for pages about living people.
+        <span class="chip main">bold green</span> marks the section that changed most,
+        <span class="chip hit">green</span> what changed or happened, and <span class="chip miss">red</span>
+        what didn't.</p>
+      <div class="controls">
+        <label>Pages <select id="sel"><option value="all">all</option><option value="top">burst model's top</option><option value="random">random</option></select></label>
+        <label>People <select id="liv"><option value="all">all</option><option value="yes">living people only</option><option value="no">no living people</option></select></label>
+        <label>The day before <select id="yes"><option value="all">either</option><option value="changed">changed</option><option value="quiet">quiet</option></select></label>
+        <input type="search" id="q" placeholder="Search titles" aria-label="Search titles">
+        <span class="note" id="shown"></span>
+      </div>
+      <div id="days"><p class="placeholder">Unrolling the scrolls…</p></div>
+      <button id="more" class="more" hidden>Show more</button>
+    </section>
+  </main>
+
+  <footer>
+    <p>Data: <a href="https://www.mediawiki.org/wiki/API:RecentChanges">Wikipedia's recent changes</a> and
+      <a href="https://dumps.wikimedia.org/other/mediawiki_history/readme.html">MediaWiki history dumps</a>,
+      courtesy of the Wikimedia Foundation. Page titles link to Wikipedia; its content, including the quoted
+      new text, is available under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.
+      Code: <a href="https://github.com/invigoro/Zoroaster">github.com/invigoro/Zoroaster</a>.</p>
+  </footer>
+
+  <script src="how.js"></script>
+</body>
+</html>

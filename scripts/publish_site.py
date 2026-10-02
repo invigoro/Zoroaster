@@ -25,7 +25,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from scripts.build_site import WEB_DIR, build
+from scripts.build_site import FORECASTS_PATH, WEB_DIR, build
 from scripts.daily_predictions import PREDICTIONS_DIR
 
 PAGES_DIR = Path("data/processed/enwiki/gh-pages")
@@ -58,7 +58,7 @@ def ensure_worktree(repo: Path, pages: Path, branch: str = BRANCH) -> None:
 
 
 def publish(repo: Path, pages: Path, predictions: Path = PREDICTIONS_DIR, web: Path = WEB_DIR,
-            push: bool = True) -> str | None:
+            push: bool = True, forecasts: Path = FORECASTS_PATH) -> str | None:
     """Build, commit and push the site. Returns the prophecy's date, or None
     if there was nothing to commit or push.
 
@@ -71,7 +71,7 @@ def publish(repo: Path, pages: Path, predictions: Path = PREDICTIONS_DIR, web: P
     if remote:
         git("fetch", "origin", BRANCH, cwd=pages)
         git("rebase", "--autostash", f"origin/{BRANCH}", cwd=pages)
-    used = build(pages, predictions, web)
+    used = build(pages, predictions, web, forecasts)
     (pages / ".nojekyll").touch()  # serve the files as they are
     git("add", "-A", cwd=pages)
     day = (used["latest.json"] or "no prophecy")[:10]

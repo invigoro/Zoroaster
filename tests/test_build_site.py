@@ -19,14 +19,19 @@ class BuildSiteTest(unittest.TestCase):
                 (predictions / name).write_text(json.dumps({"day": day}))
             (predictions / "2026-09-07.parquet").write_text("not copied")
             self.assertEqual(newest(predictions, ".json").name, "2026-09-07.json")  # not an .outcomes.json
-            used = build(out, predictions, web)
+            used = build(out, predictions, web, forecasts=tmp / "none.json")
             data = out / "data"
-            self.assertEqual(used, {"latest.json": "2026-09-07.json", "latest.outcomes.json": "2026-09-06.outcomes.json"})
+            self.assertEqual(used, {"latest.json": "2026-09-07.json", "latest.outcomes.json": "2026-09-06.outcomes.json",
+                                    "forecasts.json": None})
+            self.assertFalse((data / "forecasts.json").exists())
             self.assertEqual(json.loads((data / "latest.json").read_text()), {"day": "b"})
             self.assertEqual(json.loads((data / "latest.outcomes.json").read_text()), {"day": "c"})
             self.assertTrue((out / "index.html").exists() and (data / "2026-09-07.json").exists())
             self.assertEqual((out / "img" / "banner.webp").read_bytes(), b"image")  # folders are copied too
-            build(out, predictions, web)  # and again over the last build
+            (tmp / "site_forecasts.json").write_text(json.dumps({"rows": []}))
+            used = build(out, predictions, web, forecasts=tmp / "site_forecasts.json")  # again, over the last build
+            self.assertEqual(json.loads((data / "forecasts.json").read_text()), {"rows": []})
+            self.assertEqual(used["forecasts.json"], str(tmp / "site_forecasts.json"))
             self.assertFalse(list(out.rglob("*.parquet")))
             self.assertIsNone(newest(web, ".json"))
 

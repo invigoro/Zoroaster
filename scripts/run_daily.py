@@ -8,8 +8,10 @@ windowless via pythonw (PLAN.md §6 step 9). For today's UTC date D:
 2. Score D-1's prophecy, now that D-1 is over (`score_predictions.py`). If
    D-1 was never predicted (the machine was off), predict it first, as it
    would have been then, so the record has no gaps.
-3. Build the site (`build_site.py`) and publish it to the `gh-pages`
-   branch (`publish_site.py`).
+3. Refresh the data behind the "How the prophet works" page
+   (`v2_report.py --site`), if version 2's ranked forecasts exist. Then
+   build the site (`build_site.py`) and publish it to the `gh-pages` branch
+   (`publish_site.py`).
 4. Delete the full candidate tables (`D.parquet`, ~50 MB a day) older than
    KEEP_DAYS; the JSON files stay.
 
@@ -44,10 +46,12 @@ def _ok(exit_code: int) -> None:
         raise RuntimeError(f"exit code {exit_code}")
 
 
-def plan(day: date, predictions: Path) -> list[Step]:
-    """The steps still to do for `day`, in order."""
+def plan(day: date, predictions: Path, forecasts_run: Path | None = None) -> list[Step]:
+    """The steps still to do for `day`, in order. `forecasts_run` is version
+    2's run directory (default: the one the site shows)."""
     from scripts import build_site, daily_predictions, publish_site, score_predictions
 
+    run_dir = forecasts_run if forecasts_run is not None else build_site.FORECASTS_PATH.parent
     steps: list[Step] = []
     prev = day - timedelta(days=1)
     if not (predictions / f"{prev}.outcomes.json").exists():
@@ -57,10 +61,18 @@ def plan(day: date, predictions: Path) -> list[Step]:
         steps.append((f"predict {day}", lambda: _ok(daily_predictions.main(["--day", day.isoformat()]))))
     if not (predictions / f"{prev}.outcomes.json").exists():
         steps.append((f"score {prev}", lambda: _ok(score_predictions.main(["--day", prev.isoformat()]))))
+    if (run_dir / "ranked.json").exists():
+        steps.append(("refresh the forecasts page", lambda: _ok(_forecasts_page(run_dir))))
     steps.append(("build the site", lambda: _ok(build_site.main([]))))
     steps.append(("publish the site", lambda: _ok(publish_site.main([]))))
     steps.append(("prune old candidate tables", lambda: print(f"removed {prune(predictions, day)} tables")))
     return steps
+
+
+def _forecasts_page(run_dir: Path) -> int:
+    from scripts import v2_report  # imported only when needed: it loads pyarrow and the examples
+
+    return v2_report.main(["--site", "--run-dir", str(run_dir)])
 
 
 def prune(predictions: Path, day: date, keep_days: int = KEEP_DAYS) -> int:

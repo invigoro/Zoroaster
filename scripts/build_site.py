@@ -2,7 +2,9 @@
 
 Copies `web/` into OUT, and from `data/processed/enwiki/predictions/`:
 - the newest `D.json` as `data/latest.json`, and as `data/D.json`;
-- the newest `D.outcomes.json` as `data/latest.outcomes.json`, and dated.
+- the newest `D.outcomes.json` as `data/latest.outcomes.json`, and dated;
+- if it's been made, the public data behind the "How the prophet works"
+  page (`v2_report.py --site`), as `data/forecasts.json`.
 
 The dated copies accumulate in OUT, so on the `gh-pages` branch they form
 an archive of every prophecy and how it turned out. `--serve` previews the
@@ -28,6 +30,7 @@ from scripts.daily_predictions import PREDICTIONS_DIR
 
 WEB_DIR = Path("web")
 BUILD_DIR = Path("data/processed/enwiki/site")
+FORECASTS_PATH = Path("data/processed/enwiki/v2/qwen2.5-1.5b/site_forecasts.json")
 
 
 def newest(directory: Path, suffix: str) -> Path | None:
@@ -36,8 +39,9 @@ def newest(directory: Path, suffix: str) -> Path | None:
     return files[-1] if files else None
 
 
-def build(out: Path, predictions: Path = PREDICTIONS_DIR, web: Path = WEB_DIR) -> dict[str, str | None]:
-    """Write the site into `out`; returns which prophecy and record it used."""
+def build(out: Path, predictions: Path = PREDICTIONS_DIR, web: Path = WEB_DIR,
+          forecasts: Path = FORECASTS_PATH) -> dict[str, str | None]:
+    """Write the site into `out`; returns which prophecy, record and forecasts data it used."""
     out.mkdir(parents=True, exist_ok=True)
     for path in web.iterdir():
         if path.is_dir():  # e.g. web/img
@@ -53,6 +57,9 @@ def build(out: Path, predictions: Path = PREDICTIONS_DIR, web: Path = WEB_DIR) -
         if source:
             shutil.copy2(source, data / source.name)
             shutil.copy2(source, data / latest)
+    used["forecasts.json"] = str(forecasts) if forecasts.exists() else None
+    if forecasts.exists():
+        shutil.copy2(forecasts, data / "forecasts.json")
     return used
 
 
