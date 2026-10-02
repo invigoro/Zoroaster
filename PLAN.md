@@ -925,6 +925,83 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
       wins the most seats" three days running, the NRL Grand Final three
       days running. That's §7's update question.
 
+28. **Version 3: Portal:Current events as evidence (2026-10-02)**: the
+    user's decision of §2, the third way to more world events of §6.
+    - **What the prophet reads** (`stories.py`): the stories of the week's
+      Portal:Current events. Each page is read as it stood at the end of the
+      day before (`fetch_current_events.py --known`), never later. Editors
+      add most of a day's items afterwards: by the end of 2026-09-23 its page
+      held 9 of the 28 it has now, and none on the Iran war.
+      - A story is an item's topic. It's the deepest topic the week also
+        lists on its own, so "Middle Eastern crisis › 2026 Iran war › …"
+        is the Iran war's.
+      - A story reported on either of the two days before is read, with its
+        week of reports: 10 to 25 stories a day. Sport is left out, and so
+        are one-off items with no topic.
+      - A date that names an event ("the October 7 attacks") is no longer
+        marked as a day to come.
+    - **What it asks:** what the story brings next within the week,
+      scheduled or not. A question with no date in the reports is due at
+      the week's end, and so is a date the model gives that no report
+      marks.
+    - **How it's graded:** on the story's own reports from its day to its
+      due day, and every day's events then, since it can come true on any
+      of them (`grading_packs.story_pack`).
+    - **Rewrites in general terms** (the user's allowance, §2): a prediction
+      the guardrails alone drop is rewritten (`checks.GENERALIZE`) and
+      checked again from scratch. It's kept only if every check passes, it
+      names no person and no organization at all, and it repeats nothing
+      kept that day.
+      - On ten known sentences: "Kevin Bacon will die tomorrow" becomes
+        "a prominent actor will die tomorrow", and "President Trump will
+        rob the Bank of America" becomes "an important politician will rob
+        a major bank". Both are kept.
+      - "Vice President Sara Duterte will be convicted…" became "an
+        important political leader will be convicted and removed from
+        office by the Philippine Senate", and was dropped for still naming
+        the Senate.
+      - A question asking whether a rewrite still points to whom its
+        original meant answered "no" to every rewrite, even with the
+        original beside it. Hence the rule against naming any organization.
+      - **A known limit:** a rewrite can still fit one by its situation
+        alone. "A major technology company will be held responsible for the
+        infiltration of Australia's Medicare database" was kept. The review
+        page shows each rewrite beside its original, and the original is
+        never published.
+    - **The harm checks, revisited**, against the guardrail trial extended
+      to 42 sentences:
+      - "The United States and Australia will hold OpenAI responsible for
+        the breach" had passed: being blamed wasn't an accusation to the
+        model.
+      - Adding blame to the harm-suffered question broke two old cases, so
+        blame is now a question of its own. Of three wordings, one got 12
+        of 12 known sentences ("…will be held responsible" included).
+      - Now 42 of 42.
+    - **The rewrite prompt, revisited after run 10:** its rewrites copied
+      the examples ("a prominent actor" for wrestlers) and generalized
+      countries ("Saudi Arabia and the Houthis" became "a prominent actor
+      from a country and an important politician from another country").
+      It now asks what kind of person or group each one is and keeps
+      countries and places. On 13 known sentences the rewrites still lose
+      detail (Tel Aviv became "a major city") and sometimes mislabel (a
+      film producer as "a prominent actor"), but invent nothing.
+      - A check miss: "Saudi Arabia and the Houthis will sign a ceasefire"
+        passed unrewritten. The Houthis weren't confirmed as an
+        organization.
+    - **Run 10** (Qwen2.5-7B, pages and stories, a week ahead; re-checked
+      with the revised rewrite):
+      - 219 stories asked, 176 questions and predictions, 166 kept. Pages:
+        180 questions, 145 predictions, 134 kept.
+      - The guardrails dropped 30. 21 of those came back as rewrites, 13
+        of which were published.
+      - **Published: 138 (the cap of 10 nearly every day), 123 from
+        stories.** By topic: conflict 51, politics 36, crime 15, disaster
+        15, economy 7, health 4, culture 3, sport 3, other 4.
+      - World events now fill the day, and sport is crowded out (3 in 14
+        days).
+      - 124 are due a week out: story questions mostly name no date. Only
+        those made by 2026-09-24 can be graded yet: 73, 60 of them stories.
+
 ## 4. Data state — important for resuming on a new machine
 
 `data/` is **git-ignored** (see `.gitignore`) — it does not travel with the
@@ -2295,24 +2372,30 @@ old step 2 (move to English Wikipedia) is now step 5.
                 `fetch_due_pages.LAST_DAY`).
               - Test days must come after the chosen model's training data.
                 Days still to come are safe for any model.
-           2. **More world events** (a proposal, for the user to decide).
-              The top 100 holds about 12 world-event pages a day, but step 1
-              asks only about a decision dated within the week, which few
-              have (§3 item 27). Three ways, cheapest first:
-              - **What comes next.** A world-event page with nothing dated
-                within the week gets a different question: what will the
-                coming week bring in this story? It's due at the week's end,
-                as in the user's own example, "a major Ukrainian drone
-                attack will take place".
-                - It's graded on the page's change over the week and on all
-                  seven days' current events, since it can come true on any
-                  of them.
-                - A vague prediction earns nothing (specificity 0).
-              - **Longer horizons** for scheduled world events, such as an
-                election a month away. This needs the update scoring
-                decided first (§7).
-              - **The day before's Portal:Current events as evidence**
-                (§7).
+           2. **More world events.** The user approved all three ways
+              (2026-10-02, §2), starting with Portal:Current events.
+              - **Done (§3 item 28):** the stories of Portal:Current events
+                as evidence, asked what comes next within the week, with
+                rewrites in general terms. Run 10 publishes 10 a day, nearly
+                all world events.
+              - **The user grades run 10** on the review page: 73 drafts
+                now. 65 more are due after 2026-10-01 and wait for their
+                days' events.
+              - **Still to do: longer horizons** for scheduled world events,
+                such as an election a month away. This needs the update
+                scoring decided first (§7).
+              - **Open: a place for the best sport?** World events now fill
+                the 10 (3 sports predictions in 14 days). One reserved
+                place for a final would keep "the most interesting sports
+                predictions" (§2).
+              - **Before anything is published:**
+                - A story's or a page's title can name a person ("Second
+                  impeachment of Sara Duterte"), so the site must never
+                  show one beside a rewritten prediction.
+                - The judge's reasons must pass the same checks (§2).
+                - Rewrites lose detail and mislabel at times. A larger
+                  model could rewrite better, but Qwen3-8B's checks were
+                  worse (§3 item 27).
            3. **One forecast per question.** With a week's horizon, the same
               question comes up every day until it's due. The site shows a
               forecast once, and again only when its answer changes (§7's
@@ -2404,11 +2487,18 @@ old step 2 (move to English Wikipedia) is now step 5.
     same question comes up each day until it's due: run 8 asked who wins the
     most seats in the Duma three days running, and the NRL Grand Final three
     days running. For now each day's forecast is graded on its own.
-- **Version 3: Portal:Current events as the prophet's evidence?** It lists
-  the world's events each day, which the top bursting pages rarely do. The
-  prophet could read the day before's page (point-in-time safe). It's
-  outside the mainspace scope (§2) and is used only for grading so far, so
-  this needs the user's decision.
+- **Version 3: Portal:Current events as the prophet's evidence?** Decided
+  2026-10-02 (§2): yes, with the guardrails, and done (§3 item 28).
+- **Portal:Current events for Stage 1 too?** (raised by the user,
+  2026-10-02: "probably would have been the better source for the original
+  model's training… taking that and supplementing it with burst edits
+  would reflect more of what's actually going on in the world.")
+  - A page linked from the day before's items is likely to be edited on
+    the day, which makes it a candidate Stage 1 feature beside the bursts.
+  - It would be read point-in-time, as the prophet reads it: each day's
+    page as it stood at the end of D-1.
+  - Not tried yet. Version 1's test window would need the portal's
+    revision history for those years.
 - **Version 3: learning from the grades** (asked by the user, 2026-10-02).
   Nothing trains on the grades yet: the prophet and the judge are a fixed
   model with prompts, and the grades only measure them.
