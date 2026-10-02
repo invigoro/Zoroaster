@@ -882,6 +882,21 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
       - **So the larger model isn't clearly better.** Its credit is about
         the same on about 30 predictions each. It's less grounded: it names
         teams the evidence never mentions, from its own memory.
+    - **Qwen3-8B as the judge**, against the 94 confirmed grades (the first
+      run's 68 and run 7's 26), both judges with today's prompt
+      (`judge_qwen25_now.json`, `judge_qwen3.json`):
+
+      | Agreement with the user | Qwen2.5-7B | Qwen3-8B |
+      |---|---|---|
+      | outcome | 40% (38) | 57% (54) |
+      | already known | 83% | 82% |
+      | specificity | 83% | 67% |
+      | grounded | 45% | 44% |
+
+      - Better on outcome, the field that matters most, but neither judge
+        can be trusted yet.
+      - On the first run, both judges give about four times the user's
+        credit (0.075 and 0.121, against 0.031).
     - **World events are scarce in what's asked.**
       - The top 100 holds about 12 world-event pages a day: elections,
         conflicts, disasters, diplomacy, spaceflight. That's 166 page-days
@@ -2295,9 +2310,11 @@ old step 2 (move to English Wikipedia) is now step 5.
          2026-10-01, §3 item 25).
          - The rubric and the first 68 hand grades are done: the user
            confirmed all 68 drafts (2026-10-02).
-         - The 7B judge's first grades agree poorly with the drafts. Next,
-           try one focused question per field, as the checks do, or a
-           different model.
+         - The 7B judge's first grades agree poorly with the drafts. Qwen3-8B
+           agrees on outcome more often (57% of 94, against 40%) but on
+           specificity less (§3 item 27). Next, try one focused question
+           per field, as the checks do, perhaps with each field on the
+           model that does it best.
       3. **A backtest** of prophet and judge over the test days, against
          the baselines. Prompts are tuned on development days only.
          - **Open: which test days.** Version 2's 14 test days are
