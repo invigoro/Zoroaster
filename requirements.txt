@@ -3,3 +3,4 @@ mwxml>=0.3,<0.4
 pyarrow>=19,<26  # with 18.x, loading pyarrow first broke torch (Stage 2) on Windows: WinError 1114
 numpy>=1.26,<3
 lightgbm>=4.3,<5
+pillow>=10,<13  # only for scripts/prepare_web_images.py

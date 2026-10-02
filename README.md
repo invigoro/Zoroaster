@@ -234,6 +234,10 @@ Wikipedia, which is roughly 100× the test corpus.
     dumps' records (`src/ingest/recent_changes.py`).
   - Features are computed by the training code itself, from dump history
     plus those live days (`src/deploy/daily.py`).
+  - The page's art is kept full size in `assets/img/`.
+    `python scripts/prepare_web_images.py` makes the small WebP versions in
+    `web/img/` that the site uses. It keys the banner's white out to
+    transparent, so the page's red glow shows through.
 
   ```bash
   python scripts/fetch_recent_changes.py --days 2026-09-01 2026-09-29   # live days (recent changes keep 30)
