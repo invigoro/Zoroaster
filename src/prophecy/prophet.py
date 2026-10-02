@@ -1,28 +1,32 @@
-"""The prophet's instructions, and reading its predictions back (PLAN.md §6 step 11).
+"""The prophet's instructions, and reading its answers back (PLAN.md §6 step 11).
 
-From the evidence for day D (`evidence.py`), the prophet writes up to
-N_PREDICTIONS predictions about the real world on D.
-- **Each prediction answers an unsettled question** about D ("who wins Game
-  1?"), so it can be checked when D is over.
-  - In the first runs, about half the predictions restated the evidence
-    (venues, dates, line-ups). Naming the open question first is the
-    structure against that, and `checks.py` drops what the evidence already
-    settles.
-- **The other rules, in SYSTEM:**
-  - only the evidence, since the model's knowledge ends years earlier;
-  - each prediction follows from its own cited pages;
-  - it must be possible;
-  - milestone 1: no people, living or dead;
-  - never health, death, crime, legal trouble or personal life.
-- The rules are repeated after the evidence, since a small model forgets
-  instructions that come thousands of tokens before. The checks in
-  `checks.py` don't rely on the prophet following them.
-- **The instructions hold no real-world examples.** An earlier version gave
-  two example predictions, written from a development day's evidence (a
-  Wild Card matchup, a tropical storm). The model copied them onto other
-  days, citing unrelated pages. That also leaked a development day into the
-  instructions. So the instructions now describe good and bad predictions
-  in general terms, and `checks.py` drops any copy of an example sentence.
+The prophet reads the day's pages (`evidence.py`) one at a time, in two steps:
+1. **The question** (QUESTION): is anything about the page's subject decided
+   on day D itself? The answer is the question D will settle, or "none".
+2. **The prediction** (PREDICTION), only for pages with a question: one
+   sentence beginning "I predict that", and a confidence.
+
+Why one page at a time:
+- **Timing.** In the development days' first runs, a single call over all 20
+  pages wrote 68 gradable predictions, and 41 of them named a result due after
+  the day. In 27 of those the evidence gave the date (a final "on October 4").
+  Now the dates are marked relative to D (`evidence.mark_dates`), and the
+  first step asks only about D.
+- **Room.** With one page per call, the model can read most of the lead,
+  where the single call had to cut each lead to 320 characters.
+
+The rules, which `checks.py` enforces without relying on the prophet:
+- Only the evidence: the model's own knowledge ends years before these days.
+- Milestone 1 names no specific person, living or dead. General descriptions
+  such as "an important politician" are fine (decided 2026-10-01).
+- Wars, disasters and crime may be predicted in general terms, but never
+  about a specific person or a named organization (decided 2026-10-01).
+- Nothing about anyone's health or personal life.
+
+**The instructions hold no real-world examples.** An earlier version gave two
+example predictions, written from a development day's evidence (a Wild Card
+matchup, a tropical storm). The model copied them onto other days, citing
+unrelated pages, and `checks.py` drops any copy of an example sentence.
 """
 
 from __future__ import annotations
@@ -31,50 +35,65 @@ import json
 import re
 from datetime import date, timedelta
 
-N_PREDICTIONS = 8
 CONFIDENCES = ("low", "medium", "high")
 PREFIX = "I predict that "
+SENTENCE = re.compile(r"I predict that [^\n\"]+?(?:\.(?=\s|$)|(?=[\n\"]|$))", re.IGNORECASE)  # to its first full stop
 
-SYSTEM = """You are the prophet of Zoroaster, a project that foretells real-world events from what is happening on English Wikipedia.
+SYSTEM = ("You are the prophet of Zoroaster, a project that foretells real-world events from what is happening on English "
+          "Wikipedia. Your own knowledge ends years before these dates, so use only the evidence you are given.")
 
-You are given the Wikipedia pages that editors are most likely to be busy with on a coming day, and what was changed on each page the day before. From that evidence, foretell what will happen in the world on {day} (UTC).
+PAGE = """Here is what a Wikipedia page said by the end of {yesterday}. Each date in it is marked relative to {day}, the day you foretell: [today] means {day}.
 
-How to prophesy:
-1. For each page, ask what is still unsettled on {day}: a game or match to be played, votes to be counted, a decision expected, a storm on the move, a release about to open. Skip pages where nothing is unsettled.
-2. Predict how it will turn out: who wins, what the result or number is, what is decided. It must be settled by the end of {day}, so it can be checked then.
-3. Never predict what the evidence already reports. A date, a venue, a line-up, a schedule or a result that is already known is not a prediction.
-4. Make it possible: a single tournament has one gold medal winner, and an election has one result.
-5. Use only the evidence. Your own knowledge ends years before these dates, so don't add facts the evidence doesn't give.
-6. Each prediction must follow from the pages it cites. Don't combine unrelated pages.
-7. Don't name or describe any person, living or dead, even in passing. Write about events, places, teams, organizations, works and things. In sports where individuals compete (darts, tennis, golf, boxing, athletics, motor racing), don't predict who wins: the winner is a person.
-8. Never predict anything about health, illness, death, crime, arrests, legal cases, scandals or anyone's personal life.
+{block}"""
 
-Each prediction is a JSON object:
-- "question": the unsettled question about {day} that it answers;
-- "prediction": one sentence that begins "I predict that";
-- "evidence": the numbers of the pages it rests on; a prediction is about the subject of the pages it cites;
-- "confidence": "low", "medium" or "high".
+QUESTION = PAGE + """
 
-Good predictions answer a question the day will settle: for a match played that day, who wins it; for votes counted that day, which party leads; for a storm, whether it strengthens or makes landfall; for a release that day, how it opens.
-Bad predictions restate a date, venue, line-up, schedule or result the evidence already gives; say something certain; or concern something decided after that day.
+Is anything about this subject decided on {day} itself? For example: a match or final played that day, votes counted, a result or decision announced, a storm reaching land, a launch or a release.
+- Only what is decided on {day}: not something still under way that ends later, not something on a later date, and not something already reported.
+- Its answer can't be a person: skip contests between individuals, such as races, singles matches, golf and boxing, and skip who gets a job or an award.
 
-Write up to {n} predictions, each about something different; fewer good ones are better than padding. Answer with only the JSON list."""
+If something is decided on {day}, write the question it answers, in one sentence ending with a question mark. If not, answer with the single word: none."""
 
-REMINDER = ("Foretell up to {n} things still unsettled on {day}, each answering its \"question\", following from the pages it "
-            "cites, never restating the evidence, naming no person, and avoiding health, death, crime, legal cases and "
-            "personal life. Answer with only the JSON list.")
+PREDICTION = PAGE + """
+
+The question {day} will answer: {question}
+
+Answer it with one prediction, using only this evidence.
+- One sentence beginning "I predict that", about this page's subject.
+- Be specific (who wins, the result, the number), but don't restate what the evidence already reports, and keep it possible.
+- Name no specific person, living or dead, and don't point to one by a title or role. General descriptions, such as "an important politician", are fine.
+- Wars, disasters and crime are fine in general terms, but never about a specific person or a named organization (a company, party, armed group, government body or team).
+- Nothing about anyone's health or personal life.
+
+Answer with only a JSON object: {{"prediction": "I predict that ...", "confidence": "low", "medium" or "high"}}"""
 
 
 def _day_text(day: date) -> str:
     return f"{day:%A}, {day.day} {day:%B %Y}"
 
 
-def messages(day: date, evidence: str, n: int = N_PREDICTIONS) -> list[dict]:
-    """The chat for one day: the rules, then the evidence as of the end of the day before, then the rules in brief."""
-    return [{"role": "system", "content": SYSTEM.format(day=_day_text(day), n=n)},
-            {"role": "user", "content": f"Foretell {_day_text(day)}. Here is the evidence, as of the end of "
-                                        f"{_day_text(day - timedelta(days=1))}, likeliest to burst first:\n\n{evidence}\n\n"
-                                        + REMINDER.format(n=n, day=_day_text(day))}]
+def _chat(template: str, day: date, block: str, **fields: str) -> list[dict]:
+    text = template.format(day=_day_text(day), yesterday=_day_text(day - timedelta(days=1)), block=block, **fields)
+    return [{"role": "system", "content": SYSTEM}, {"role": "user", "content": text}]
+
+
+def question_messages(day: date, block: str) -> list[dict]:
+    """Step 1, for one page's evidence: what, if anything, D itself decides."""
+    return _chat(QUESTION, day, block)
+
+
+def prediction_messages(day: date, block: str, question: str) -> list[dict]:
+    """Step 2, for a page with a question: the prediction."""
+    return _chat(PREDICTION, day, block, question=question)
+
+
+def parse_question(answer: str) -> str | None:
+    """The question in step 1's answer, or None if there's none: "none", or no line ending in "?"."""
+    for line in answer.splitlines():
+        line = re.sub(r"^\W*(?:the )?question\s*:\s*", "", " ".join(line.split()), flags=re.IGNORECASE).strip('"“”* ')
+        if line.endswith("?"):
+            return line
+    return None
 
 
 def _objects(answer: str) -> list[object]:
@@ -112,17 +131,13 @@ def normalize(sentence: str) -> str:
     return PREFIX + sentence
 
 
-def parse_predictions(answer: str, titles: list[str]) -> list[dict]:
-    """The predictions in the prophet's answer, as [{"text", "question", "evidence", "confidence"}],
-    with cited numbers turned into page titles. Malformed entries are skipped."""
-    out = []
+def parse_prediction(answer: str, title: str, question: str) -> dict | None:
+    """Step 2's prediction, as {"text", "question", "evidence", "confidence"}; None if it holds none.
+    A bare "I predict that ..." sentence counts when the JSON is missing."""
     for item in _objects(answer):
-        if not isinstance(item, dict) or not str(item.get("prediction", "")).strip():
-            continue
-        numbers = item.get("evidence") if isinstance(item.get("evidence"), list) else []
-        cited = [titles[n - 1] for n in numbers if isinstance(n, int) and 1 <= n <= len(titles)]
-        confidence = item.get("confidence")
-        out.append({"text": normalize(str(item["prediction"])), "question": " ".join(str(item.get("question", "")).split()),
-                    "evidence": list(dict.fromkeys(cited)),
-                    "confidence": confidence if confidence in CONFIDENCES else None})
-    return out
+        if isinstance(item, dict) and str(item.get("prediction", "")).strip():
+            confidence = item.get("confidence")
+            return {"text": normalize(str(item["prediction"])), "question": question, "evidence": [title],
+                    "confidence": confidence if confidence in CONFIDENCES else None}
+    bare = SENTENCE.search(answer)
+    return {"text": normalize(bare.group(0)), "question": question, "evidence": [title], "confidence": None} if bare else None

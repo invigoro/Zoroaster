@@ -1,10 +1,14 @@
-"""Topics never published about anyone (PLAN.md §6 steps 10 and 11).
+"""Topics never published about any specific person (PLAN.md §6 steps 10 and 11).
 
 The list lives here, in one place, so it can grow: health, death, crime,
 legal trouble, personal life and the like.
 - Published version 2 forecasts withhold section names that match it
   (`v2_report.py --site`).
-- Version 3's prophet will be told to avoid it, and checked against it.
+- Version 3 may predict wars, disasters and crime in general terms ("a major
+  drone attack will take place"; decided 2026-10-01). A prediction on one of
+  these topics is dropped if it names a specific person or organization
+  (`src/prophecy/checks.py`, which also asks the model about the topic, since
+  this list misses words like "rob").
 
 Matching is by word start, case-insensitive, and errs toward withholding.
 "Court" also matches "Royal court", for example.
