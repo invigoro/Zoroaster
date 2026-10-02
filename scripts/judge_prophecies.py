@@ -13,6 +13,7 @@ PLAN.md §6 step 11, phase 2.
 
 Usage:
     python scripts/judge_prophecies.py [--grades data/processed/enwiki/v3/grades_run7] [--compare-only]
+                                       [--model Qwen/Qwen3-8B --out judge_qwen3.json]
 """
 
 from __future__ import annotations
@@ -55,12 +56,14 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--compare-only", action="store_true", help="skip grading; compare the saved grades")
     parser.add_argument("--grades", type=Path, default=GRADES_DIR, help="a run's grades folder, with packs.json")
+    parser.add_argument("--model", default=INSTRUCT_MODEL, help="the judge's model")
+    parser.add_argument("--out", default="judge.json", help="the judge's grades file, in the grades folder")
     args = parser.parse_args(argv)
     packs = json.loads((args.grades / "packs.json").read_text(encoding="utf-8"))
-    judge_path = args.grades / "judge.json"
+    judge_path = args.grades / args.out
     if not args.compare_only:
         start = time.monotonic()
-        model, tokenizer = load_instruct(INSTRUCT_MODEL)
+        model, tokenizer = load_instruct(args.model)
         # Longest first, so the GPU's memory peaks in the first batch (see train_v2.forecast_headers).
         keys = sorted(packs, key=lambda k: -len(judge_messages(packs[k])[1]["content"]))
         grades, raw = {}, {}
@@ -70,7 +73,7 @@ def main(argv: list[str] | None = None) -> int:
             for k, a in zip(batch, answers):
                 grades[k], raw[k] = parse_grade(a), a
             print(f"  {min(i + BATCH, len(keys))}/{len(keys)} graded ({time.monotonic() - start:,.0f}s)", flush=True)
-        judge_path.write_text(json.dumps({"model": INSTRUCT_MODEL, "grades": grades, "answers": raw}, indent=1,
+        judge_path.write_text(json.dumps({"model": args.model, "grades": grades, "answers": raw}, indent=1,
                                          ensure_ascii=False), encoding="utf-8")
         unparsed = sum(g is None for g in grades.values())
         print(f"Wrote {judge_path}: {len(grades)} grades, {unparsed} unparsed ({time.monotonic() - start:,.0f}s)")
