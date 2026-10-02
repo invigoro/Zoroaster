@@ -1730,12 +1730,18 @@ old step 2 (move to English Wikipedia) is now step 5.
     - **Guardrails:**
       - **From version 2:** every prediction is labeled as a
         machine-generated guess, not news.
-      - **Sensitive topics:** no predictions about deaths, health, crime
-        or legal trouble.
-      - **Open: living people.** Version 2 decided they get structured
-        forecasts only, never free text. Event predictions often involve
-        people (elections, matches, appointments). Until that's decided,
-        the prophet doesn't name living people.
+      - **Never predicted, about anyone:** health, death, crime, legal
+        trouble, personal life and the like.
+        - The list will grow, so it lives in one place in the code.
+        - Both the prophet's instructions and a separate check on its
+          output use it.
+      - **Living people, in two milestones** (decided 2026-10-01):
+        1. **First, none.** The prophet names no living person. Its
+           instructions say so, and a separate check drops any prediction
+           that names or points to a person.
+        2. **Then, public-role events only:** winning an election, being
+           sworn in, a team playing in the final, and the like. The
+           never-predicted list still applies.
     - **Phases:**
       1. **A prophet prototype** on past validation days, read by hand.
       2. **The judge and rubric,** checked against hand grades.
@@ -1743,8 +1749,12 @@ old step 2 (move to English Wikipedia) is now step 5.
          the baselines. Prompts are tuned on validation days only.
       4. **Daily:** a "prophesy" step in `run_daily.py` after the
          predictions, and a "judge" step for the day before. The site
-         shows both, labeled.
-      5. **The Actions move:** llama.cpp on CPU.
+         shows both, labeled. Phases 1–4 leave living people out (the
+         first milestone).
+      5. **Living people, public-role events only** (the second
+         milestone). The person check and the topic list are checked by
+         hand on past days before this goes daily.
+      6. **The Actions move:** llama.cpp on CPU.
     - **How it relates to version 2:** version 2's forecasts become the
       prophet's evidence. Its own phase 4, publishing them on the site,
       may not be needed.
