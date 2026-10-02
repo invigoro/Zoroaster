@@ -182,7 +182,8 @@ def prophesy(model, tokenizer, day: date, rows: list[dict], forecasts: dict, mod
                    "due": questions[i][1].isoformat() if i in questions else None,
                    "contest": contests.get(i, "").strip(), "one_persons_contest": i in questions and i not in todo}
                   for i, (r, t) in enumerate(zip(pages, titles))]
-    return {"date": day.isoformat(), "model": model_name, "milestone": 1, "horizon": horizon, "top": top,
+    return {"date": day.isoformat(), "model": model_name, "checks_model": model_name, "milestone": 1, "horizon": horizon,
+            "top": top,
             "seconds": round(time.monotonic() - start), "instructions": PREDICTION, "question_instructions": QUESTION,
             "pages": page_notes, "evidence": "\n\n".join(blocks), "answers": answers, "predictions": predictions}
 
@@ -210,7 +211,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--days", type=date.fromisoformat, nargs="+", default=list(DEFAULT_DAYS))
     parser.add_argument("--model", default=INSTRUCT_MODEL)
     parser.add_argument("--out", type=Path, default=OUT_DIR)
-    parser.add_argument("--rescreen", action="store_true", help="re-run only the checks on saved predictions")
+    parser.add_argument("--rescreen", action="store_true",
+                        help="re-run only the checks and the selection on saved predictions, with --model")
     parser.add_argument("--horizon", type=int, default=HORIZON, help="days after D within which a prediction may come due")
     parser.add_argument("--top", type=int, default=TOP, help="how many of the prophecy's pages to read, biographies left out")
     parser.add_argument("--batch", type=int, default=BATCH, help="chats per batch; fewer for a model that fills the GPU")
@@ -231,6 +233,7 @@ def main(argv: list[str] | None = None) -> int:
             record["pages"] = [p | {"sport": p["title"] in sport} for p in record["pages"]]
             screened = check(model, tokenizer, bare, by_title, record["instructions"])
             record["predictions"] = publish(model, tokenizer, screened, ranks, sport)
+            record["checks_model"] = args.model  # the prophet's model stays in "model"
             path.write_text(json.dumps(record, indent=1, ensure_ascii=False), encoding="utf-8")
             report(day, record)
         return 0

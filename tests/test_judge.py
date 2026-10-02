@@ -14,6 +14,12 @@ class JudgeTest(unittest.TestCase):
         self.assertIn('New text: "The Astros won Game 1, 5–3."', text)
         self.assertIn("champion = Houston Astros (1)", text)  # links cleaned; the empty ref line left out
         self.assertEqual(day_change_text(ROW | {"end_id": 10}), "Not changed on the day.")
+        # A change over five days, up to a prediction's due day, shows more lines: the final came 33rd of 64.
+        long = ROW | {"blocks": [f"| SF-score{n} = {n}\n" for n in range(32)] + ["| final-team1 = JPN | final-score1 = 0\n"]}
+        self.assertNotIn("final-team1", day_change_text(long))
+        self.assertIn("final-team1 = JPN", day_change_text(long, days=5))
+        p = pack({"text": "I predict …", "evidence": ["V"], "due": "2026-09-22"}, "2026-09-18", {}, {"V": long}, [])
+        self.assertIn("final-team1 = JPN", p["day_brought"]["V"])
         self.assertEqual(diff_url(ROW), "https://en.wikipedia.org/w/index.php?diff=12&oldid=10")
         self.assertIsNone(diff_url(ROW | {"end_id": 10}))
 

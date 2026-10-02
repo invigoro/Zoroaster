@@ -48,6 +48,7 @@ Each prediction's evidence (`pack`):
 from __future__ import annotations
 
 import json
+from datetime import date
 
 from src.forecast.metrics import main_sections
 from src.prophecy.checks import QUALITY_REASONS
@@ -58,7 +59,8 @@ OUTCOMES = ("happened", "partly", "did not happen", "not possible", "unknown")
 POINTS = {"happened": 2, "partly": 1, "did not happen": 0, "not possible": 0}
 NEW_TEXT_CHARS = 900
 LINE_CHARS = 220
-LINES_SHOWN = 8
+LINES_SHOWN = 8  # per day the change spans, up to MAX_DAYS_SHOWN days' worth
+MAX_DAYS_SHOWN = 6
 
 JUDGE_SYSTEM = """You grade predictions against what actually happened. Use only the evidence given; your own knowledge ends years before these dates.
 
@@ -83,16 +85,18 @@ def diff_url(row: dict) -> str | None:
     return f"https://en.wikipedia.org/w/index.php?diff={row['end_id']}&oldid={row['prompt_id']}"
 
 
-def day_change_text(row: dict) -> str:
-    """What a page gained over the day, for the judge."""
+def day_change_text(row: dict, days: int = 1) -> str:
+    """What a page gained over the day, or over the `days` days up to a prediction's due day, for the judge.
+    A longer span shows more of its changed lines: with 8 over five days, a pack left out the final's score
+    (run 8, women's volleyball at the Asian Games)."""
     if row["end_id"] == row["prompt_id"]:
-        return "Not changed on the day."
+        return "Not changed on the day." if days == 1 else "Not changed by the day it was due."
     sections = "; ".join(main_sections(row["sections"], row["section_chars"], 5)) or "none"
     lines = [f"Sections changed: {sections} ({', '.join(row['kinds']) or 'no kinds detected'})"]
     if row["prose"]:
-        lines.append(f'New text: "{_cut(row["prose"], NEW_TEXT_CHARS)}"')
+        lines.append(f'New text: "{_cut(row["prose"], NEW_TEXT_CHARS * min(days, 2))}"')
     changed = [_cut(clean_line(b), LINE_CHARS) for b in row["blocks"]]
-    changed = [c for c in changed if len(c) > 3][:LINES_SHOWN]
+    changed = [c for c in changed if len(c) > 3][:LINES_SHOWN * min(days, MAX_DAYS_SHOWN)]
     if changed:
         lines.append("Changed lines, as they read at the end of the day: " + " | ".join(changed))
     return "\n".join(lines)
@@ -110,14 +114,15 @@ def pack(prediction: dict, day: str, known_before: dict[str, str], rows_by_title
          current_events: list[str]) -> dict:
     """Everything needed to grade one prediction: before, after, and the day's record of events. For a
     prediction due after `day`, `rows_by_title` and `current_events` are its due day's (`fetch_due_pages.py`)."""
-    cited = prediction["evidence"]
+    cited, due = prediction["evidence"], prediction.get("due") or day
+    days = (date.fromisoformat(due) - date.fromisoformat(day)).days + 1
     return {
-        "date": day, "due": prediction.get("due") or day, "prediction": prediction["text"],
+        "date": day, "due": due, "prediction": prediction["text"],
         "question": prediction.get("question", ""),
         "confidence": prediction.get("confidence"), "cited": cited, "kept": prediction.get("kept", True),
         "dropped_because": prediction.get("dropped_because", []),
         "known_before": {t: known_before[t] for t in cited if t in known_before},
-        "day_brought": {t: day_change_text(rows_by_title[t]) for t in cited if t in rows_by_title},
+        "day_brought": {t: day_change_text(rows_by_title[t], days) for t in cited if t in rows_by_title},
         "diffs": {t: diff_url(rows_by_title[t]) for t in cited if t in rows_by_title},
         "current_events": current_events,
     }
