@@ -238,6 +238,15 @@ Wikipedia, which is roughly 100× the test corpus.
     `python scripts/prepare_web_images.py` makes the small WebP versions in
     `web/img/` that the site uses. It keys the banner's white out to
     transparent, so the page's red glow shows through.
+  - The Faravahar emblem and favicon come from
+    [`Faravahar.svg`](https://commons.wikimedia.org/wiki/File:Faravahar.svg)
+    on Wikimedia Commons, by Ploxhoi and Kevin McCormick, under CC BY-SA 3.0.
+    The site credits it in its footers, and versions made from it carry the
+    same license.
+  - A second page, `how.html`, shows how the prophet works and every
+    version 2 test forecast next to what happened. Its data is
+    `data/forecasts.json`, from `v2_report.py --site`, which the daily run
+    refreshes.
 
   ```bash
   python scripts/fetch_recent_changes.py --days 2026-09-01 2026-09-29   # live days (recent changes keep 30)
