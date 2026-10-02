@@ -40,7 +40,10 @@ def build(out: Path, predictions: Path = PREDICTIONS_DIR, web: Path = WEB_DIR) -
     """Write the site into `out`; returns which prophecy and record it used."""
     out.mkdir(parents=True, exist_ok=True)
     for path in web.iterdir():
-        shutil.copy2(path, out / path.name)
+        if path.is_dir():  # e.g. web/img
+            shutil.copytree(path, out / path.name, dirs_exist_ok=True)
+        else:
+            shutil.copy2(path, out / path.name)
     data = out / "data"
     data.mkdir(exist_ok=True)
     used: dict[str, str | None] = {}
