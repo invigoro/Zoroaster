@@ -60,6 +60,20 @@ a:hover { color: #ff8f7d; }
   text-align: center;
   text-shadow: 0 2px 14px rgba(0, 0, 0, 0.85);
 }
+/* The Faravahar, painted through its mask (img/faravahar.webp: white where the
+   symbol is, clear for its lines), so its color is set here. */
+.emblem {
+  display: block;
+  width: 7rem;
+  aspect-ratio: 480 / 249;
+  margin: 0 auto 0.6rem;
+  background: linear-gradient(#f3e6d3, #cdb89c);
+  -webkit-mask: url(img/faravahar.webp) center / contain no-repeat;
+          mask: url(img/faravahar.webp) center / contain no-repeat;
+  filter: drop-shadow(0 0 10px rgba(212, 65, 46, 0.55));
+}
+.lede a { color: var(--text); text-decoration-color: var(--red); }
+.lede a:hover { color: var(--red-bright); }
 .kicker { margin: 0; color: var(--red); letter-spacing: 0.35em; text-transform: uppercase; font-size: 0.85rem; }
 h1 {
   margin: 0.15rem 0 0.7rem;
