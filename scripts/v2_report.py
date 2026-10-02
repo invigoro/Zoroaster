@@ -6,12 +6,22 @@ For each test page-day it shows:
 - what changed the day before, which is the "yesterday again" baseline;
 - each model forecast, with hits marked.
 
-It writes `report.html` into the run directory. This is a local file, not
-part of the site: the forecasts are machine-generated guesses about real
-pages, some of them about living people.
+It writes `report.html` into the run directory: a local file that shows
+everything.
+
+`--site` writes the public version instead: the data behind the site's "How
+the prophet works" page (`web/how.html`), saved at `build_site.FORECASTS_PATH`.
+The daily run refreshes it. It follows the publishing guardrails (PLAN.md §6
+step 10):
+- Forecast section names that aren't on the page, and sensitive ones
+  (`src/forecast/guardrails.py`), are withheld.
+- Pages about living people don't get their new text quoted, and neither
+  do changes under a sensitive section.
+- Each day shows only "yesterday again" and the ranked forecast. The scores
+  cover every forecaster.
 
 Usage:
-    python scripts/v2_report.py [--run-dir data/processed/enwiki/v2/qwen2.5-1.5b]
+    python scripts/v2_report.py [--run-dir data/processed/enwiki/v2/qwen2.5-1.5b] [--site]
 """
 
 from __future__ import annotations
@@ -26,10 +36,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import pyarrow.parquet as pq
 
+from scripts.build_site import FORECASTS_PATH
 from scripts.build_v2_targets import OUT_DIR
 from scripts.fetch_v2_examples import EXAMPLES_DIR
 from scripts.v2_baselines import common_kinds, forecasts
 from src.forecast.changes import LEAD
+from src.forecast.guardrails import is_sensitive
 from src.forecast.metrics import main_sections
 from src.forecast.prompts import parse_forecast, point_in_time_titles
 
@@ -38,6 +50,17 @@ COLUMNS = ["page_id", "date", "split", "selection", "living", "page_title", "pro
            "heading_titles", "sections", "section_chars", "kinds", "prose", "yesterday_sections",
            "yesterday_section_chars", "yesterday_kinds"]
 PROSE_CHARS = 300
+SITE_PROSE_CHARS = 200
+RANKED = "model (full prompt, ranked)"
+SITE_NAMES = {  # forecaster -> its name on the site, in the order the scores are listed
+    "yesterday again": "Repeat yesterday's changes",
+    RANKED: "The prophet",
+    "model (full prompt, greedy)": "The prophet's single likeliest forecast",
+    "model (page prompt, greedy)": "The prophet, seeing only the page",
+}
+SITE_SHOWN = ("yesterday again", RANKED)  # shown for each day
+WITHHELD_INVENTED = "a section not on the page"
+WITHHELD_SENSITIVE = "a sensitive section"
 METRICS = (("section_precision", "section precision"), ("main_section_hit", "main section named"),
            ("kinds_jaccard", "kinds Jaccard"))
 
@@ -68,23 +91,57 @@ def view_row(row: dict, named: dict[str, dict]) -> dict:
     }
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--run-dir", type=Path, default=RUN_DIR)
-    args = parser.parse_args(argv)
+def public_section(name: str, mark: str, row: dict, forecast: bool) -> list:
+    """[text, classes] for one section on the public page. Sensitive names
+    are withheld, and so are forecast names that aren't on the page."""
+    if is_sensitive(name):
+        return [WITHHELD_SENSITIVE, f"{mark} withheld"]
+    if forecast and name != LEAD and name not in row["heading_titles"]:
+        return [WITHHELD_INVENTED, f"{mark} withheld"]
+    return [name, mark]
+
+
+def public_row(row: dict, named: dict[str, dict]) -> dict:
+    """One page-day for the public page, in short keys to keep the file small."""
+    view = view_row(row, named)
+    actual = [public_section(s, "main" if i == 0 else "hit", row, False) + [n]
+              for i, (s, n) in enumerate(view["actual"]["sections"])]
+    quote = (row["prose"] and not row["living"]
+             and not any(is_sensitive(s) for s, _ in view["actual"]["sections"]))
+    prose = row["prose"][:SITE_PROSE_CHARS] + ("…" if len(row["prose"]) > SITE_PROSE_CHARS else "") if quote else ""
+    return {
+        "t": view["title"], "d": view["date"], "top": view["top"], "liv": view["living"], "y": view["changed_yesterday"],
+        "a": {"s": actual, "k": row["kinds"], "p": prose},
+        "f": [{"s": [public_section(s["name"], s["mark"], row, True) for s in view["forecasts"][n]["sections"]],
+               "k": [[k["name"], k["hit"]] for k in view["forecasts"][n]["kinds"]]} for n in SITE_SHOWN],
+    }
+
+
+def site_data(test: list[dict], named: dict[str, list[dict]], table: dict[str, dict]) -> dict:
+    return {
+        "count": len(test),
+        "scores": [{"name": label} | {m: [table[n][m], table[n]["top"][m]] for m, _ in METRICS}
+                   for n, label in SITE_NAMES.items() if n in table],
+        "shown": [SITE_NAMES[n] for n in SITE_SHOWN],
+        "rows": [public_row(r, {n: named[n][i] for n in SITE_SHOWN}) for i, r in enumerate(test)],
+    }
+
+
+def load(run_dir: Path) -> tuple[list[dict], dict[str, list[dict]], dict[str, dict]]:
+    """The test page-days, each forecaster's forecasts for them, and each one's scores."""
     rows = pq.read_table(EXAMPLES_DIR, columns=COLUMNS).to_pylist()
     point_in_time_titles(rows, pq.read_table(OUT_DIR / "titles.parquet").to_pylist())
     common = common_kinds([r for r in rows if r["split"] == "train"])
     test = [r for r in rows if r["split"] == "test"]
-    generations = json.loads((args.run_dir / "generations.json").read_text(encoding="utf-8"))
+    generations = json.loads((run_dir / "generations.json").read_text(encoding="utf-8"))
     if [(r["page_id"], r["date"].isoformat()) for r in test] != [(k["page_id"], k["date"]) for k in generations["examples"]]:
         raise SystemExit("generations.json doesn't match the test examples' order")
     named = {"yesterday again": [forecasts(r, common)["yesterday again"] for r in test]}
     named |= {display(n): [parse_forecast(t) for t in texts] for n, texts in generations["runs"].items()}
-    summary = json.loads((args.run_dir / "results.json").read_text(encoding="utf-8"))["forecasts"]
+    summary = json.loads((run_dir / "results.json").read_text(encoding="utf-8"))["forecasts"]
     table = {"yesterday again": summary["all"]["yesterday again"] | {"top": summary["top"]["yesterday again"]}}
     table |= {display(n): summary["all"][n] | {"top": summary["top"][n]} for n in generations["runs"]}
-    ranked_path = args.run_dir / "ranked.json"
+    ranked_path = run_dir / "ranked.json"
     if ranked_path.exists():
         ranked = json.loads(ranked_path.read_text(encoding="utf-8"))
         keys = [(k["page_id"], k["date"]) for k in ranked["test"]["examples"]]
@@ -95,6 +152,23 @@ def main(argv: list[str] | None = None) -> int:
                 continue
             named[name] = fs
             table[name] = ranked["test"]["summary"]["all"][name] | {"top": ranked["test"]["summary"]["top"][name]}
+    return test, named, table
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--run-dir", type=Path, default=RUN_DIR)
+    parser.add_argument("--site", action="store_true", help="write the public page's data instead of the report")
+    args = parser.parse_args(argv)
+    test, named, table = load(args.run_dir)
+    if args.site:
+        if RANKED not in named:
+            raise SystemExit(f"no ranked forecasts in {args.run_dir}: run rank_v2.py first")
+        FORECASTS_PATH.parent.mkdir(parents=True, exist_ok=True)
+        FORECASTS_PATH.write_text(json.dumps(site_data(test, named, table), ensure_ascii=False, separators=(",", ":")),
+                                  encoding="utf-8")
+        print(f"Wrote {FORECASTS_PATH} ({FORECASTS_PATH.stat().st_size / 1e6:.1f} MB, {len(test):,} page-days)")
+        return 0
     names = list(named)
     data = [view_row(r, {n: named[n][i] for n in names}) for i, r in enumerate(test)]
     page = TEMPLATE.replace("__DATA__", json.dumps({"names": names, "rows": data}, ensure_ascii=False).replace("</", "<\\/"))

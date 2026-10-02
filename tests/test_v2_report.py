@@ -1,7 +1,8 @@
 import unittest
 from datetime import date
 
-from scripts.v2_report import forecast_view, view_row
+from scripts.v2_report import (RANKED, SITE_PROSE_CHARS, WITHHELD_INVENTED, WITHHELD_SENSITIVE, forecast_view,
+                               public_row, view_row)
 
 ROW = {"page_title": "Jane_Roe", "date": date(2026, 3, 2), "selection": "top", "living": True,
        "heading_titles": ["Career", "Results"], "sections": ["(lead)", "Career", "Results"],
@@ -23,6 +24,26 @@ class ReportTest(unittest.TestCase):
         self.assertEqual((row["title"], row["date"], row["top"], row["changed_yesterday"]),
                          ("Jane Roe", "2026-03-02", True, False))
         self.assertEqual(len(row["actual"]["prose"]), 301)  # 300 characters and an ellipsis
+
+
+class PublicTest(unittest.TestCase):
+    NAMED = {"yesterday again": {"sections": ["Career"], "kinds": ["prose"]},
+             RANKED: {"sections": ["Career", "Awards", "Personal life"], "kinds": ["prose", "table"]}}
+
+    def test_made_up_and_sensitive_names_are_withheld(self):
+        row = ROW | {"living": False, "heading_titles": ["Career", "Personal life"],
+                     "sections": ["Career", "Personal life"], "section_chars": [300, 50]}
+        out = public_row(row, self.NAMED)
+        self.assertEqual(out["f"][1]["s"], [["Career", "main"], [WITHHELD_INVENTED, "miss withheld"],
+                                            [WITHHELD_SENSITIVE, "hit withheld"]])
+        self.assertEqual(out["f"][1]["k"], [["prose", True], ["table", True]])
+        self.assertEqual(out["a"]["s"], [["Career", "main", 300], [WITHHELD_SENSITIVE, "hit withheld", 50]])
+        self.assertEqual(out["a"]["p"], "")  # a sensitive section changed: no quote
+
+    def test_quotes_only_for_pages_not_about_living_people(self):
+        row = ROW | {"living": False}
+        self.assertEqual(len(public_row(row, self.NAMED)["a"]["p"]), SITE_PROSE_CHARS + 1)  # cut, with an ellipsis
+        self.assertEqual(public_row(ROW, self.NAMED)["a"]["p"], "")  # ROW is about a living person
 
 
 if __name__ == "__main__":
