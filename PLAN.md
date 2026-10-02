@@ -33,6 +33,13 @@ meaningful share of edits are reactions to real-world events unfolding, so
 the model should pick up on "something is happening" signals rather than
 only long-run per-page editing habits.
 
+**The end goal** (stated 2026-10-01) is to predict major real-world events,
+not Wikipedia itself. Wikipedia's edits are a fast, public trace of
+events. The next day's edits are also a record to check a prediction
+against. Predicting edits (Stages 1 and 2, version 2) is the means. The
+prophecy is meant to become free text, "I predict that X will happen",
+written and graded the next day by local LLM steps (§6 step 11).
+
 Two-stage approach:
 - **Stage 1** (build first): forecast which pages are likely to be edited in
   an upcoming window, using activity-burst/attention signals.
@@ -1664,6 +1671,83 @@ old step 2 (move to English Wikipedia) is now step 5.
         every page. Phase 3's invented names mostly stated outcomes
         ("2026 Four Continents champion"), so a predicted new section is
         shown only as the kind "new section", without its name.
+    - **Free text now comes from step 11** (2026-10-01): a separate LLM
+      writes event prophecies, and version 2's forecasts are part of its
+      evidence.
+11. **Version 3: free-text prophecies of real-world events** (planned
+    2026-10-01). This is the project's real aim (§1): predictions about
+    events, with Wikipedia as the sensor, written as free text and graded
+    the next day. Two local LLM steps sit on top of the edit predictor
+    and stay separate from it, so each part can be changed and tested on
+    its own.
+    - **The prophet** runs on day D, after the daily predictions.
+      - **Input**, all as of the end of D−1, for the burst model's top
+        pages:
+        - each page's lead, yesterday's changes and their new text;
+        - its bursting linked pages;
+        - its version 2 structured forecast.
+      - **Output:** 5–10 predictions in a fixed form: "I predict that
+        [something specific] will happen by [date]". Each one cites the
+        pages and signals it rests on.
+      - It may use only the evidence it's given. The base models know
+        nothing after 2024, so anything else would be invented.
+    - **The judge** runs at the next daily run, once D is over. Grading
+      is a separate step from writing, so the prophet never grades
+      itself.
+      - **Input:** each prediction, the evidence it cited, and what D
+        actually brought:
+        - the cited pages' changes over D, derived as version 2 does from
+          each page at the ends of D−1 and D. Only those pages are
+          fetched.
+        - that day's Portal:Current events page, a daily list of major
+          events that editors curate. It's outside the mainspace scope
+          (§2) and is used only for grading. It may fill in late, so the
+          judge may need to wait an extra day.
+      - **Output:** a score for each prediction against the rubric, with
+        the reasoning, published as the day's record.
+    - **The rubric** will be refined on validation days:
+      - **Outcome:** happened as stated, happened in part, didn't happen,
+        or can't be told from D's data.
+      - **Novelty:** was it already known at the end of D−1? Predicting
+        something already on the page earns nothing.
+      - **Specificity:** "news about X continues" is cheap; a named
+        outcome or number is worth more. Credit is outcome times
+        specificity, so vague predictions can't score well.
+      - **Grounding:** does the cited evidence support it?
+    - **Checks before anything is published:**
+      - **Point-in-time:** the prophet sees only data up to the end of
+        D−1, and the judge only what D brought.
+      - **The judge is checked against hand grades,** e.g. on 100
+        predictions, before its scores are trusted.
+      - **Baselines are graded the same way:**
+        - "yesterday's stories continue";
+        - the same model writing without the edit signals.
+        The prophet has to beat both to show any skill.
+    - **Models:** a local instruction-tuned model, e.g. Qwen2.5-7B-Instruct
+      in 4-bit (about 5 GB, so it fits the 8 GB GPU), or a 3B one for
+      speed. Ten predictions and their grades should take a few minutes a
+      day. After the Actions move, it runs on CPU via llama.cpp.
+    - **Guardrails:**
+      - **From version 2:** every prediction is labeled as a
+        machine-generated guess, not news.
+      - **Sensitive topics:** no predictions about deaths, health, crime
+        or legal trouble.
+      - **Open: living people.** Version 2 decided they get structured
+        forecasts only, never free text. Event predictions often involve
+        people (elections, matches, appointments). Until that's decided,
+        the prophet doesn't name living people.
+    - **Phases:**
+      1. **A prophet prototype** on past validation days, read by hand.
+      2. **The judge and rubric,** checked against hand grades.
+      3. **A backtest** of prophet and judge over the test days, against
+         the baselines. Prompts are tuned on validation days only.
+      4. **Daily:** a "prophesy" step in `run_daily.py` after the
+         predictions, and a "judge" step for the day before. The site
+         shows both, labeled.
+      5. **The Actions move:** llama.cpp on CPU.
+    - **How it relates to version 2:** version 2's forecasts become the
+      prophet's evidence. Its own phase 4, publishing them on the site,
+      may not be needed.
 
 ## 7. Open questions
 
