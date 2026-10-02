@@ -42,6 +42,28 @@ class PublishTest(unittest.TestCase):
             self.assertEqual(git("log", "--format=%s", "gh-pages", cwd=origin).splitlines(),
                              ["Prophecy for 2026-10-02", "Prophecy for 2026-10-01", "Start the gh-pages branch"])
 
+            # A commit made on GitHub, as setting a custom domain does, is kept.
+            other = tmp / "other"
+            git("clone", "-q", "--branch", "gh-pages", str(origin), str(other), cwd=tmp)
+            for key, value in (("user.name", "Test"), ("user.email", "test@example.invalid")):
+                git("config", key, value, cwd=other)
+            (other / "CNAME").write_text("example.invalid")
+            git("add", "CNAME", cwd=other)
+            git("commit", "-q", "-m", "Create CNAME", cwd=other)
+            git("push", "-q", "origin", "gh-pages", cwd=other)
+            (predictions / "2026-10-03.json").write_text(json.dumps({"date": "2026-10-03"}))
+            self.assertEqual(publish(repo, pages, predictions, web), "2026-10-03")
+            self.assertEqual(git("log", "--format=%s", "-3", "gh-pages", cwd=origin).splitlines(),
+                             ["Prophecy for 2026-10-03", "Create CNAME", "Prophecy for 2026-10-02"])
+            self.assertEqual(git("show", "gh-pages:CNAME", cwd=origin), "example.invalid")
+
+            # A commit whose push failed goes out on the next run, even with nothing new.
+            (predictions / "2026-10-04.json").write_text(json.dumps({"date": "2026-10-04"}))
+            self.assertEqual(publish(repo, pages, predictions, web, push=False), "2026-10-04")
+            self.assertEqual(publish(repo, pages, predictions, web), "2026-10-04")
+            self.assertEqual(git("log", "--format=%s", "-1", "gh-pages", cwd=origin), "Prophecy for 2026-10-04")
+            self.assertIsNone(publish(repo, pages, predictions, web))
+
 
 if __name__ == "__main__":
     unittest.main()

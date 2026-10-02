@@ -59,18 +59,29 @@ def ensure_worktree(repo: Path, pages: Path, branch: str = BRANCH) -> None:
 
 def publish(repo: Path, pages: Path, predictions: Path = PREDICTIONS_DIR, web: Path = WEB_DIR,
             push: bool = True) -> str | None:
-    """Build, commit and push the site; returns the prophecy's date, or None if nothing changed."""
+    """Build, commit and push the site. Returns the prophecy's date, or None
+    if there was nothing to commit or push.
+
+    It first rebases onto `origin`'s branch, keeping commits made on GitHub:
+    setting a custom domain commits a CNAME file there, and on 2026-10-01
+    that made the push fail. It pushes whenever the branch is ahead of
+    `origin`, so a commit whose push failed goes out on the next run."""
     ensure_worktree(repo, pages)
+    remote = bool(git("ls-remote", "--heads", "origin", BRANCH, cwd=pages))
+    if remote:
+        git("fetch", "origin", BRANCH, cwd=pages)
+        git("rebase", "--autostash", f"origin/{BRANCH}", cwd=pages)
     used = build(pages, predictions, web)
     (pages / ".nojekyll").touch()  # serve the files as they are
     git("add", "-A", cwd=pages)
-    if not git("status", "--porcelain", cwd=pages):
-        return None
     day = (used["latest.json"] or "no prophecy")[:10]
-    git("commit", "-m", f"Prophecy for {day}", cwd=pages)
-    if push:
+    changed = bool(git("status", "--porcelain", cwd=pages))
+    if changed:
+        git("commit", "-m", f"Prophecy for {day}", cwd=pages)
+    ahead = not remote or git("rev-list", "--count", f"origin/{BRANCH}..HEAD", cwd=pages) != "0"
+    if push and ahead:
         git("push", "--set-upstream", "origin", BRANCH, cwd=pages)
-    return day
+    return day if changed or ahead else None
 
 
 def main(argv: list[str] | None = None) -> int:
