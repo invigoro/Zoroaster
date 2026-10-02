@@ -59,7 +59,8 @@ def main(argv: list[str] | None = None) -> int:
     if not args.compare_only:
         start = time.monotonic()
         model, tokenizer = load_instruct(INSTRUCT_MODEL)
-        keys = list(packs)
+        # Longest first, so the GPU's memory peaks in the first batch (see train_v2.forecast_headers).
+        keys = sorted(packs, key=lambda k: -len(judge_messages(packs[k])[1]["content"]))
         grades, raw = {}, {}
         for i in range(0, len(keys), BATCH):
             batch = keys[i : i + BATCH]
