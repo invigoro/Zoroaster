@@ -1,14 +1,15 @@
 """Version 3's prophet: free-text predictions of real-world events, from a day's evidence.
 
 PLAN.md §6 step 11. For each day:
-1. The eligible pages: the prophecy's top 20, without biographies
+1. The eligible pages: the prophecy's top 100 (`TOP`), without biographies
    (milestone 1, `src/prophecy/evidence.py`).
 2. Each page's evidence, with its dates marked relative to the day, and
    version 2's forecast (`forecast_v2.py`).
 3. The prophet (`src/prophecy/prophet.py`), a local instruction-tuned model,
-   Qwen2.5-7B-Instruct in 4-bit, reads one page at a time:
-   - for each page whose evidence dates something to the day itself, the
-     question that day settles about it;
+   Qwen2.5-7B-Instruct in 4-bit by default, reads one page at a time:
+   - for each page whose evidence dates something to the day or the week
+     after it (`HORIZON`), the question decided then, and its date, which
+     the prediction is due on;
    - questions about a contest one person wins are dropped;
    - then, for each question left, a prediction.
    Its training data ends long before these days, so it can't know what
@@ -19,13 +20,16 @@ PLAN.md §6 step 11. For each day:
      organization;
    - whether the evidence already settles the prediction;
    - copies of example sentences in the instructions, and repeats.
+5. The selection (`src/prophecy/selection.py`): at most ten a day, world
+   events first, and sport only when it settles a title.
 
 Writes `data/processed/enwiki/v3/prophecies/D.json` with each page's question,
 every prediction, kept or dropped and why, and prints them. `--rescreen`
 re-runs only the checks on saved predictions, without generating new ones.
 
 Usage:
-    python scripts/prophesy.py [--days 2026-09-20 2026-09-25] [--model Qwen/Qwen2.5-7B-Instruct] [--out DIR] [--rescreen]
+    python scripts/prophesy.py [--days 2026-09-20 2026-09-25] [--model Qwen/Qwen2.5-7B-Instruct] [--out DIR]
+                               [--rescreen] [--horizon 7] [--top 100] [--batch 8]
 """
 
 from __future__ import annotations
@@ -195,6 +199,7 @@ def report(day: date, record: dict) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
+    global BATCH
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--days", type=date.fromisoformat, nargs="+", default=list(DEFAULT_DAYS))
     parser.add_argument("--model", default=INSTRUCT_MODEL)
@@ -202,7 +207,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--rescreen", action="store_true", help="re-run only the checks on saved predictions")
     parser.add_argument("--horizon", type=int, default=HORIZON, help="days after D within which a prediction may come due")
     parser.add_argument("--top", type=int, default=TOP, help="how many of the prophecy's pages to read, biographies left out")
+    parser.add_argument("--batch", type=int, default=BATCH, help="chats per batch; fewer for a model that fills the GPU")
     args = parser.parse_args(argv)
+    BATCH = args.batch
     model, tokenizer = load_instruct(args.model)
     args.out.mkdir(parents=True, exist_ok=True)
     if args.rescreen:
