@@ -4,7 +4,8 @@ from datetime import date
 from src.forecast.guardrails import sensitive_words
 from src.prophecy.checks import (NO_ANSWER, already_known, confirmed_orgs, confirmed_people, harms, listed_names,
                                  names_a_person, novelty_messages, one_persons_contest, person_roles, screen)
-from src.prophecy.evidence import clean_line, dated_lines, eligible, evidence_text, is_biography, mark_dates, page_block
+from src.prophecy.evidence import (clean_line, dated_lines, eligible, evidence_text, is_biography, mark_dates, page_block,
+                                   past_year)
 from src.prophecy.prophet import (marked_within, normalize, parse_prediction, parse_question, prediction_messages,
                                   question_messages)
 from src.prophecy.selection import is_sport_page, select, settles_a_title, topic
@@ -77,6 +78,23 @@ class EvidenceTest(unittest.TestCase):
         unmarked = "in September 2026, on 31 September, or on 29 February"  # no day of the month, or no such day
         self.assertEqual(mark_dates(unmarked, day), unmarked)
         self.assertIn("4 October [in 4 days]", page_block(1, ROW | {"lead": "The final is on 4 October."}, None))
+
+    def test_a_page_about_a_past_year_keeps_its_dates_in_that_year(self):
+        # Run 8: "2024 East–West Line disruption" said services "resumed on 1 October", read as five days after
+        # 2026-09-26, and the prophet predicted a resumption two years late.
+        day = date(2026, 9, 26)
+        self.assertEqual(past_year("2024_East–West_Line_disruption", day), 2024)
+        self.assertEqual(past_year("Great Fire of New York (1776)", day), 1776)
+        self.assertEqual(past_year("Second Battle of Kehl (1796)", day), 1796)
+        for title in ("2025–26 Premier League", "2026 AFL Grand Final", "2027 Nigerian general election", "September 23",
+                      "Starship flight 14"):
+            self.assertIsNone(past_year(title, day), title)
+        row = ROW | {"date": day, "page_title": "2024_East–West_Line_disruption",
+                     "lead": "Full services resumed on 1 October.", "yesterday_known": False}
+        self.assertIn("1 October [about 2 years ago]", page_block(1, row, None))
+        self.assertIn("1 October [in 5 days]", page_block(1, row | {"page_title": "East–West Line"}, None))
+        self.assertIn("31 December [about 2 years ago]", mark_dates("on 31 December", day, 2024))  # not 2023
+        self.assertIn("1 January [about 3 years ago]", mark_dates("on 1 January", day, 2024))  # not 2025
 
     def test_lines_dated_today_come_from_the_page_as_it_stood(self):
         day = date(2026, 9, 24)

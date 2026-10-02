@@ -60,6 +60,9 @@ DATE_PATTERNS = tuple(re.compile(p) for p in (
     rf"\b{_month(1)}\s+{_day(1)}{_year(1)}\b",  # October 4; November 3, 2026
 ))
 
+# A year in a page's title, and a season's second year: "2024 East–West Line disruption", "2025–26 Premier League".
+TITLE_YEAR = re.compile(r"\b(1\d{3}|20\d{2})(?:[–-](\d{2}))?\b")
+
 BIOGRAPHY = re.compile(
     r"\[\[\s*Category\s*:\s*(?:Living[ _]people|Possibly[ _]living[ _]people|\d{1,4}s?(?:[ _]BC)?[ _](?:births|deaths)"
     r"|Year[ _]of[ _](?:birth|death)[ _](?:missing|unknown))", re.IGNORECASE)
@@ -110,12 +113,27 @@ def _nearest(month: str, day_of_month: str, year: str | None, near: date) -> dat
     return min(candidates, key=lambda d: abs((d - near).days))
 
 
-def _span(m: re.Match, day: date) -> tuple[date, date] | None:
-    """The first and last dates a match names (the same for a single date), or None if it can't exist."""
+def past_year(title: str, day: date) -> int | None:
+    """The year a page's title puts it in, if every year it names is before `day`'s: "2024 East–West Line
+    disruption" → 2024, "2025–26 Premier League" → None (it runs into this year). The page's dates without a
+    year belong to that year, not the one nearest the day. Its "resumed on 1 October" had been read as
+    1 October 2026, five days after 2026-09-26, and run 8 predicted a resumption two years late."""
+    years = []
+    for m in TITLE_YEAR.finditer(title.replace("_", " ")):
+        years.append(int(m.group(1)))
+        if m.group(2):
+            years.append(int(m.group(1)[:2] + m.group(2)))
+    return max(years) if years and max(years) < day.year else None
+
+
+def _span(m: re.Match, day: date, year: int | None = None) -> tuple[date, date] | None:
+    """The first and last dates a match names (the same for a single date), or None if it can't exist.
+    A date without a year is read in `year` if given (`past_year`), else in the year nearest `day`."""
     g = m.groupdict()
     month1, month2 = g.get("m1") or g["m2"], g.get("m2") or g["m1"]
+    near = date(year, 7, 2) if year else day  # 2 July: 1 January and 31 December are both nearest in `year`
     try:
-        last = _nearest(month2, g.get("d2") or g["d1"], g.get("y2") or g.get("y1"), day)
+        last = _nearest(month2, g.get("d2") or g["d1"], g.get("y2") or g.get("y1"), near)
         # Nearest the last date, so "28 December to 3 January 2027" starts in 2026.
         first = _nearest(month1, g["d1"], g.get("y1"), last)
     except ValueError:
@@ -173,17 +191,18 @@ def clean_line(text: str) -> str:
     return " ".join(text.split())
 
 
-def _is_the_day(text: str, day: date) -> bool:
+def _is_the_day(text: str, day: date, year: int | None = None) -> bool:
     """Whether `text` names `day` itself as a date, or as the first or last day of a span."""
-    return any(span and day in span for p in DATE_PATTERNS for span in (_span(m, day) for m in p.finditer(text)))
+    return any(span and day in span for p in DATE_PATTERNS for span in (_span(m, day, year) for m in p.finditer(text)))
 
 
-def dated_lines(page_text: str, day: date) -> list[str]:
+def dated_lines(page_text: str, day: date, year: int | None = None) -> list[str]:
     """The page's lines, as it stood the day before, that date something to `day` itself: schedule rows,
-    fixtures, an event's first or last day. A fixture box's date field brings the lines after it, its teams."""
+    fixtures, an event's first or last day. A fixture box's date field brings the lines after it, its teams.
+    `year` is the page's own, if its title puts it in a past year (`past_year`)."""
     lines, found = page_text.splitlines(), []
     for i, line in enumerate(lines):
-        if str(day.day) not in line or not _is_the_day(clean_line(line), day):
+        if str(day.day) not in line or not _is_the_day(clean_line(line), day, year):
             continue
         part = lines[i : i + FIELD_LINES] if DATE_FIELD.match(line) else [line]
         text = _cut(" · ".join(t for t in (clean_line(p).strip("{}| ") for p in part) if t), DATED_LINE_CHARS)
@@ -194,15 +213,16 @@ def dated_lines(page_text: str, day: date) -> list[str]:
     return found
 
 
-def mark_dates(text: str, day: date) -> str:
+def mark_dates(text: str, day: date, year: int | None = None) -> str:
     """`text` with each date it names followed by when that is relative to `day`, the day
-    being foretold: "played on October 4 [in 4 days]"."""
+    being foretold: "played on October 4 [in 4 days]". A date without a year is read in `year`, the
+    page's own if its title puts it in a past year (`past_year`)."""
     marks: list[tuple[int, int, str]] = []
     for pattern in DATE_PATTERNS:
         for m in pattern.finditer(text):
             if any(m.start() < end and start < m.end() for start, end, _ in marks):
                 continue  # part of a longer date already marked
-            span = _span(m, day)
+            span = _span(m, day, year)
             if span:
                 marks.append((m.start(), m.end(), relative(*span, day)))
     out, last = [], 0
@@ -228,22 +248,23 @@ def page_block(number: int, row: dict, forecast: dict | None) -> str:
     """One page's evidence, numbered for citation, with its dates marked relative to the page-day.
     Only what was known by the end of the day before: the page then, and yesterday's change."""
     day = row["date"]
+    year = past_year(row["page_title"], day)
     burst = ", a burst" if row["is_burst_1d"] else ""
     lines = [f"[{number}] {_title(row['page_title'])} (ranked {row['rank']} for bursting today)",
              f"Yesterday: {row['edits_1d']} edits by {row['editors_1d']} editors{burst}; "
              f"{row['edits_7d']} edits in the past week.",
-             f"About: {_cut(mark_dates(row['lead'], day), LEAD_CHARS) or 'no lead text'}"]
+             f"About: {_cut(mark_dates(row['lead'], day, year), LEAD_CHARS) or 'no lead text'}"]
     if not row["yesterday_known"] or not row["yesterday_sections"]:
         lines.append("Yesterday's changes: none" if row["yesterday_known"] else "Yesterday's changes: unknown")
     else:
         sections = "; ".join(main_sections(row["yesterday_sections"], row["yesterday_section_chars"]))
         change = f"Yesterday's changes: in {sections} ({', '.join(row['yesterday_kinds']) or 'no kinds detected'})"
         if row["yesterday_prose"]:
-            change += f'. New text: "{_cut(mark_dates(row["yesterday_prose"], day), NEW_TEXT_CHARS)}"'
+            change += f'. New text: "{_cut(mark_dates(row["yesterday_prose"], day, year), NEW_TEXT_CHARS)}"'
         lines.append(change)
-    dated = dated_lines(row.get("page_text") or "", day)
+    dated = dated_lines(row.get("page_text") or "", day, year)
     if dated:
-        lines.append("Dated today on the page: " + " | ".join(mark_dates(d, day) for d in dated))
+        lines.append("Dated today on the page: " + " | ".join(mark_dates(d, day, year) for d in dated))
     if row["bursting_neighbors"]:
         lines.append("Linked pages that burst yesterday: "
                      + "; ".join(_title(t) for t in row["bursting_neighbors"][:NEIGHBORS_SHOWN]))
