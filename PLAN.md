@@ -786,6 +786,115 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
         on specificity 69%. It gives 0.23 credit where the drafts give 0.13,
         on the predictions both score. It's still not to be trusted.
 
+27. **Version 3: a week ahead, world events first, and a larger model
+    (2026-10-02)**:
+    - **The selection** (§2, `selection.py`): at most 10 a day, world events
+      first by page rank, sport only when it settles a title (at most 3 a
+      day).
+      - The model's topic question failed: on run 8 it called 66 of 134 kept
+        predictions "other", most of them sport ("Who wins the gold medal?"
+        on an Asian Games badminton page), so sport filled the days.
+      - So sport comes from the page itself, as it stood at the end of D−1:
+        its infobox or short description names a sport or a sports event, it
+        uses a sports template (match boxes, league tables, football flag
+        icons), or a category names a sport. Over the 644 pages the prophet
+        read, this marks every sports page and no world event. Films and
+        video games about sport stay culture.
+      - The title question said no to all 134. With examples, it said yes to
+        36 of 121, nearly all finals, gold medals and titles. A page about a
+        final ("2026 AFL Grand Final") settles a title whatever it asks.
+    - **A week's horizon** (`prophet.HORIZON = 7`):
+      - Step 1 names what's decided within the week and its date. The code
+        reads the date, or a bare mark like "[tomorrow]", and drops anything
+        later.
+      - The prediction is graded on its due day. `fetch_due_pages.py`
+        fetches each cited page as it stood at the end of that day. The pack
+        holds the page's change since the prophet's evidence, 8 lines for
+        each day spanned (up to 48), and the due day's current events.
+      - **Two parsing bugs, fixed.**
+        - A rule that questions end in "?" dropped 160 of 186 with good
+          dates: the three-line answer made the model leave the mark off.
+        - Due dates were often guesses. Given a page saying a tournament
+          "ends in 4 days", both models wrote the day itself or the
+          horizon's last day (26 of 181 questions on Qwen2.5-7B, 68 of 197
+          on Qwen3-8B). A date the evidence doesn't mark now moves to the
+          nearest one it does.
+    - **The guardrail trial** (the 34 known sentences of item 26):
+      - Qwen2.5-7B got all 34.
+      - Qwen3-8B got 33. It called the PAM, a Moroccan party, military. It
+        also let through the borderline "a former US president will be
+        indicted".
+      - On run 9's own predictions, Qwen3-8B's checks invented people ("the
+        team's coach", "Grand Final referee") and called national football
+        teams harmful organizations. They caught no name Qwen2.5-7B's
+        missed.
+      - So the checks and the selection stay on Qwen2.5-7B
+        (`--rescreen --model`). Each day record names the checks' model.
+    - **Run 8** (Qwen2.5-7B, top 100, a week ahead):
+      - 963 page-days, 217 with something marked within the week, 181
+        questions (35 about one person's contest), 146 predictions, 134
+        kept, 47 published.
+      - Published: 34 sports title deciders (the cap of 3 bound on most
+        days) and 13 others. The others are the Russian election (three
+        days running), Berlin's, the UN General Debate (three days running),
+        BC election nominations, Singapore's East–West Line, and five film
+        and game releases or box-office figures.
+      - Due dates: 11 the same day, 36 one to seven days later.
+    - **Run 9** (Qwen3-8B as the prophet, Qwen2.5-7B's checks), on the same
+      days:
+      - 197 questions (58 about one person's contest), 139 predictions, 119
+        kept, 44 published (30 sport, 14 others).
+      - Its sentences are longer and name their subject in full ("the 2026
+        AFL Grand Final will be won by the Brisbane Lions"). They also add
+        more unasked claims and scores ("Austria winning 2-1 and Israel
+        winning 1-0").
+      - It copied the prompt's cutoff date into answers and questions
+        ("released on the scheduled date of 7 October", where the evidence
+        says 2 October). Its non-sport picks were weaker: the critical
+        response "section of the article", a calendar page's 19th-century
+        shipwreck read as 2026.
+    - **The yearless-date bug of item 26, twice more** (both fixed after
+      runs 8–9):
+      - "2024 East–West Line disruption" said services "resumed on 1
+        October", read as five days ahead. A page whose title names only
+        past years now reads such dates in that year (`evidence.past_year`).
+        It would have changed one question.
+      - The calendar page "September 23" lists an 1884 shipwreck under
+        "23–24 September", read as under way. Run 9 published a prediction
+        that it would lead to a gold rush in 2026. Calendar days' pages are
+        no longer read: they list anniversaries, never what's coming.
+    - **Draft grades** (`grades_run8/`, `grades_run9/`): Claude's drafts,
+      for the user to confirm on the review page.
+      - Agents drafted them in parallel from one set of instructions
+        (evidence only, no memory of events). The drafts made before the
+        packs showed 8 lines per day were re-checked. The re-check changed
+        one: China's 3–0 final win over Japan had been hidden.
+      - Run 8: 36 graded so far (11 are due after 2026-10-01). Mean credit
+        is 0.164 over 35 scored, and 11 earn credit. 9 were already known
+        and 9 aren't grounded.
+        - Sport scores 0.198 (24), the rest 0.091 (11).
+        - Those due later score 0.177 (24), those due the same day 0.136
+          (11).
+      - Run 9: 31 graded (13 due later). Mean credit is 0.179 over 28
+        scored, and 9 earn credit. 6 were already known and 13 aren't
+        grounded.
+      - Run 7's confirmed grades, for comparison: 0.185 over 23.
+      - **So the larger model isn't clearly better.** Its credit is about
+        the same on about 30 predictions each. It's less grounded: it names
+        teams the evidence never mentions, from its own memory.
+    - **World events are scarce in what's asked.**
+      - The top 100 holds about 12 world-event pages a day: elections,
+        conflicts, disasters, diplomacy, spaceflight. That's 166 page-days
+        over the 14 days, but only 10 got a question.
+      - Step 1 asks only about a decision the evidence dates within the
+        week. Most world events are ongoing instead: Hurricane Polo, the
+        Chelan Hills Fire, the Ethiopian civil conflict, the Sanctioning
+        Russia Act, Starship flights. Or they're further out: British
+        Columbia votes on 24 October, the United States on 3 November.
+    - **The same question comes up each day until it's due**: "United Russia
+      wins the most seats" three days running, the NRL Grand Final three
+      days running. That's §7's update question.
+
 ## 4. Data state — important for resuming on a new machine
 
 `data/` is **git-ignored** (see `.gitignore`) — it does not travel with the
@@ -837,6 +946,27 @@ python scripts/score_predictions.py --day 2026-09-29   # after the day is over
 python scripts/backtest_daily.py --days 2026-09-08 2026-09-29
 python scripts/build_site.py --serve        # the page, previewed at localhost:8000
 ```
+
+Version 3 on the development days (`data/processed/enwiki/v3/`; runs 8–9 of
+§3 item 27; the GPU steps take 8–20 minutes each):
+
+```bash
+python scripts/build_v3_days.py              # the site's own prophecies, 2026-09-18 to 10-01, top 100 a day
+python scripts/fetch_current_events.py --days 2026-09-18 2026-10-01
+python scripts/prophesy.py --days 2026-09-18 ... 2026-10-01 --out data/processed/enwiki/v3/prophecies_run8
+python scripts/prophesy.py --model Qwen/Qwen3-8B --batch 4 --days ... --out data/processed/enwiki/v3/prophecies_run9
+python scripts/prophesy.py --rescreen --model Qwen/Qwen2.5-7B-Instruct --days ... --out data/processed/enwiki/v3/prophecies_run9
+python scripts/fetch_due_pages.py --prophecies data/processed/enwiki/v3/prophecies_run8   # due_pages/prophecies_run8.parquet
+python scripts/grading_packs.py --prophecies data/processed/enwiki/v3/prophecies_run8 --grades data/processed/enwiki/v3/grades_run8 --published
+python scripts/grading_review_docs.py --grades data/processed/enwiki/v3/grades_run8 --run run8 --label "Week ahead, Qwen2.5-7B"
+```
+
+The hand grades aren't regenerable. The drafts (`grades*/drafts.json`) and
+the user's reviews live in the review page's database. Reviews downloaded
+from it into `grades/reviews_download/` become `confirmed.json` through
+`confirmed_grades.py`. Directories
+ending `_no_question_marks` or `_unmarked_dues` are runs 8–9 before the fixes
+of §3 item 27, kept for comparison.
 
 To re-run revert detection after changing it, use `--from-parquet` on the
 existing labels file (~2 min) instead of re-parsing the dump. The
@@ -2120,42 +2250,47 @@ old step 2 (move to English Wikipedia) is now step 5.
            lines for the day, one page at a time, and a check for contests
            one person wins.
          - **Done (2026-10-02):** the user confirmed run 7's 26 grades.
+         - **Done (2026-10-02, §3 item 27):**
+           - at most 10 predictions a day, world events first, and sport
+             only when it settles a title;
+           - predictions due up to a week later, graded on their due day;
+           - Qwen3-8B tried as the prophet (run 9), with Qwen2.5-7B's
+             checks.
          - **Next, in order:**
-           1. **At most 10 predictions a day, world events first** (§2,
-              2026-10-02):
-              - Each question is classed by topic: sport, or a kind of world
-                event (politics and elections, conflict, disaster and
-                weather, economy, science and technology, health, culture).
-              - World-event questions come first, the prophecy's best
-                ranked first.
-              - Sports questions are kept only if they settle a title (a
-                final, a gold medal match, a series or championship
-                decider), at most 3 a day, after the world events.
-              - For enough world events to choose from, the prophet reads
-                more of the prophecy: the top 100 pages, not the top 30.
-                Reading one page at a time makes that cheap, since only
-                pages with something due are asked. Longer horizons (2)
-                add elections, votes, launches and decisions due in the
-                coming days.
-              - Predictions name their subject in full.
-           2. **Predictions due later than the day** (scored as in §7):
-              - Pages whose evidence dates something within the next 7 days
-                are asked too. Each prediction states its due date, which
-                the code checks against the evidence's date marks.
-              - It's graded on its due date: the pack holds the cited page
-                at the end of that day (a new fetch), and that day's
-                Portal:Current events.
-              - On the development days, due dates run up to 2026-10-01, the
-                last day with fetched current events.
-           3. **A larger model**, on the same days and checks, graded like
-              run 7:
-              - The RTX 3070 (8 GB) fits about 9 billion parameters in
-                4-bit: first Qwen3-8B, a newer generation than
-                Qwen2.5-7B. A 14B model in 4-bit (about 9 GB) needs part of
-                it on the CPU, which is slower.
-              - The RTX 5090 (§2, a fallback) could run a 32B model.
+           1. **The user grades runs 8 and 9** on the review page (Claude's
+              drafts). Then compare the two prophets' credit and choose the
+              prophet's model.
+              - Predictions due after 2026-10-01 wait for their due day's
+                current events (`fetch_current_events.py`, then
+                `fetch_due_pages.LAST_DAY`).
               - Test days must come after the chosen model's training data.
                 Days still to come are safe for any model.
+           2. **More world events** (a proposal, for the user to decide).
+              The top 100 holds about 12 world-event pages a day, but step 1
+              asks only about a decision dated within the week, which few
+              have (§3 item 27). Three ways, cheapest first:
+              - **What comes next.** A world-event page with nothing dated
+                within the week gets a different question: what will the
+                coming week bring in this story? It's due at the week's end,
+                as in the user's own example, "a major Ukrainian drone
+                attack will take place".
+                - It's graded on the page's change over the week and on all
+                  seven days' current events, since it can come true on any
+                  of them.
+                - A vague prediction earns nothing (specificity 0).
+              - **Longer horizons** for scheduled world events, such as an
+                election a month away. This needs the update scoring
+                decided first (§7).
+              - **The day before's Portal:Current events as evidence**
+                (§7).
+           3. **One forecast per question.** With a week's horizon, the same
+              question comes up every day until it's due. The site shows a
+              forecast once, and again only when its answer changes (§7's
+              proposal: every version stays on the record).
+           4. **A larger model, further:**
+             - A 14B model in 4-bit (about 9 GB) needs part of it on the
+               CPU, which is slower.
+             - The RTX 5090 (§2, a fallback) could run a 32B model.
       2. **The judge and rubric,** checked against hand grades (started
          2026-10-01, §3 item 25).
          - The rubric and the first 68 hand grades are done: the user
@@ -2233,6 +2368,10 @@ old step 2 (move to English Wikipedia) is now step 5.
       on, and flip-flopping doesn't pay.
   - Scores are also reported by lead time (the day before, within a week,
     longer), so easy last-minute forecasts can't hide weak long-range ones.
+  - With a week's horizon, updates are already the norm (§3 item 27). The
+    same question comes up each day until it's due: run 8 asked who wins the
+    most seats in the Duma three days running, and the NRL Grand Final three
+    days running. For now each day's forecast is graded on its own.
 - **Version 3: Portal:Current events as the prophet's evidence?** It lists
   the world's events each day, which the top bursting pages rarely do. The
   prophet could read the day before's page (point-in-time safe). It's

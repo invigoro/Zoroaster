@@ -295,32 +295,38 @@ Wikipedia, which is roughly 100× the test corpus.
 
 - **Version 3: prophecies of real-world events** (in progress,
   `src/prophecy/`). A local model, Qwen2.5-7B-Instruct, reads the day's top
-  pages one at a time, as they stood the night before. Where a page dates
-  something to the day (the code marks every date, such as "October 4 [in
-  4 days]"), it writes predictions such as "I predict that the United States
-  team will win the 2026 Presidents Cup".
+  100 pages one at a time, as they stood the night before. Where a page
+  dates something to the day or the week after (the code marks every date,
+  such as "October 4 [in 4 days]"), it writes predictions such as "I
+  predict that the United States team will win the 2026 Presidents Cup".
+  Each is due on the date the evidence gives.
   - Separate checks drop any prediction that names a specific person (none
     for now), or has an organization doing or suffering harm. They also
     drop predictions that restate their evidence, or copy or repeat
     another. Wars, disasters and crime are fine in general terms.
-  - The next day a judge grades each one against what the cited pages
-    gained and Wikipedia's Portal:Current events.
+  - At most ten a day are published, world events first. Sport, read from
+    the page itself, comes only when it settles a title, at most three a
+    day.
+  - On its due day a judge grades each one against what the cited pages
+    gained by then and that day's Portal:Current events.
   - The judge is being checked against hand grades before anything is
     published.
 
   ```bash
   python scripts/build_v3_days.py           # the development days: the site's own prophecies, 2026-09-18 to 10-01
-  python scripts/prophesy.py --days 2026-09-20 2026-09-25   # predictions and checks; --rescreen re-runs only the checks
+  python scripts/prophesy.py --days 2026-09-20 2026-09-25   # predictions, checks and selection; --model, --horizon
+  python scripts/prophesy.py --rescreen --model Qwen/Qwen2.5-7B-Instruct --out DIR   # re-run only the checks and selection
   python scripts/fetch_current_events.py --days 2026-09-18 2026-10-01
-  python scripts/grading_packs.py           # each prediction's evidence, before and after, for grading
+  python scripts/fetch_due_pages.py --prophecies DIR   # each cited page at the end of a later due day
+  python scripts/grading_packs.py --published          # each prediction's evidence, before and after, for grading
   python scripts/judge_prophecies.py        # the local judge; compares with confirmed hand grades if present
   python scripts/grading_review_docs.py     # documents for the hand-grading review page
   ```
 
   On the development days, the first version mostly named results due days
   or weeks later. Reading one page at a time, with the dates worked out,
-  nearly every prediction is about that day. Details are in `PLAN.md` §3
-  items 24–26 and §6 step 11.
+  nearly every prediction is about something the evidence dates. Details
+  are in `PLAN.md` §3 items 24–27 and §6 step 11.
 
 Run the tests (no network or data files needed) with:
 
