@@ -18,6 +18,9 @@ A prediction is dropped if any of these is true:
   - Words that always mean one person ("incumbent", "coach", "defending
     champion"; PERSON_ROLES) drop a prediction outright. The listing
     question missed "the defending champion will win the darts".
+  - Except where one begins an event's or club's name (NAME_NOUNS):
+    "the 2026 Presidents Cup" was dropped on 2026-09-27, though the
+    United States team won it that day.
 - **The evidence already settles it** (NOVELTY_QUESTION). The model sees only
   the cited pages' evidence, as of the end of the day before, and nothing
   from the day itself. This is a quality filter, so only a clear "yes" drops
@@ -45,6 +48,8 @@ PERSON_ROLES = re.compile(
     r"chair(?:man|woman|person)|founders?|singers?|actors?|actress(?:es)?|rappers?|players?|drivers?|riders?|"
     r"boxers?|golfers?|quarterbacks?|pitchers?|strikers?|goalkeepers?|authors?|directors?|defending champions?|"
     r"reigning champions?)\b", re.IGNORECASE)
+NAME_NOUNS = re.compile(r"(?:['’]s?)?\s+(?:Cups?|Trophy|Championships?|League|Series|Park|Club|Stakes|Plate|Awards?|Prize"
+                        r"|Bowl|Classic|Open|Games|Tour|Medal|Race)\b")
 NON_PERSON_KINDS = ("team", "country", "organization", "organisation", "place", "event", "work", "other")
 WORD = re.compile(r"[a-z0-9]+")
 FILLER = frozenset({"i", "predict", "that", "the", "a", "an", "will", "of", "in", "on", "at", "to", "and", "be"})
@@ -140,8 +145,10 @@ def kind_messages(name: str) -> list[dict]:
 
 
 def person_roles(text: str) -> list[str]:
-    """Words in `text` that always mean one person, without repeats."""
-    return list(dict.fromkeys(m.group(0).lower() for m in PERSON_ROLES.finditer(text)))
+    """Words in `text` that always mean one person, without repeats, except where one begins
+    a name ("Presidents Cup", "Drivers' Championship", "Queens Park Rangers")."""
+    return list(dict.fromkeys(m.group(0).lower() for m in PERSON_ROLES.finditer(text)
+                              if not NAME_NOUNS.match(text, m.end())))
 
 
 NO_ANSWER = "(no answer)"  # an empty listing answer: an unknown person, never asked about

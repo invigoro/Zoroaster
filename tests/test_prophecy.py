@@ -125,6 +125,10 @@ class ChecksTest(unittest.TestCase):
         self.assertEqual(confirmed_people(["Someone", NO_ANSWER], ["athlete", ""]), ["Someone", NO_ANSWER])  # unclear: a person
         self.assertEqual(person_roles("The defending champion beats the Coach and the coach"), ["defending champion", "coach"])
         self.assertEqual(person_roles("Malta will host the contest; the Lions win."), [])
+        # Role words that begin a name, as on 2026-09-27; a possessive role still counts.
+        self.assertEqual(person_roles("The United States will win the 2026 Presidents Cup, Queens Park Rangers their "
+                                      "match, and Mercedes the Drivers' Championship"), [])
+        self.assertEqual(person_roles("The president's party wins the President's Cup"), ["president"])
         dropped = screen([{"text": "I predict that the defending champion will win the darts."}], ["No"], [[]], ["no"],
                          ["yes"], "")
         self.assertEqual(dropped[0]["dropped_because"], ["names or points to a person (defending champion)"])
