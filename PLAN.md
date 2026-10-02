@@ -510,6 +510,35 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
     - **The run:** a one-off scheduled task from 18:47, 44 minutes in all.
       The results are in §5, "Version 2: ranked forecasts", and the
       report now shows the ranked forecasts too.
+23. **The site's design and its second page (2026-10-01)**:
+    - **Design:** dark stone (SVG noise drawn by the browser, no download),
+      light text and red accents. Your two images are used, and the
+      Faravahar sits above the title.
+      - The banner's white is keyed out, so a red glow behind it fills the
+        sky and lights the outlines in the crowd.
+      - `zoroaster_1` is set on black before the explainer.
+      - The Faravahar is from Wikimedia Commons (CC BY-SA 3.0, Ploxhoi and
+        Kevin McCormick) and is credited in the footers. It's also the
+        favicon.
+      - `prepare_web_images.py` makes the site's images from the originals
+        in `assets/img/`: 2.4 MB of PNG became 100 KB. The whole page is
+        about 150 KB.
+    - **Two bugs found on the way:**
+      - `build_site.py` couldn't copy a folder, so adding `web/img` would
+        have broken the daily build.
+      - The explainer said half a million pages are ranked; it's about 1.5
+        million.
+    - **"How the prophet works"** (`web/how.html`) explains the burst
+      prophecy and the edit forecasts, shows their scores, and lists every
+      version 2 test forecast next to what happened.
+      - Its data comes from `v2_report.py --site`, which follows the
+        publishing guardrails. Made-up and sensitive section names are
+        withheld (`src/forecast/guardrails.py`), and there are no quotes
+        for living people.
+      - It's 1.5 MB, served gzipped at 260 KB.
+      - The daily run refreshes it where version 2's ranked forecasts
+        exist.
+      - The main page ends with a link to it.
     - **Publishing failed on 2026-10-02.** The prophecy was made and
       scored, but the push was rejected: setting the custom domain had
       committed a CNAME file to `gh-pages` on GitHub.
@@ -1644,6 +1673,11 @@ old step 2 (move to English Wikipedia) is now step 5.
        - Setting the domain committed a CNAME file to `gh-pages` on
          GitHub, so the 2026-10-02 publish was rejected. `publish_site.py`
          now rebases onto GitHub's branch first (§3 item 22).
+       - **The site's shape** (decided 2026-10-01): the main page lists
+         the prophecies and links to "How the prophet works"
+         (`how.html`). That page explains the method and shows the
+         forecasts' track record (§3 item 23). Version 3's prophecies and
+         their grades will join it there.
      - **Still to do:**
        - Choose a license (none yet, so the code is all rights reserved).
        - For GitHub Actions: a compact rolling state, since recent changes
