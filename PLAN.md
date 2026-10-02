@@ -510,10 +510,16 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
     - **The run:** a one-off scheduled task from 18:47, 44 minutes in all.
       The results are in §5, "Version 2: ranked forecasts", and the
       report now shows the ranked forecasts too.
+    - **Publishing failed on 2026-10-02.** The prophecy was made and
+      scored, but the push was rejected: setting the custom domain had
+      committed a CNAME file to `gh-pages` on GitHub.
+      - `publish_site.py` now rebases onto GitHub's branch before building.
+      - It also pushes whenever the branch is ahead, so the stranded commit
+        went out on a rerun at 18:50.
 23. **The site's design and its second page (2026-10-01)**:
     - **Design:** dark stone (SVG noise drawn by the browser, no download),
-      light text and red accents. Your two images are used, and the
-      Faravahar sits above the title.
+      light text and red accents. The two images supplied for the site are
+      used, and the Faravahar sits above the title.
       - The banner's white is keyed out, so a red glow behind it fills the
         sky and lights the outlines in the crowd.
       - `zoroaster_1` is set on black before the explainer.
@@ -539,12 +545,61 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
       - The daily run refreshes it where version 2's ranked forecasts
         exist.
       - The main page ends with a link to it.
-    - **Publishing failed on 2026-10-02.** The prophecy was made and
-      scored, but the push was rejected: setting the custom domain had
-      committed a CNAME file to `gh-pages` on GitHub.
-      - `publish_site.py` now rebases onto GitHub's branch before building.
-      - It also pushes whenever the branch is ahead, so the stranded commit
-        went out on a rerun at 18:50.
+24. **Version 3, phase 1 begins (2026-10-01)**:
+    - **The development set is the site's own prophecies**
+      (`build_v3_days.py`): the top 30 for each day from 2026-09-18 to
+      2026-10-01, which is 420 page-days and 313 pages. These are exactly
+      what the prophet will read each night.
+      - **Nothing about D picks the pages:** 84% were edited on D, 16% not.
+        Version 2's examples were chosen among pages edited on D, which
+        would tell the prophet that something happened.
+      - **Not version 2's validation days:**
+        - The panel keeps every edited page-day but only a sample of the
+          unedited ones, so its "top 20" would still lean toward pages
+          edited on D.
+        - It's also a 20% page sample, so its top 20 is about the whole
+          wiki's top 100.
+      - **The fetch:** `fetch_v2_examples.py --targets --out` took 63
+        seconds. Version 2's forecasts (`forecast_v2.py`) took 7 minutes on
+        the GPU.
+    - **The model is Qwen2.5-7B-Instruct** (Apache 2.0), 4-bit, about 6 GB
+      on the GPU. Its training data predates both the development days
+      and the test days, so it can't remember what happened. Newer models
+      trained into 2025 might.
+    - **Milestone 1 leaves out every biography,** living or dead (living
+      people, births or deaths categories). In the first run, recently
+      dead people's pages, bursting for their deaths, drew "will be
+      remembered" predictions.
+    - **The person check asks two questions,** and either can drop a
+      prediction:
+      - yes or no;
+      - list the people, or "none".
+      On 12 known sentences the list was right 12 times and yes-or-no 10.
+      Yes-or-no alone kept "…with Luke Hodge carrying the premiership cup".
+    - **First run, 3 days** (`prophesy.py`; 3–5 minutes a day for about
+      4,500 prompt tokens and 8 predictions):
+      - An extra brace broke one day's JSON, so parsing now reads each
+        object separately.
+      - The model broke rules: predictions without "I predict that", and
+        predictions mixing unrelated pages.
+      - **Many predictions restated the evidence** (a venue, a release's
+        platforms, a cyclone already formed). Novelty is what the
+        instructions need most work on, on development days only.
+    - **Second run, after the fixes** (the same 3 days, 4–4.5 minutes
+      each):
+      - All 24 predictions parsed.
+      - 3 were dropped, each correctly, for naming a person: South
+        Ossetia's president, a footballer, and the Junior Eurovision hosts.
+      - Of the 21 kept, a few are specific, checkable outcomes ("Georgia
+        will beat Arkansas", "the White Sox will reach the ALCS").
+      - About half restate the evidence (dates, venues, matchups already
+        set) or are trivial ("the Asian Games will award medals in
+        badminton").
+      - One is impossible: three gold medals from a single tournament.
+      - So the next round of instruction work is about novelty and
+        sanity, on development days only.
+    - **Hand grades:** Claude drafts them, and the user confirms or adjusts
+      them (decided 2026-10-01).
 
 ## 4. Data state — important for resuming on a new machine
 
@@ -1847,7 +1902,8 @@ old step 2 (move to English Wikipedia) is now step 5.
       - **Point-in-time:** the prophet sees only data up to the end of
         D−1, and the judge only what D brought.
       - **The judge is checked against hand grades,** e.g. on 100
-        predictions, before its scores are trusted.
+        predictions, before its scores are trusted. Claude drafts the
+        grades, and the user confirms or adjusts them.
       - **Baselines are graded the same way:**
         - "yesterday's stories continue";
         - the same model writing without the edit signals.
@@ -1872,10 +1928,16 @@ old step 2 (move to English Wikipedia) is now step 5.
            sworn in, a team playing in the final, and the like. The
            never-predicted list still applies.
     - **Phases:**
-      1. **A prophet prototype** on past validation days, read by hand.
+      1. **A prophet prototype** on development days, read by hand
+         (started 2026-10-01, §3 item 24). The development days are the
+         site's own prophecies, 2026-09-18 to 2026-10-01.
       2. **The judge and rubric,** checked against hand grades.
       3. **A backtest** of prophet and judge over the test days, against
-         the baselines. Prompts are tuned on validation days only.
+         the baselines. Prompts are tuned on development days only.
+         - **Open: which test days.** Version 2's 14 test days are
+           unbiased (every sampled page), but they come from the 20% page
+           sample, so their top 20 is about the whole wiki's top 100. The
+           alternative is days still to come, as the daily job runs.
       4. **Daily:** a "prophesy" step in `run_daily.py` after the
          predictions, and a "judge" step for the day before. The site
          shows both, labeled. Phases 1–4 leave living people out (the
