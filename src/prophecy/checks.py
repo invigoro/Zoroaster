@@ -28,6 +28,9 @@ A prediction is dropped if any of these is true:
 - **It copies an example sentence from the instructions it was made with,
   or repeats an earlier prediction that day.** Both are word overlap, with
   no model involved.
+  - A repeat is dropped only if what it repeats was kept. On 2026-09-18 the
+    first of two identical predictions cited the wrong page; the second
+    cited the right one and would otherwise have been dropped as the repeat.
 """
 
 from __future__ import annotations
@@ -99,9 +102,9 @@ def copies_an_example(text: str, examples: list[str]) -> bool:
     return any(overlap(text, e) >= COPY_OVERLAP for e in examples)
 
 
-def repeats(texts: list[str]) -> list[bool]:
-    """For each prediction, whether an earlier one that day says nearly the same."""
-    return [any(overlap(t, texts[j]) >= REPEAT_OVERLAP for j in range(i)) for i, t in enumerate(texts)]
+def repeats(text: str, earlier: list[str]) -> bool:
+    """Whether `text` says nearly the same as one of `earlier`."""
+    return any(overlap(text, e) >= REPEAT_OVERLAP for e in earlier)
 
 
 def grounded_messages(text: str, cited_blocks: list[str]) -> list[dict]:
@@ -165,17 +168,15 @@ def already_known(answer: str) -> bool:
 def screen(predictions: list[dict], person_answers: list[str], people: list[list[str]], novelty_answers: list[str],
            grounded_answers: list[str], instructions: str) -> list[dict]:
     """Each prediction with `kept`, and the reasons it was dropped. `people`: each
-    prediction's listed names that were confirmed as people (`confirmed_people`)."""
+    prediction's listed names that were confirmed as people (`confirmed_people`).
+    A prediction that passes every other check is dropped if it repeats one kept earlier."""
     examples = instruction_examples(instructions)
-    repeated = repeats([p["text"] for p in predictions])
-    out = []
-    for prediction, person, named, novelty, grounded, again in zip(
-            predictions, person_answers, people, novelty_answers, grounded_answers, repeated, strict=True):
+    out, kept = [], []
+    for prediction, person, named, novelty, grounded in zip(
+            predictions, person_answers, people, novelty_answers, grounded_answers, strict=True):
         reasons = []
         if copies_an_example(prediction["text"], examples):
             reasons.append("copies an example from the instructions")
-        if again:
-            reasons.append("repeats an earlier prediction")
         words = sensitive_words(prediction["text"])
         if words:
             reasons.append(f"sensitive topic ({', '.join(words)})")
@@ -188,6 +189,10 @@ def screen(predictions: list[dict], person_answers: list[str], people: list[list
             reasons.append("the evidence already settles it")
         if not_grounded(grounded):
             reasons.append("not about its cited evidence")
+        if not reasons and repeats(prediction["text"], kept):
+            reasons.append("repeats an earlier prediction")
+        if not reasons:
+            kept.append(prediction["text"])
         out.append(prediction | {"kept": not reasons, "dropped_because": reasons, "person_check": person.strip(),
                                  "people_named": named, "novelty_check": novelty.strip(),
                                  "grounded_check": grounded.strip()})

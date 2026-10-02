@@ -101,6 +101,9 @@ class ChecksTest(unittest.TestCase):
         self.assertEqual([p["dropped_because"] for p in out],
                          [["copies an example from the instructions"], [], ["repeats an earlier prediction"]])
         self.assertTrue(all(p["kept"] for p in screen(predictions[1:2], ["no"], [[]], ["no"], ["yes"], instructions)))
+        # As on 2026-09-18: the first copy cites the wrong page, so the second one is the one kept.
+        twice = screen(predictions[1:], ["no"] * 2, [[]] * 2, ["no"] * 2, ["No", "yes"], instructions)
+        self.assertEqual([p["dropped_because"] for p in twice], [["not about its cited evidence"], []])
 
     def test_the_novelty_check_sees_only_the_cited_evidence(self):
         chat = novelty_messages("I predict that it is held in Okazaki.", ["[3] Volleyball ... in Okazaki"])
