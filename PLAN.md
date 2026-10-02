@@ -122,6 +122,14 @@ Two-stage approach:
     final). Never health issues, death, crime or personal life, a list that
     may grow.
   - The user is open to predictions due later than the next day (§7).
+- **What version 3 predicts (decided 2026-10-02, in the user's words):**
+  "reduce the number of total predictions per day, maybe to 10 or fewer,
+  and prioritize non-sports ones, only taking the most interesting sports
+  predictions. I just don't find sports forecasting to be interesting, and
+  there are plenty of other sites (mostly gambling) that do the exact same
+  thing. I'm much more interested in world events."
+  - Each prediction names its subject in full ("the film Heart of the
+    Beast", not "the film"), from the user's review.
 
 Full original plan detail (data sources, storage design rationale, model
 architecture options, evaluation plan, milestones) — if you want the fuller
@@ -2111,11 +2119,43 @@ old step 2 (move to English Wikipedia) is now step 5.
          - **Done (§3 item 26):** dates worked out in code, the page's own
            lines for the day, one page at a time, and a check for contests
            one person wins.
-         - **Next:**
-           - the user confirms or adjusts run 7's drafts on the review page;
-           - predictions due later than the day, scored as in §7;
-           - a stronger model, the same days and checks. The RTX 5090 (§2)
-             could run a much larger one.
+         - **Done (2026-10-02):** the user confirmed run 7's 26 grades.
+         - **Next, in order:**
+           1. **At most 10 predictions a day, world events first** (§2,
+              2026-10-02):
+              - Each question is classed by topic: sport, or a kind of world
+                event (politics and elections, conflict, disaster and
+                weather, economy, science and technology, health, culture).
+              - World-event questions come first, the prophecy's best
+                ranked first.
+              - Sports questions are kept only if they settle a title (a
+                final, a gold medal match, a series or championship
+                decider), at most 3 a day, after the world events.
+              - For enough world events to choose from, the prophet reads
+                more of the prophecy: the top 100 pages, not the top 30.
+                Reading one page at a time makes that cheap, since only
+                pages with something due are asked. Longer horizons (2)
+                add elections, votes, launches and decisions due in the
+                coming days.
+              - Predictions name their subject in full.
+           2. **Predictions due later than the day** (scored as in §7):
+              - Pages whose evidence dates something within the next 7 days
+                are asked too. Each prediction states its due date, which
+                the code checks against the evidence's date marks.
+              - It's graded on its due date: the pack holds the cited page
+                at the end of that day (a new fetch), and that day's
+                Portal:Current events.
+              - On the development days, due dates run up to 2026-10-01, the
+                last day with fetched current events.
+           3. **A larger model**, on the same days and checks, graded like
+              run 7:
+              - The RTX 3070 (8 GB) fits about 9 billion parameters in
+                4-bit: first Qwen3-8B, a newer generation than
+                Qwen2.5-7B. A 14B model in 4-bit (about 9 GB) needs part of
+                it on the CPU, which is slower.
+              - The RTX 5090 (§2, a fallback) could run a 32B model.
+              - Test days must come after the chosen model's training data.
+                Days still to come are safe for any model.
       2. **The judge and rubric,** checked against hand grades (started
          2026-10-01, §3 item 25).
          - The rubric and the first 68 hand grades are done: the user
@@ -2193,3 +2233,18 @@ old step 2 (move to English Wikipedia) is now step 5.
       on, and flip-flopping doesn't pay.
   - Scores are also reported by lead time (the day before, within a week,
     longer), so easy last-minute forecasts can't hide weak long-range ones.
+- **Version 3: Portal:Current events as the prophet's evidence?** It lists
+  the world's events each day, which the top bursting pages rarely do. The
+  prophet could read the day before's page (point-in-time safe). It's
+  outside the mainspace scope (§2) and is used only for grading so far, so
+  this needs the user's decision.
+- **Version 3: learning from the grades** (asked by the user, 2026-10-02).
+  Nothing trains on the grades yet: the prophet and the judge are a fixed
+  model with prompts, and the grades only measure them.
+  - Training on them is possible later (preference pairs of good and bad
+    predictions, or the grade as a reward), but only once the judge is
+    trusted, since its grades would be the reward.
+  - Past days from the history dumps would give far more examples than ten
+    a day of live predictions.
+  - A frozen prophet keeps the daily scores comparable, so any retraining
+    should be periodic and checked on held-out days.
