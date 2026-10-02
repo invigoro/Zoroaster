@@ -700,6 +700,58 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
       grade with its reasoning. The user confirms or adjusts each grade, and
       the page keeps the results in its database, from which they're read
       back into `grades/confirmed.json`.
+    - **The judge on all 68** agrees with the drafts on outcome 46% of the
+      time and on grounded 32%. It calls 64 grounded and one already known,
+      and gives three times the credit (0.104 against 0.035).
+26. **Version 3: the prophet reads one page at a time (2026-10-01 to 02)**:
+    - **Why.** Run 5, the single call with the example-free instructions,
+      kept 13 of 83: no better than the re-screened old run. 41 of the 47
+      misses named a result due after the day, and the user found the
+      predictions sport-heavy (83% cite a sports page, which is 45% of the
+      non-biography pages).
+    - **Dates are worked out in code** (`evidence.mark_dates`): "played on
+      October 4 [in 4 days]", "[under way, ends today]".
+    - **The page's own lines for the day** (`evidence.dated_lines`): schedule
+      rows, fixtures, an event's last day, from the page as it stood the day
+      before. They raise the page-days dated to the day from 13 to 52 of
+      274.
+    - **Two steps per page** (`prophet.py`), tried on 16 page-days whose
+      answers were known:
+      - Asking every page "is anything decided on this day?" got "none"
+        for all of them, finals included.
+      - Saying first what happens that day, then the question, found the
+        real ones but also wrote questions for finals marked "[tomorrow]".
+      - So only pages dated to the day are asked: 14 of 16 right. Questions
+        about a contest one person wins are dropped, by the page's title or
+        a classification question. The question alone called a Grand Prix
+        a contest between teams.
+    - **The user's guardrails** (§2), tried on 34 known sentences, all
+      right:
+      - Specific people are dropped; general descriptions are kept.
+      - For each organization named, the checks ask whether it does harm,
+        whether it suffers harm or faces an accusation, and what kind it
+        is. A named army or armed group always counts.
+      - A general topic question ("is it about a war, a crime…?") had said
+        "no" to robbery and to "found guilty", and the never-published list
+        caught "team time trial".
+    - **The grounding check is gone.** It dropped 4 of 9 on-topic
+      predictions in the first per-page run, and each prediction now comes
+      from one page.
+    - **Run 6** (before the page's dated lines): 13 pages dated to the day,
+      9 predictions, 3 kept. Every question was about that day, but the
+      model wrote "an important team" (from the instructions' "an important
+      politician") and gave three games the same 5–3.
+    - **Run 7** (all of the above): 52 pages dated to the day, 40 questions
+      (12 dropped as one person's contest), 28 predictions, 25 kept.
+      - Most are about something decided that day: the badminton team
+        events' rounds, 3x3 basketball games, Nations League matches, Wild
+        Card Series games, the Presidents Cup, the Russian election count.
+      - Where the earlier packs show the result, about 3.5 of 6 came true
+        (not yet graded properly).
+      - The 7B model's own errors remain. One prediction is impossible
+        ("India and Japan win their matches" on a day they play each
+        other). It still invents scores ("3–2 over China"). A 2025 timeline
+        line without a year dated the BC election to the day.
 
 ## 4. Data state — important for resuming on a new machine
 
@@ -2031,13 +2083,14 @@ old step 2 (move to English Wikipedia) is now step 5.
       1. **A prophet prototype** on development days, read by hand
          (started 2026-10-01, §3 items 24–25). The development days are the
          site's own prophecies, 2026-09-18 to 2026-10-01.
-         - **Next:** a timing check. Ask whether the evidence says the
-           prediction's result comes on the day or later, and drop "later".
-           41 of the 47 misses drafted so far were results due after the
-           day.
-         - **Next:** a check for team or country wins in individual events,
-           which point to a person. Try it on known sentences first, as the
-           person check was.
+         - **Done (§3 item 26):** dates worked out in code, the page's own
+           lines for the day, one page at a time, and a check for contests
+           one person wins.
+         - **Next, if the user agrees:**
+           - grade run 7 by hand, against the earlier runs;
+           - predictions due later than the day, scored as in §7;
+           - a stronger model, the same days and checks. The RTX 5090 (§2)
+             could run a much larger one.
       2. **The judge and rubric,** checked against hand grades (started
          2026-10-01, §3 item 25).
          - The rubric and 68 draft grades are done. The user is confirming

@@ -295,11 +295,14 @@ Wikipedia, which is roughly 100× the test corpus.
 
 - **Version 3: prophecies of real-world events** (in progress,
   `src/prophecy/`). A local model, Qwen2.5-7B-Instruct, reads the day's top
-  pages as they stood the night before and writes predictions such as "I
-  predict that the United States team will win the 2026 Presidents Cup".
-  - Separate checks drop any prediction that names a person (none for
-    now), touches a sensitive topic, restates its evidence, or isn't about
-    it.
+  pages one at a time, as they stood the night before. Where a page dates
+  something to the day (the code marks every date, such as "October 4 [in
+  4 days]"), it writes predictions such as "I predict that the United States
+  team will win the 2026 Presidents Cup".
+  - Separate checks drop any prediction that names a specific person (none
+    for now), or has an organization doing or suffering harm. They also
+    drop predictions that restate their evidence, or copy or repeat
+    another. Wars, disasters and crime are fine in general terms.
   - The next day a judge grades each one against what the cited pages
     gained and Wikipedia's Portal:Current events.
   - The judge is being checked against hand grades before anything is
@@ -314,9 +317,10 @@ Wikipedia, which is roughly 100× the test corpus.
   python scripts/grading_review_docs.py     # documents for the hand-grading review page
   ```
 
-  First results on the development days: few predictions come true on the
-  day. Most name a result due days or weeks later. Details are in `PLAN.md`
-  §3 items 24–25 and §6 step 11.
+  On the development days, the first version mostly named results due days
+  or weeks later. Reading one page at a time, with the dates worked out,
+  nearly every prediction is about that day. Details are in `PLAN.md` §3
+  items 24–26 and §6 step 11.
 
 Run the tests (no network or data files needed) with:
 
