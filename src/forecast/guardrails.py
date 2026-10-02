@@ -34,3 +34,8 @@ _SENSITIVE = re.compile(r"\b(?:" + "|".join(re.escape(s) for s in SENSITIVE_STEM
 def is_sensitive(text: str) -> bool:
     """Whether `text`, e.g. a section name, touches a topic on the list."""
     return bool(_SENSITIVE.search(text))
+
+
+def sensitive_words(text: str) -> list[str]:
+    """The words in `text` that match the list, in order, without repeats: why it was withheld."""
+    return list(dict.fromkeys(m.group(0).lower() for m in _SENSITIVE.finditer(text)))
