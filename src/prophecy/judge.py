@@ -98,7 +98,8 @@ def day_change_text(row: dict, days: int = 1) -> str:
     changed = [_cut(clean_line(b), LINE_CHARS) for b in row["blocks"]]
     changed = [c for c in changed if len(c) > 3][:LINES_SHOWN * min(days, MAX_DAYS_SHOWN)]
     if changed:
-        lines.append("Changed lines, as they read at the end of the day: " + " | ".join(changed))
+        when = "the day" if days == 1 else "the day it was due"
+        lines.append(f"Changed lines, as they read at the end of {when}: " + " | ".join(changed))
     return "\n".join(lines)
 
 
