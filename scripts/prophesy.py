@@ -38,7 +38,7 @@ import argparse
 import json
 import sys
 import time
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -49,13 +49,18 @@ import pyarrow.parquet as pq
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 from scripts.build_v3_days import V3_DIR
-from src.prophecy.checks import (NO_ANSWER, confirmed_orgs, confirmed_people, contest_messages, harm_messages,
-                                 kind_messages, listed_names, novelty_messages, one_persons_contest, orgs_messages,
-                                 people_messages, person_messages, screen)
+from scripts.fetch_current_events import KNOWN_DIR
+from src.prophecy.checks import (NO_ANSWER, apply_identifies, confirmed_orgs, confirmed_people, contest_messages,
+                                 general_mention, generalize_messages, guarded_only, harm_messages,
+                                 identifies_messages, kind_messages, listed_names, merge_rewrites, novelty_messages,
+                                 one_persons_contest, orgs_messages, people_messages, person_messages, screen)
 from src.prophecy.evidence import TOP, eligible, evidence_blocks
-from src.prophecy.prophet import (HORIZON, PREDICTION, QUESTION, marked_offsets, marked_within, parse_prediction,
-                                  parse_question, prediction_messages, question_messages)
+from src.prophecy.prophet import (HORIZON, PREDICTION, QUESTION, STORY_PREDICTION, STORY_QUESTION, marked_offsets,
+                                  marked_within, parse_prediction, parse_question, parse_rewrite, prediction_messages,
+                                  question_messages, story_prediction_messages, story_question_messages)
 from src.prophecy.selection import is_sport_page, select, title_messages, topic_messages
+from src.prophecy.stories import stories as day_stories
+from src.prophecy.stories import story_block
 
 INSTRUCT_MODEL = "Qwen/Qwen2.5-7B-Instruct"
 EXAMPLES_DIR = V3_DIR / "examples"
@@ -72,7 +77,11 @@ DAY_COLUMNS = {"prose", "sections", "section_chars", "kinds", "inserted_chars", 
 CHECK_FIELDS = ("kept", "dropped_because", "person_check", "people_named", "orgs_named", "harm_check", "novelty_check",
                 "grounded_check", "people_check", "orgs_check",
                 "topic_check", "sensitive",  # from a version of the checks that ran only on 2026-10-01
-                "topic", "settles_a_title", "published", "unpublished_because")  # the selection (`publish`)
+                "topic", "settles_a_title", "published", "unpublished_because",  # the selection (`publish`)
+                "rewritten_from", "dropped_before_rewrite", "rewrite", "rewrite_dropped_because",  # `rewrite`
+                "identifies_check")
+# Both steps' instructions, for the check against copying their example sentences.
+INSTRUCTIONS = PREDICTION + "\n\n" + STORY_PREDICTION
 
 
 def load_instruct(name: str):
@@ -122,8 +131,9 @@ def check(model, tokenizer, predictions: list[dict], by_title: dict[str, str], i
     person = ask([person_messages(t) for t in texts], YES_NO_TOKENS)
     people = ask([people_messages(t) for t in texts], LIST_TOKENS)
     orgs_answers = ask([orgs_messages(t) for t in texts], LIST_TOKENS)
-    person_names = [listed_names(a) for a in people]
-    org_names = [listed_names(a) for a in orgs_answers]
+    # A name the sentence uses only after "a" or "an" ("an armed group") is a general description, not one.
+    person_names = [[n for n in listed_names(a) if not general_mention(n, t)] for a, t in zip(people, texts)]
+    org_names = [[n for n in listed_names(a) if not general_mention(n, t)] for a, t in zip(orgs_answers, texts)]
     to_ask = list(dict.fromkeys(n for names in person_names + org_names for n in names if n != NO_ANSWER))
     kinds = dict(zip(to_ask, ask([kind_messages(n) for n in to_ask], YES_NO_TOKENS)))
     confirmed = [confirmed_people(names, [kinds.get(n, "") for n in names]) for names in person_names]
@@ -136,17 +146,49 @@ def check(model, tokenizer, predictions: list[dict], by_title: dict[str, str], i
     return [s | {"people_check": p.strip(), "orgs_check": o.strip()} for s, p, o in zip(screened, people, orgs_answers)]
 
 
-def publish(model, tokenizer, predictions: list[dict], ranks: dict[str, int], sport_pages: set[str]) -> list[dict]:
+def rewrite(model, tokenizer, screened: list[dict], by_title: dict[str, str], instructions: str) -> list[dict]:
+    """Each prediction the guardrails alone dropped, rewritten in general terms and checked again
+    (`checks.merge_rewrites`)."""
+    guarded = [i for i, p in enumerate(screened) if guarded_only(p)]
+    if not guarded:
+        return screened
+    answers = chat_in_batches(model, tokenizer, [generalize_messages(screened[i]["text"]) for i in guarded],
+                              PREDICTION_TOKENS)
+    drafts = [{k: v for k, v in screened[i].items() if k not in CHECK_FIELDS} | {"text": parse_rewrite(a)}
+              for i, a in zip(guarded, answers)]
+    rechecked = check(model, tokenizer, drafts, by_title, instructions)
+    # Vague words aren't enough: does the rewrite still point to the one its original was about?
+    asked = [i for i, r in enumerate(rechecked) if r["kept"]]
+    said = dict(zip(asked, chat_in_batches(model, tokenizer, [
+        identifies_messages(rechecked[i]["text"], screened[guarded[i]]["text"]) for i in asked], YES_NO_TOKENS)))
+    rechecked = apply_identifies(rechecked, [said.get(i, "") for i in range(len(rechecked))])
+    return merge_rewrites(screened, dict(zip(guarded, rechecked)))
+
+
+def publish(model, tokenizer, predictions: list[dict], ranks: dict[str, int], sport_pages: set[str],
+            story_topics: dict[str, str] | None = None) -> list[dict]:
     """The day's selection (`src/prophecy/selection.py`): each kept prediction's topic, whether a sports one
-    settles a title, and which are published."""
-    kept = [i for i, p in enumerate(predictions) if p["kept"]]
+    settles a title, and which are published. A story's topic is its category's (`story_topics`), so the
+    model isn't asked."""
+    story_topics = story_topics or {}
+    kept = [i for i, p in enumerate(predictions) if p["kept"] and (p["evidence"] or [""])[0] not in story_topics]
     asked = [(p["evidence"][0] if p["evidence"] else "", p["question"]) for p in (predictions[i] for i in kept)]
     topics, titles = [""] * len(predictions), [""] * len(predictions)
     for i, a in zip(kept, chat_in_batches(model, tokenizer, [topic_messages(*q) for q in asked], YES_NO_TOKENS)):
         topics[i] = a
     for i, a in zip(kept, chat_in_batches(model, tokenizer, [title_messages(*q) for q in asked], YES_NO_TOKENS)):
         titles[i] = a
+    for i, p in enumerate(predictions):
+        if p["evidence"] and p["evidence"][0] in story_topics:
+            topics[i] = story_topics[p["evidence"][0]]
     return select(predictions, ranks, topics, titles, sport_pages)
+
+
+def known_events(day: date) -> dict | None:
+    """The week of Portal:Current events before `day`, as known at the end of the day before
+    (`fetch_current_events.py --known`), or None if it hasn't been fetched."""
+    path = KNOWN_DIR / f"{day.isoformat()}.json"
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
 
 
 def sport_titles(rows: list[dict]) -> set[str]:
@@ -175,27 +217,54 @@ def prophesy(model, tokenizer, day: date, rows: list[dict], forecasts: dict, mod
     answers = ask([prediction_messages(day, blocks[i], *questions[i]) for i in todo], PREDICTION_TOKENS)
     parsed = ((parse_prediction(a, titles[i], questions[i][0]), questions[i][1]) for a, i in zip(answers, todo))
     predictions = [p | {"due": due.isoformat()} for p, due in parsed if p]
-    predictions = check(model, tokenizer, predictions, dict(zip(titles, blocks)), PREDICTION)
+
+    # The stories of the week's Portal:Current events, as known by the end of the day before (`stories.py`).
+    known = known_events(day)
+    found = day_stories(known, day) if known else []
+    story_blocks = [story_block(n, s, day) for n, s in enumerate(found, start=1)]
+    story_asked = ask([story_question_messages(day, b, horizon) for b in story_blocks], QUESTION_TOKENS)
+    week_end = day + timedelta(days=horizon)
+    story_questions = {i: q for i, q in ((i, parse_question(a, day, horizon, marked_offsets(story_blocks[i], horizon),
+                                                            default_due=week_end))
+                                         for i, a in enumerate(story_asked)) if q}
+    story_answers = ask([story_prediction_messages(day, story_blocks[i], *story_questions[i]) for i in story_questions],
+                        PREDICTION_TOKENS)
+    parsed = ((parse_prediction(a, found[i]["title"], story_questions[i][0]), story_questions[i][1])
+              for a, i in zip(story_answers, story_questions))
+    predictions += [p | {"due": due.isoformat(), "source": "story"} for p, due in parsed if p]
+
+    by_title = dict(zip(titles, blocks)) | {s["title"]: b for s, b in zip(found, story_blocks)}
+    predictions = rewrite(model, tokenizer, check(model, tokenizer, predictions, by_title, INSTRUCTIONS), by_title,
+                          INSTRUCTIONS)
     sport = sport_titles(pages)
-    predictions = publish(model, tokenizer, predictions, {t: r["rank"] for r, t in zip(pages, titles)}, sport)
+    predictions = publish(model, tokenizer, predictions, {t: r["rank"] for r, t in zip(pages, titles)}, sport,
+                          {s["title"]: s["topic"] for s in found})
     page_notes = [{"rank": r["rank"], "title": t, "sport": t in sport, "dated": i in asked, "asked": asked.get(i, "").strip(),
                    "question": questions[i][0] if i in questions else None,
                    "due": questions[i][1].isoformat() if i in questions else None,
                    "contest": contests.get(i, "").strip(), "one_persons_contest": i in questions and i not in todo}
                   for i, (r, t) in enumerate(zip(pages, titles))]
+    story_notes = [{"title": s["title"], "story": s["story"], "category": s["category"], "topic": s["topic"],
+                    "recent": s["recent"], "week": s["week"], "asked": a.strip(),
+                    "question": story_questions[i][0] if i in story_questions else None,
+                    "due": story_questions[i][1].isoformat() if i in story_questions else None}
+                   for i, (s, a) in enumerate(zip(found, story_asked))]
     return {"date": day.isoformat(), "model": model_name, "checks_model": model_name, "milestone": 1, "horizon": horizon,
-            "top": top,
-            "seconds": round(time.monotonic() - start), "instructions": PREDICTION, "question_instructions": QUESTION,
-            "pages": page_notes, "evidence": "\n\n".join(blocks), "answers": answers, "predictions": predictions}
+            "top": top, "seconds": round(time.monotonic() - start), "instructions": PREDICTION,
+            "question_instructions": QUESTION, "story_instructions": STORY_PREDICTION,
+            "story_question_instructions": STORY_QUESTION, "pages": page_notes, "evidence": "\n\n".join(blocks),
+            "stories": story_notes, "story_blocks": story_blocks, "events_known_at": known and known["known_at"],
+            "answers": answers, "story_answers": story_answers, "predictions": predictions}
 
 
 def report(day: date, record: dict) -> None:
-    screened, pages = record["predictions"], record["pages"]
+    screened, pages, found = record["predictions"], record["pages"], record.get("stories", [])
     print(f"\n=== {day}: {len(pages)} pages, {sum(p.get('dated', p.get('dated_today', False)) for p in pages)} with "
           f"something due, {sum(bool(p.get('question')) for p in pages)} questions "
-          f"({sum(p.get('one_persons_contest', False) for p in pages)} one person's contest), {len(screened)} "
-          f"predictions, {sum(p['kept'] for p in screened)} kept, {sum(p.get('published', False) for p in screened)} "
-          f"published ({record['seconds']:,}s)", flush=True)
+          f"({sum(p.get('one_persons_contest', False) for p in pages)} one person's contest); {len(found)} stories, "
+          f"{sum(bool(s.get('question')) for s in found)} questions; {len(screened)} predictions, "
+          f"{sum(p['kept'] for p in screened)} kept ({sum(bool(p.get('rewritten_from')) for p in screened)} rewritten), "
+          f"{sum(p.get('published', False) for p in screened)} published ({record['seconds']:,}s)", flush=True)
     for p in screened:
         mark = "PUBLISH" if p.get("published") else "KEPT   " if p["kept"] else "DROPPED"
         if not p["kept"]:
@@ -204,6 +273,11 @@ def report(day: date, record: dict) -> None:
             why = f"  [{p.get('topic')}, due {p.get('due', day)}{'; ' + p['unpublished_because'] if p.get('unpublished_because') else ''}]"
         print(f"  {mark} ({p['confidence'] or '?'}) {p['text']}  <- {'; '.join(p['evidence']) or 'no evidence cited'}{why}\n"
               f"          question: {p['question'] or '(none given)'}", flush=True)
+        if p.get("rewritten_from"):
+            print(f"          rewritten from: {p['rewritten_from']}", flush=True)
+        elif p.get("rewrite"):
+            print(f"          its rewrite, dropped too: {p['rewrite']} [{'; '.join(p['rewrite_dropped_because'])}]",
+                  flush=True)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -227,13 +301,21 @@ def main(argv: list[str] | None = None) -> int:
         for day in args.days:
             path = args.out / f"{day.isoformat()}.json"
             record = json.loads(path.read_text(encoding="utf-8"))
-            by_title = dict(zip([p["title"] for p in record["pages"]], record["evidence"].split("\n\n")))
-            bare = [{k: v for k, v in p.items() if k not in CHECK_FIELDS} for p in record["predictions"]]
+            stories_seen = record.get("stories", [])
+            by_title = (dict(zip([p["title"] for p in record["pages"]], record["evidence"].split("\n\n")))
+                        | dict(zip([s["title"] for s in stories_seen], record.get("story_blocks", []))))
+            # A rewritten prediction is checked again from its original, and may be rewritten again.
+            bare = [{k: v for k, v in p.items() if k not in CHECK_FIELDS} | ({"text": p["rewritten_from"]}
+                                                                              if p.get("rewritten_from") else {})
+                    for p in record["predictions"]]
             ranks = {p["title"]: p["rank"] for p in record["pages"]}
             sport = sport_titles([r for r in texts if r["date"] == day])
             record["pages"] = [p | {"sport": p["title"] in sport} for p in record["pages"]]
-            screened = check(model, tokenizer, bare, by_title, record["instructions"])
-            record["predictions"] = publish(model, tokenizer, screened, ranks, sport)
+            instructions = record["instructions"] + "\n\n" + record.get("story_instructions", "")
+            screened = rewrite(model, tokenizer, check(model, tokenizer, bare, by_title, instructions), by_title,
+                               instructions)
+            record["predictions"] = publish(model, tokenizer, screened, ranks, sport,
+                                            {s["title"]: s["topic"] for s in stories_seen})
             record["checks_model"] = args.model  # the prophet's model stays in "model"
             path.write_text(json.dumps(record, indent=1, ensure_ascii=False), encoding="utf-8")
             report(day, record)

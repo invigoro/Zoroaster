@@ -60,6 +60,11 @@ DATE_PATTERNS = tuple(re.compile(p) for p in (
     rf"\b{_month(1)}\s+{_day(1)}{_year(1)}\b",  # October 4; November 3, 2026
 ))
 
+# A date that names an event ("the October 7 attacks", "the January 6 riot"), when no year follows it: it's a
+# name, not a day to come. Current events marked "the Hamas-led October 7 attacks" as "[in 13 days]".
+EVENT_NAME = re.compile(r"\s+(?:attacks?|massacres?|bombings?|riots?|uprising|revolution|movement|incident|"
+                        r"shootings?|protests?|crisis|coup)\b", re.IGNORECASE)
+
 # A calendar day's page ("September_23") lists anniversaries, never what's coming. Its dates have no year beside
 # them ("1884 – … runs aground on 23–24 September"), so they read as this year's: run 9 published a prediction
 # that an 1884 shipwreck would lead to a gold rush in 2026.
@@ -220,12 +225,16 @@ def dated_lines(page_text: str, day: date, year: int | None = None) -> list[str]
 def mark_dates(text: str, day: date, year: int | None = None) -> str:
     """`text` with each date it names followed by when that is relative to `day`, the day
     being foretold: "played on October 4 [in 4 days]". A date without a year is read in `year`, the
-    page's own if its title puts it in a past year (`past_year`)."""
+    page's own if its title puts it in a past year (`past_year`). One that names an event ("the October
+    7 attacks") isn't marked."""
     marks: list[tuple[int, int, str]] = []
     for pattern in DATE_PATTERNS:
         for m in pattern.finditer(text):
             if any(m.start() < end and start < m.end() for start, end, _ in marks):
                 continue  # part of a longer date already marked
+            yearless = not (m.groupdict().get("y1") or m.groupdict().get("y2"))
+            if yearless and EVENT_NAME.match(text, m.end()):
+                continue
             span = _span(m, day, year)
             if span:
                 marks.append((m.start(), m.end(), relative(*span, day)))

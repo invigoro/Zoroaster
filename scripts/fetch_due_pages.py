@@ -39,6 +39,7 @@ from scripts.fetch_v2_examples import _capped
 from scripts.prophesy import EXAMPLES_DIR
 from src.forecast.changes import day_change
 from src.mediawiki_api import API_URL, PAUSE_SECONDS, api_get
+from src.prophecy.stories import is_story
 from src.stage2.fetch import fetch_contents
 
 DUE_DIR = V3_DIR / "due_pages"
@@ -65,7 +66,8 @@ def revision_at(session: requests.Session, title: str, moment: datetime) -> int 
 
 
 def due_targets(prophecies: Path, last_day: date = LAST_DAY) -> list[tuple[str, date, date]]:
-    """(page title, D, due day) for each of a run's predictions due after D and no later than `last_day`."""
+    """(page title, D, due day) for each of a run's predictions due after D and no later than `last_day`.
+    A story's prediction cites no page: it's graded on Portal:Current events (`grading_packs.story_pack`)."""
     found = set()
     for path in sorted(prophecies.glob("????-??-??.json")):
         record = json.loads(path.read_text(encoding="utf-8"))
@@ -73,7 +75,7 @@ def due_targets(prophecies: Path, last_day: date = LAST_DAY) -> list[tuple[str, 
         for p in record["predictions"]:
             due = date.fromisoformat(p.get("due") or record["date"])
             if made < due <= last_day:
-                found |= {(title, made, due) for title in p["evidence"]}
+                found |= {(title, made, due) for title in p["evidence"] if not is_story(title)}
     return sorted(found)
 
 

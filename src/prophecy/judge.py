@@ -43,6 +43,11 @@ Each prediction's evidence (`pack`):
   sections, kinds, new text, and changed lines as they read at the day's
   end), with a link to the day's diff;
 - **that day's Portal:Current events items.**
+
+A prediction due later is graded on its due day: the change runs to that
+day's end, and the events are that day's. A story's prediction
+(`stories.py`) is graded on the story's reports from its day to its due day,
+and on every day's events then (`grading_packs.story_pack`).
 """
 
 from __future__ import annotations
@@ -54,6 +59,7 @@ from src.forecast.metrics import main_sections
 from src.prophecy.checks import QUALITY_REASONS
 from src.prophecy.evidence import clean_line
 from src.prophecy.prophet import _objects
+from src.prophecy.stories import is_story
 
 OUTCOMES = ("happened", "partly", "did not happen", "not possible", "unknown")
 POINTS = {"happened": 2, "partly": 1, "did not happen": 0, "not possible": 0}
@@ -122,6 +128,7 @@ def pack(prediction: dict, day: str, known_before: dict[str, str], rows_by_title
         "question": prediction.get("question", ""),
         "confidence": prediction.get("confidence"), "cited": cited, "kept": prediction.get("kept", True),
         "dropped_because": prediction.get("dropped_because", []),
+        "rewritten_from": prediction.get("rewritten_from"),  # never published; for checking the rewrite by hand
         "known_before": {t: known_before[t] for t in cited if t in known_before},
         "day_brought": {t: day_change_text(rows_by_title[t], days) for t in cited if t in rows_by_title},
         "diffs": {t: diff_url(rows_by_title[t]) for t in cited if t in rows_by_title},
@@ -136,11 +143,16 @@ def judge_messages(p: dict) -> list[dict]:
     due = p.get("due") or p["date"]
     when = f"for {p['date']} (UTC)" if due == p["date"] else f"made for {p['date']} and due on {due} (UTC)"
     gained = f"on {p['date']}" if due == p["date"] else f"from then to the end of {due}"
+    # A story's prediction may come true on any day up to its due day, so it's graded on every day's events.
+    first = p.get("events_from") or due
+    listed = f"on {due}" if first == due else f"from {first} to {due}"
+    cited = "What Portal:Current events reported on the story" if all(is_story(t) for t in p["cited"]) and p["cited"] \
+        else "What the cited pages gained"
     return [{"role": "system", "content": JUDGE_SYSTEM},
             {"role": "user", "content": f"The prediction, {when}: {p['prediction']}\n\n"
                                         f"What was known by the end of the day before {p['date']}:\n{before}\n\n"
-                                        f"What the cited pages gained {gained}:\n{after}\n\n"
-                                        f"Wikipedia's list of the major events on {due}:\n{events}\n\n"
+                                        f"{cited} {gained}:\n{after}\n\n"
+                                        f"Wikipedia's list of the major events {listed}:\n{events}\n\n"
                                         "Grade the prediction. Answer with only the JSON object."}]
 
 

@@ -11,7 +11,8 @@ interesting sports predictions... I'm much more interested in world events."
     kept predictions "other", most of them sport ("Who wins the gold
     medal?" on an Asian Games badminton page).
 - World events come first, best ranked first: the rank in the burst prophecy
-  of the page the prediction comes from.
+  of the page the prediction comes from. Then the stories of Portal:Current
+  events (`stories.py`), best covered first, each labelled by its category.
 - A sports prediction is published only if it settles a title, at most SPORTS
   a day, after the world events. It settles one if its page is a final
   (FINAL_PAGE: "2026 AFL Grand Final"), or if TITLE_QUESTION says so.
@@ -98,10 +99,11 @@ def title_messages(title: str, question: str) -> list[dict]:
 
 
 def topic(answer: str) -> str:
-    """The topic word in TOPIC_QUESTION's answer; "other" if it's none of them."""
+    """The topic word in TOPIC_QUESTION's answer, or a story's (`stories.CATEGORY_TOPICS`); "other" if it's
+    none of them."""
     word = answer.strip().strip(".").lower().split(" ")[0] if answer.strip() else ""
-    return word if word in ("sport", "politics", "conflict", "disaster", "economy", "science", "health", "culture") \
-        else "sport" if word.startswith("sport") else "other"
+    return word if word in ("sport", "politics", "conflict", "disaster", "economy", "science", "health", "culture",
+                            "crime") else "sport" if word.startswith("sport") else "other"
 
 
 def settles_a_title(answer: str) -> bool:

@@ -130,6 +130,21 @@ Two-stage approach:
   thing. I'm much more interested in world events."
   - Each prediction names its subject in full ("the film Heart of the
     Beast", not "the film"), from the user's review.
+- **Portal:Current events as the prophet's evidence (decided 2026-10-02,
+  in the user's words):** "I'm ok with all of them. I think #3, using the
+  portal:current events would be the best place to start. As long as the
+  prophet and the judge are either filtering out the sensitive predictions
+  (or at least editing them to be more vague, e.g. 'Kevin Bacon will die
+  tomorrow' becoming 'A prominent actor will die tomorrow') then using
+  those topics is totally fine with me."
+  - This lifts the mainspace-only scope (above) for these pages alone: the
+    prophet reads the day before's Portal:Current events, as they stood at
+    its end.
+  - A prediction the guardrails drop may be rewritten in general terms
+    and checked again. Whatever the judge publishes about a prediction
+    must pass the same checks.
+  - "All of them" covers the other two ways to more world events in §6:
+    what comes next in a story, and longer horizons.
 
 Full original plan detail (data sources, storage design rationale, model
 architecture options, evaluation plan, milestones) — if you want the fuller

@@ -102,6 +102,38 @@ Answer it with one prediction, using only this evidence.
 Answer with only a JSON object: {{"prediction": "I predict that ...", "confidence": "low", "medium" or "high"}}"""
 
 
+# A story from Portal:Current events (`stories.py`; PLAN.md §2, decided 2026-10-02). Its reports mostly say
+# what has happened, so step 1 asks what comes next, scheduled or not, and a question the reports give no
+# date for is due at the horizon's end.
+STORY = """Here is what Wikipedia's Portal:Current events reported about one story in the week before {day}, as it stood by the end of {yesterday}. Each report is marked with its day relative to {day}, the day you foretell, and so is each date in it: [today] means {day}.
+
+{block}"""
+
+STORY_QUESTION = STORY + """
+
+What will this story bring between {day} and {last}? Look first for something the reports say is coming: a vote, a ruling, a deadline, talks, a summit, a launch, a storm's landfall. Otherwise, the next development the reports point to.
+
+Answer in three lines:
+Event: what comes next, or nothing
+Date: the day it's due, as the reports give it (for example 4 October 2026), or "this week" if they give none
+Question: the question it will settle (whether it happens, who wins, what is decided), or none
+
+Leave out anything due after {last}."""
+
+STORY_PREDICTION = STORY + """
+
+The question, settled by the end of {due}: {question}
+
+Answer it with one prediction, using only these reports.
+- One sentence beginning "I predict that", naming the story's place or subject in full the first time (for example "the Strait of Hormuz", not "the strait").
+- Say what will have happened by the end of {due}, concretely enough to check: what happens, where, or what is decided. Name the countries involved.
+- Give a number only if the reports give a reason for one. Don't restate what the reports already say, and keep it possible.
+- Name no specific person, living or dead, and don't point to one by a title or role. A general description that fits many people, such as "an important politician" or "a prominent actor", is fine.
+- Wars, disasters and crime are fine in general terms, but name no organization in them: no company, party, armed group, government body or team. Countries and places are fine.
+
+Answer with only a JSON object: {{"prediction": "I predict that ...", "confidence": "low", "medium" or "high"}}"""
+
+
 def _day_text(day: date) -> str:
     return f"{day:%A}, {day.day} {day:%B %Y}"
 
@@ -123,6 +155,16 @@ def prediction_messages(day: date, block: str, question: str, due: date) -> list
     return _chat(PREDICTION, day, block, question=question, due=_day_text(due))
 
 
+def story_question_messages(day: date, block: str, horizon: int = HORIZON) -> list[dict]:
+    """Step 1, for one story's reports: what comes next within `horizon` days."""
+    return _chat(STORY_QUESTION, day, block, last=_day_text(day + timedelta(days=horizon)))
+
+
+def story_prediction_messages(day: date, block: str, question: str, due: date) -> list[dict]:
+    """Step 2, for a story with a question: the prediction, true or not by the end of `due`."""
+    return _chat(STORY_PREDICTION, day, block, question=question, due=_day_text(due))
+
+
 def _offset(mark: re.Match) -> int:
     """How many days after the foretold day a date mark falls: today 0, tomorrow 1, "in N days" N."""
     days = next((g for g in mark.groups() if g), None)
@@ -140,8 +182,8 @@ def marked_offsets(block: str, horizon: int = HORIZON) -> set[int]:
     return {_offset(m) for m in SOON_MARK.finditer(block) if _offset(m) <= horizon}
 
 
-def parse_question(answer: str, day: date, horizon: int = HORIZON, marked: set[int] | None = None
-                   ) -> tuple[str, date] | None:
+def parse_question(answer: str, day: date, horizon: int = HORIZON, marked: set[int] | None = None,
+                   default_due: date | None = None) -> tuple[str, date] | None:
     """The question in step 1's answer, and the day it's due: its "Question:" and "Date:" lines. None if the
     "Event:" line says nothing is decided (the model sometimes writes a question anyway), if there's no
     question ("none", "None, as the release date is already set"), or if its date can't be read or falls
@@ -153,7 +195,11 @@ def parse_question(answer: str, day: date, horizon: int = HORIZON, marked: set[i
     `marked` holds the days after `day` that the page's evidence marks (`marked_offsets`). A due date on
     none of them moves to the nearest that is, the later on a tie. Both prophets, given a page saying a
     tournament "ends in 4 days", wrote the day itself or the horizon's last day: 26 of run 8's 181
-    questions, 68 of run 9's 197, nearly all on one of the two."""
+    questions, 68 of run 9's 197, nearly all on one of the two.
+
+    `default_due` is for a story's question (`story_question_messages`): when the reports give no date
+    ("this week"), it's due then, at the horizon's end. So is a date the model gives when the reports mark
+    none: its own guess."""
     fields: dict[str, str] = {}
     for line in answer.splitlines():
         label, _, rest = line.partition(":")
@@ -166,11 +212,16 @@ def parse_question(answer: str, day: date, horizon: int = HORIZON, marked: set[i
     mark = SOON_MARK.search(when)
     if due is None and mark:
         due = day + timedelta(days=_offset(mark))
+    dated = due is not None
+    if due is None:
+        due = default_due
     if due is None or not day <= due <= day + timedelta(days=horizon):
         return None
-    if marked and (due - day).days not in marked:
+    if dated and marked and (due - day).days not in marked:
         given = (due - day).days
         due = day + timedelta(days=min(marked, key=lambda m: (abs(m - given), -m)))
+    elif dated and default_due and not marked:
+        due = default_due
     question = question[0].upper() + question[1:]
     return question + ("?" if QUESTION_WORD.match(question) and not question.endswith("?") else ""), due
 
@@ -200,14 +251,27 @@ def _objects(answer: str) -> list[object]:
     return found
 
 
+# A date mark from the evidence, copied into a prediction: "their match on 27 September [in 3 days]".
+COPIED_MARK = re.compile(r"\s*\[(?:today|tomorrow|yesterday|in \d+ days|in about [^\]]+|\d+ days ago|about [^\]]+ ago|"
+                         r"under way[^\]]*|starts [^\]]+|ended [^\]]+)\]")
+
+
 def normalize(sentence: str) -> str:
-    """The sentence starting "I predict that"; a leading "The"/"A"/"An" is lowercased after the prefix."""
-    sentence = " ".join(sentence.split())
+    """The sentence starting "I predict that", without any date mark copied from the evidence; a leading
+    "The"/"A"/"An" is lowercased after the prefix."""
+    sentence = " ".join(COPIED_MARK.sub("", sentence).split())
     if sentence.lower().startswith(PREFIX.lower()):
         return PREFIX + sentence[len(PREFIX):]
     if re.match(r"(The|A|An) ", sentence):
         sentence = sentence[0].lower() + sentence[1:]
     return PREFIX + sentence
+
+
+def parse_rewrite(answer: str) -> str:
+    """The prediction in a rewrite's answer (`checks.GENERALIZE`): its first line, from "I predict that"."""
+    line = next((ln for ln in answer.strip().splitlines() if ln.strip()), "").strip().strip('"“”*').strip()
+    found = re.search(r"I predict that.*", line, re.IGNORECASE)
+    return normalize((found.group(0) if found else line).strip('"“”* '))
 
 
 def parse_prediction(answer: str, title: str, question: str) -> dict | None:

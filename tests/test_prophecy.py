@@ -2,13 +2,15 @@ import unittest
 from datetime import date
 
 from src.forecast.guardrails import sensitive_words
-from src.prophecy.checks import (NO_ANSWER, already_known, confirmed_orgs, confirmed_people, harms, listed_names,
+from src.prophecy.checks import (IDENTIFIABLE, NO_ANSWER, already_known, apply_identifies, confirmed_orgs,
+                                 confirmed_people, general_mention, guarded_only, harms, listed_names, merge_rewrites,
                                  names_a_person, novelty_messages, one_persons_contest, person_roles, screen)
 from src.prophecy.evidence import (clean_line, dated_lines, eligible, evidence_text, is_biography, mark_dates, page_block,
                                    past_year)
-from src.prophecy.prophet import (marked_within, normalize, parse_prediction, parse_question, prediction_messages,
-                                  question_messages)
+from src.prophecy.prophet import (marked_within, normalize, parse_prediction, parse_question, parse_rewrite,
+                                  prediction_messages, question_messages)
 from src.prophecy.selection import is_sport_page, select, settles_a_title, topic
+from src.prophecy.stories import reports_between, stories, story_block
 
 ROW = {"page_id": 7, "date": date(2026, 9, 30), "rank": 2, "page_title": "2026_Asian_Games", "living": False,
        "is_burst_1d": True, "edits_1d": 40, "editors_1d": 12, "edits_7d": 90,
@@ -344,6 +346,126 @@ class ChecksTest(unittest.TestCase):
         dropped = screen([{"text": "I predict that the defending champion will win the darts."}], ["No"], [[]], [[]],
                          [[]], ["no"], "")
         self.assertEqual(dropped[0]["dropped_because"], ["names or points to a person (defending champion)"])
+
+
+class StoriesTest(unittest.TestCase):
+    """Portal:Current events as the prophet's evidence (PLAN.md §2, decided 2026-10-02)."""
+
+    DAY = date(2026, 9, 25)
+
+    def known(self, pages: dict[str, list[str]]) -> dict:
+        return {"date": self.DAY.isoformat(), "known_at": "2026-09-24T23:59:59+00:00",
+                "days": [{"date": d, "items": items} for d, items in pages.items()]}
+
+    def test_the_prophet_reads_what_was_known_by_the_end_of_the_day_before(self):
+        from datetime import datetime, timezone
+
+        from src.prophecy.current_events import known_at
+        self.assertEqual(known_at(self.DAY), datetime(2026, 9, 24, 23, 59, 59, tzinfo=timezone.utc))
+        # Point in time: a page for the day foretold, or after, is never read, whatever a record holds.
+        record = self.known({"2026-09-24": ["Politics and elections › 2026 Moroccan general election › Polls open."],
+                             "2026-09-25": ["Politics and elections › 2026 Moroccan general election › The PAM wins."],
+                             "2026-09-26": ["Armed conflicts and attacks › Gaza war › A ceasefire is agreed."]})
+        found = stories(record, self.DAY)
+        self.assertEqual([s["story"] for s in found], ["2026 Moroccan general election"])
+        self.assertNotIn("PAM wins", story_block(1, found[0], self.DAY))
+
+    def test_stories_group_reports_by_topic_and_leave_out_sport(self):
+        record = self.known({
+            "2026-09-18": ["Armed conflicts and attacks › 2026 Iran war › 2026 Strait of Hormuz crisis › Shipping rises.",
+                           "Sports › 2026 Asian Games › Japan wins gold.",  # sport comes from the pages
+                           "Politics and elections › The United Kingdom sets up a disinformation centre."],  # no topic
+            "2026-09-23": ["Armed conflicts and attacks › Middle Eastern crisis › 2026 Iran war › Talks resume on "
+                           "October 7 in Doha, years after the October 7 attacks.",  # an umbrella topic
+                           "Armed conflicts and attacks › Middle Eastern crisis › Yemeni civil war › A drone strikes."],
+            "2026-09-24": ["Disasters and accidents › 2026 Atlantic hurricane season › Tropical Storm Fay forms."]})
+        found = stories(record, self.DAY)
+        self.assertEqual([(s["story"], s["recent"], s["week"]) for s in found],  # recent reports first, then the week's
+                         [("2026 Iran war", 1, 2), ("2026 Atlantic hurricane season", 1, 1),
+                          ("Middle Eastern crisis", 1, 1)])  # the Iran war is its own story, listed alone on the 18th
+        self.assertEqual([s["topic"] for s in found], ["conflict", "disaster", "conflict"])
+        block = story_block(1, found[0], self.DAY)
+        self.assertIn("[S1] 2026 Iran war (conflict): 2 reports this week, the latest 2 days ago", block)
+        self.assertIn("[7 days ago] 2026 Strait of Hormuz crisis › Shipping rises.", block)
+        self.assertIn("Talks resume on October 7 [in 12 days] in Doha, years after the October 7 attacks.", block)
+        self.assertNotIn("Japan", "\n".join(story_block(n, s, self.DAY) for n, s in enumerate(found, start=1)))
+        # Only stories with a report on either of the two days before are read.
+        self.assertEqual(stories(self.known({"2026-09-18": record["days"][0]["items"]}), self.DAY), [])
+
+    def test_a_story_is_graded_on_its_reports_up_to_the_due_day(self):
+        records = {"2026-09-25": ["Politics and elections › 2026 Moroccan general election › The PAM wins.",
+                                  "Armed conflicts and attacks › Gaza war › Airstrikes continue."],
+                   "2026-09-27": ["Politics and elections › 2026 Moroccan general election › A coalition forms."],
+                   "2026-10-02": ["Politics and elections › 2026 Moroccan general election › Too late."]}
+        self.assertEqual(reports_between(records, "2026 Moroccan general election", self.DAY, date(2026, 10, 1)),
+                         ["2026-09-25: The PAM wins.", "2026-09-27: A coalition forms."])
+
+    def test_a_story_s_question_without_a_date_is_due_at_the_week_s_end(self):
+        week_end = date(2026, 10, 2)
+        answer = "Event: Ceasefire talks\nDate: {}\nQuestion: Whether a ceasefire is agreed"
+        self.assertEqual(parse_question(answer.format("this week"), self.DAY, 7, set(), week_end)[1], week_end)
+        self.assertEqual(parse_question(answer.format("28 September 2026"), self.DAY, 7, set(), week_end)[1],
+                         week_end)  # no report gives a date: the model's guess
+        self.assertEqual(parse_question(answer.format("28 September 2026"), self.DAY, 7, {2}, week_end)[1],
+                         date(2026, 9, 27))  # a report marks one: the nearest
+        self.assertEqual(parse_question(answer.format("27 September 2026"), self.DAY, 7, {2}, week_end)[1],
+                         date(2026, 9, 27))
+        self.assertIsNone(parse_question(answer.format("this week"), self.DAY, 7, set()))  # pages: no default
+        self.assertIsNone(parse_question(answer.format("15 October 2026"), self.DAY, 7, set(), week_end))
+
+
+class RewriteTest(unittest.TestCase):
+    """A prediction the guardrails drop, rewritten in general terms (PLAN.md §2, decided 2026-10-02)."""
+
+    def screened(self, text: str, reasons: list[str]) -> dict:
+        return {"text": text, "evidence": ["A"], "kept": not reasons, "dropped_because": reasons}
+
+    def test_only_guardrail_drops_are_rewritten(self):
+        self.assertTrue(guarded_only(self.screened("x", ["names or points to a person (Kevin Bacon)"])))
+        self.assertTrue(guarded_only(self.screened("x", ["names or points to a person", "harm to or by a specific "
+                                                                                        "organization (Hamas)"])))
+        self.assertFalse(guarded_only(self.screened("x", ["names or points to a person", "the evidence already "
+                                                                                         "settles it"])))
+        self.assertFalse(guarded_only(self.screened("x", ["repeats an earlier prediction"])))
+        self.assertFalse(guarded_only(self.screened("x", [])))
+
+    def test_a_rewrite_replaces_the_original_only_if_every_check_passes(self):
+        day = [self.screened("I predict that Kevin Bacon will die tomorrow.", ["names or points to a person (Kevin Bacon)"]),
+               self.screened("I predict that a major Ukrainian drone attack will take place.", []),
+               self.screened("I predict that Hamas will fire rockets at Tel Aviv.", ["harm to or by a specific organization"]),
+               self.screened("I predict that the Pope will visit Lebanon.", ["names or points to a person (the Pope)"])]
+        rewrites = {0: self.screened("I predict that a prominent actor will die tomorrow.", []),
+                    2: self.screened("I predict that a major Ukrainian drone attack will take place.", []),  # a repeat
+                    3: self.screened("I predict that the head of the Catholic Church will visit Lebanon.",
+                                     ["names or points to a person"])}
+        out = merge_rewrites(day, rewrites)
+        self.assertEqual([p["kept"] for p in out], [True, True, False, False])
+        self.assertEqual((out[0]["text"], out[0]["rewritten_from"]),
+                         ("I predict that a prominent actor will die tomorrow.", "I predict that Kevin Bacon will die tomorrow."))
+        self.assertEqual(out[2]["rewrite_dropped_because"], ["repeats an earlier prediction"])
+        self.assertEqual(out[3]["text"], "I predict that the Pope will visit Lebanon.")  # still dropped, as it was
+        self.assertEqual(out[3]["rewrite_dropped_because"], ["names or points to a person"])
+        self.assertEqual(parse_rewrite('Rewritten: "I predict that a prominent actor will die tomorrow."\nNote: …'),
+                         "I predict that a prominent actor will die tomorrow.")
+        self.assertEqual(parse_rewrite("A prominent actor will die tomorrow."),
+                         "I predict that a prominent actor will die tomorrow.")
+
+    def test_a_rewrite_must_not_let_a_reader_tell_whom_it_means(self):
+        rewrites = [self.screened("I predict that a prominent political leader in the Philippines will be removed.", []),
+                    self.screened("I predict that a prominent actor will die tomorrow.", []),
+                    self.screened("I predict that an armed group will attack.", ["harm to or by a specific organization"]),
+                    # From the rewrite trial: the named institution still points to the one meant.
+                    self.screened("I predict that an important political leader will be removed from office by the "
+                                  "Philippine Senate.", []) | {"orgs_named": ["Philippine Senate"]}]
+        out = apply_identifies(rewrites, ["Yes.", "No", "", "No"])
+        self.assertEqual([(p["kept"], p["dropped_because"]) for p in out],
+                         [(False, [IDENTIFIABLE]), (True, []), (False, ["harm to or by a specific organization"]),
+                          (False, ["the rewrite still names a specific organization (Philippine Senate)"])])
+        self.assertTrue(general_mention("armed group", "I predict that an armed group will agree to negotiate."))
+        self.assertFalse(general_mention("armed group", "I predict that the armed group will agree, as an armed group."))
+        self.assertFalse(general_mention("Hamas", "I predict that Hamas will fire rockets."))
+        self.assertEqual(normalize("Yemen will beat Bahrain in their match on 27 September [in 3 days]."),
+                         "I predict that Yemen will beat Bahrain in their match on 27 September.")
 
 
 if __name__ == "__main__":

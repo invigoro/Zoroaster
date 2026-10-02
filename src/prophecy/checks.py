@@ -63,6 +63,14 @@ A prediction is dropped if any of these is true:
 - **It copies an example sentence from the instructions it was made with,
   or repeats an earlier prediction that day.** Both are word overlap, with
   no model involved.
+
+A prediction dropped only by the guardrails (a specific person, harm to or
+by a specific organization) is rewritten in general terms (GENERALIZE) and
+checked again from scratch, as the user allowed (PLAN.md §2, 2026-10-02):
+"Kevin Bacon will die tomorrow" becoming "A prominent actor will die
+tomorrow". The rewrite is kept only if every check passes and it doesn't
+repeat a prediction kept that day (`merge_rewrites`). The original stays in
+the record, never published.
   - A repeat is dropped only if what it repeats was kept. On 2026-09-18 the
     first of two identical predictions cited the wrong page; the second
     cited the right one and would otherwise have been dropped as the repeat.
@@ -113,12 +121,21 @@ Question: {question}
 Answer with exactly one word: teams (clubs, national teams, a country's team, sides), parties, individuals (one person wins, as in a race, a singles or doubles match, golf strokeplay, darts or boxing, even if the question asks for their country or team), or neither."""
 
 HARM_QUESTIONS = (  # harm done, harm suffered, and the kind of organization: see harms()
-    """In the sentence below, does "{org}" attack, strike, fire on, kill, rob, cheat or otherwise harm anyone or anything?
+    """In the sentence below, does "{org}" attack, strike, fire on, kill, rob, cheat, hack, breach or otherwise harm anyone or anything?
 
 Sentence: {text}
 
 Answer with one word: yes or no.""",
     """In the sentence below, does "{org}" suffer something harmful, such as an attack, a robbery, a disaster or an accident, or face an accusation, a fine, charges or a guilty verdict?
+
+Sentence: {text}
+
+Answer with one word: yes or no.""",
+    # Asked apart after the first stories from Portal:Current events: "the United States and Australia will
+    # hold OpenAI responsible for the breach" got a "no" to the question above. Adding blame to that question
+    # instead let "Manchester City will be found guilty" and "Boeing will face criminal charges" through. Of
+    # three wordings, this one also caught the passive "OpenAI will be held responsible for…", 12 of 12.
+    """In the sentence below, is "{org}", or will it be, blamed, held responsible, accused, investigated, sued, fined, charged or punished for something?
 
 Sentence: {text}
 
@@ -218,11 +235,11 @@ def harm_messages(text: str, org: str) -> list[list[dict]]:
 
 
 def harms(answers: list[str]) -> bool:
-    """The harm questions' verdict on one organization: harm unless both harm questions get a clear "no".
+    """The harm questions' verdict on one organization: harm unless every harm question gets a clear "no".
     And a named army or armed group always counts. On known sentences the harm questions missed
     "the Israel Defense Forces will strike a hospital", and a prediction naming one is about war."""
-    done, suffered, kind = (a.strip().lower() for a in answers)
-    return not (done.startswith("no") and suffered.startswith("no")) or kind.startswith(MILITARY)
+    *questions, kind = (a.strip().lower() for a in answers)
+    return not all(a.startswith("no") for a in questions) or kind.startswith(MILITARY)
 
 
 NO_ANSWER = "(no answer)"  # an empty listing answer: an unknown person, never asked about
@@ -251,6 +268,96 @@ def confirmed_orgs(names: list[str], answers: list[str]) -> list[str]:
 def already_known(answer: str) -> bool:
     """The novelty check's verdict: only a clear "yes" counts."""
     return answer.strip().lower().startswith("yes")
+
+
+GUARDRAIL_REASONS = ("names or points to a person", "harm to or by a specific organization")
+
+# Leaving out the details that single one out came after the first rewrite trial: "a prominent political leader
+# will be convicted and removed from office by the Philippine Senate" names nobody, but fits one person.
+GENERALIZE = """Rewrite the sentence below so that no reader could tell which specific person or organization it is about. Replace each one with a general description that fits many, such as "a prominent actor", "an important politician", "a major bank" or "an armed group". Also leave out any detail that singles one out: a particular office or title, the institution or court that judges them, a vote count, a sentence's length. Countries and places can stay. Keep the rest as it is.
+
+Sentence: {text}
+
+Answer with only the rewritten sentence."""
+
+
+def generalize_messages(text: str) -> list[dict]:
+    """The rewrite in general terms, for a prediction or, once published, the judge's reason for a grade."""
+    return [{"role": "user", "content": GENERALIZE.format(text=text)}]
+
+
+IDENTIFIABLE = "still points to the one it was about"
+# Asked of a rewrite only, beside the original: vague words aren't enough if the situation still fits only
+# the one it was about. "An important political leader will be convicted and removed from office by the
+# Philippine Senate" names nobody, but there was one impeachment trial, and the model's own knowledge ends
+# before it, so asked of the sentence alone it said no. The user's own example sets the line (PLAN.md §2):
+# "a prominent actor will die tomorrow", rewritten from a sentence about one actor, is fine.
+IDENTIFIES_QUESTION = """A sentence about a specific person or organization was rewritten so that a reader couldn't tell whom it means.
+
+The original: {original}
+The rewrite: {text}
+
+Does the rewrite still clearly point to the same person or organization, so that a reader who follows the news would know whom it means? A description that fits many doesn't count: "a prominent actor will die tomorrow", rewritten from a sentence about one actor, doesn't point to that actor.
+
+Answer with one word: yes or no."""
+
+
+def identifies_messages(text: str, original: str) -> list[dict]:
+    return [{"role": "user", "content": IDENTIFIES_QUESTION.format(text=text, original=original)}]
+
+
+STILL_NAMES = "the rewrite still names a specific organization"
+
+
+def apply_identifies(rewrites: list[dict], answers: list[str]) -> list[dict]:
+    """The rewrites, each kept one dropped if it still names any specific organization (`orgs_named`, from
+    the checks), or unless IDENTIFIES_QUESTION got a clear "no" (`answers`, one per rewrite, empty for one
+    already dropped).
+    - In the first rewrite trial the question said "no" to every rewrite, even with the original beside it.
+      What still pointed to the one meant was a named institution: "an important political leader will be
+      convicted and removed from office by the Philippine Senate", "a major technology company will be held
+      responsible for the infiltration of Australia's Medicare database". So a rewrite may name no
+      organization at all, harm or not; only countries and places."""
+    out = []
+    for r, answer in zip(rewrites, answers, strict=True):
+        if r["kept"] and r.get("orgs_named"):
+            r = r | {"kept": False, "dropped_because": [f"{STILL_NAMES} ({'; '.join(r['orgs_named'])})"]}
+        elif r["kept"] and not answer.strip().lower().startswith("no"):
+            r = r | {"kept": False, "dropped_because": [IDENTIFIABLE]}
+        out.append(r | {"identifies_check": answer.strip()})
+    return out
+
+
+def general_mention(name: str, text: str) -> bool:
+    """Whether `text` mentions a listed organization only as a general description, after "a", "an" or the
+    like: "an armed group", which the organizations question listed as one."""
+    found = [m.start() for m in re.finditer(re.escape(name), text, re.IGNORECASE)]
+    return bool(found) and all(GENERAL.search(text[:start]) for start in found)
+
+
+def guarded_only(prediction: dict) -> bool:
+    """Whether the guardrails alone dropped a prediction, so a rewrite in general terms may save it."""
+    reasons = prediction["dropped_because"]
+    return bool(reasons) and all(r.startswith(GUARDRAIL_REASONS) for r in reasons)
+
+
+def merge_rewrites(screened: list[dict], rewritten: dict[int, dict]) -> list[dict]:
+    """The day's predictions, each guarded one replaced by its rewrite (`rewritten`: index -> the rewrite as
+    screened) if every check passed it and it repeats no prediction kept that day. Otherwise the original
+    stays dropped, with the rewrite and why it failed."""
+    kept = [p["text"] for p in screened if p["kept"]]
+    out = []
+    for i, p in enumerate(screened):
+        r = rewritten.get(i)
+        if r is None:
+            out.append(p)
+        elif r["kept"] and not repeats(r["text"], kept):
+            kept.append(r["text"])
+            out.append(r | {"rewritten_from": p["text"], "dropped_before_rewrite": p["dropped_because"]})
+        else:
+            out.append(p | {"rewrite": r["text"],
+                            "rewrite_dropped_because": r["dropped_because"] or ["repeats an earlier prediction"]})
+    return out
 
 
 def screen(predictions: list[dict], person_answers: list[str], people: list[list[str]], orgs: list[list[str]],

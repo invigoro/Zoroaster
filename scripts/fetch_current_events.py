@@ -1,13 +1,18 @@
-"""Fetch Wikipedia's Portal:Current events pages for a range of days, as the judge's record of what happened.
+"""Fetch Wikipedia's Portal:Current events pages for a range of days: the judge's record of what happened, and
+the prophet's evidence (PLAN.md §2, decided 2026-10-02).
 
-Each page is fetched at its latest revision. Editors add a day's events during
-the day and for a day or two after, so a page well past its day is the
-fuller record. The fetch time and revision are saved with it. Each day's
-news items (`src/prophecy/current_events.py`) are written to
+For the judge, each page is fetched at its latest revision. Editors add a
+day's events during the day and for a day or two after, so a page well past
+its day is the fuller record. The fetch time and revision are saved with it.
+Each day's news items (`src/prophecy/current_events.py`) are written to
 `data/processed/enwiki/v3/current_events/D.json`.
 
+With --known, for the prophet: for each day D, the pages of the KNOWN_DAYS
+days before it, each as it stood at the end of D-1 (its last revision by
+then), never later. Written to `current_events_known/D.json`.
+
 Usage:
-    python scripts/fetch_current_events.py --days 2026-09-18 2026-10-01
+    python scripts/fetch_current_events.py --days 2026-09-18 2026-10-01 [--known]
 """
 
 from __future__ import annotations
@@ -24,18 +29,21 @@ import requests
 
 from scripts.build_v3_days import V3_DIR
 from src.mediawiki_api import API_URL, api_get
-from src.prophecy.current_events import items, page_title
+from src.prophecy.current_events import KNOWN_DAYS, items, known_at, page_title
 
 OUT_DIR = V3_DIR / "current_events"
+KNOWN_DIR = V3_DIR / "current_events_known"
 
 
-def fetch(session: requests.Session, day: date) -> dict:
+def fetch(session: requests.Session, day: date, as_of: datetime | None = None) -> dict:
+    """The day's page at its latest revision, or at its last one by `as_of`."""
     title = page_title(day)
-    data = api_get(session, API_URL.format(lang="en"), {
-        "action": "query", "prop": "revisions", "rvprop": "content|ids|timestamp", "rvslots": "main",
-        "titles": title, "format": "json", "formatversion": "2"})
-    page = data["query"]["pages"][0]
-    if page.get("missing"):
+    params = {"action": "query", "prop": "revisions", "rvprop": "content|ids|timestamp", "rvslots": "main",
+              "titles": title, "format": "json", "formatversion": "2"}
+    if as_of:
+        params |= {"rvlimit": "1", "rvdir": "older", "rvstart": as_of.strftime("%Y-%m-%dT%H:%M:%SZ")}
+    page = api_get(session, API_URL.format(lang="en"), params)["query"]["pages"][0]
+    if page.get("missing") or not page.get("revisions"):  # no page, or none yet by `as_of`
         return {"title": title, "date": day.isoformat(), "missing": True, "items": []}
     revision = page["revisions"][0]
     text = revision["slots"]["main"]["content"]
@@ -43,18 +51,29 @@ def fetch(session: requests.Session, day: date) -> dict:
             "fetched": datetime.now(timezone.utc).isoformat(timespec="seconds"), "items": items(text)}
 
 
+def known(session: requests.Session, day: date) -> dict:
+    """What the prophet may read for `day`: the KNOWN_DAYS days' pages before it, as they stood at the end
+    of the day before (`known_at`)."""
+    moment = known_at(day)
+    days = [fetch(session, day - timedelta(days=n), moment) for n in range(KNOWN_DAYS, 0, -1)]
+    return {"date": day.isoformat(), "known_at": moment.isoformat(), "days": days}
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--days", type=date.fromisoformat, nargs=2, required=True, metavar=("FIRST", "LAST"))
+    parser.add_argument("--known", action="store_true", help="the prophet's evidence: each day's week before, as known")
     args = parser.parse_args(argv)
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    out_dir = KNOWN_DIR if args.known else OUT_DIR
+    out_dir.mkdir(parents=True, exist_ok=True)
     session = requests.Session()
     first, last = args.days
     for n in range((last - first).days + 1):
         day = first + timedelta(days=n)
-        record = fetch(session, day)
-        (OUT_DIR / f"{day.isoformat()}.json").write_text(json.dumps(record, indent=1, ensure_ascii=False), encoding="utf-8")
-        print(f"  {day}: {len(record['items'])} items" + (" (no page)" if record.get("missing") else ""), flush=True)
+        record = known(session, day) if args.known else fetch(session, day)
+        (out_dir / f"{day.isoformat()}.json").write_text(json.dumps(record, indent=1, ensure_ascii=False), encoding="utf-8")
+        found = sum(len(d["items"]) for d in record["days"]) if args.known else len(record["items"])
+        print(f"  {day}: {found} items" + (" (no page)" if record.get("missing") else ""), flush=True)
     return 0
 
 

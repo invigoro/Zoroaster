@@ -24,11 +24,12 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from scripts.fetch_current_events import OUT_DIR as EVENTS_DIR
 from scripts.grading_packs import GRADES_DIR
 from src.prophecy.current_events import page_title
 
@@ -55,13 +56,17 @@ def main(argv: list[str] | None = None) -> int:
     for key, p in packs.items():
         day, n = key.split("#")
         due = p.get("due") or day
-        doc = {"date": day, "due": due, "n": int(n), "prediction": p["prediction"], "question": p["question"],
-               "confidence": p["confidence"], "cited": p["cited"], "kept": p["kept"],
-               "dropped_because": p["dropped_because"], "before": p["known_before"], "after": p["day_brought"],
-               "diffs": p["diffs"], "draft": drafts[key]} | ({"run": args.run, "run_label": args.label} if args.run else {})
+        first = p.get("events_from") or due  # a story's prediction is graded on every day up to its due day
+        doc = {"date": day, "due": due, "events_from": first, "n": int(n), "prediction": p["prediction"],
+               "question": p["question"], "confidence": p["confidence"], "cited": p["cited"], "kept": p["kept"],
+               "dropped_because": p["dropped_because"], "rewritten_from": p.get("rewritten_from"),
+               "before": p["known_before"], "after": p["day_brought"], "diffs": p["diffs"],
+               "draft": drafts[key]} | ({"run": args.run, "run_label": args.label} if args.run else {})
         (out / "predictions" / f"{doc_id(key, args.run)}.json").write_text(json.dumps(doc, ensure_ascii=False),
                                                                           encoding="utf-8")
-        days[due] = p["current_events"]  # the due day's events (`grading_packs.py`), filed under that day
+        for k in range((date.fromisoformat(due) - date.fromisoformat(first)).days + 1):
+            shown = (date.fromisoformat(first) + timedelta(days=k)).isoformat()
+            days[shown] = json.loads((EVENTS_DIR / f"{shown}.json").read_text(encoding="utf-8"))["items"]
     for day, events in days.items():
         url = "https://en.wikipedia.org/wiki/" + page_title(date.fromisoformat(day)).replace(" ", "_")
         doc = {"date": day, "url": url, "events": events}

@@ -1,4 +1,5 @@
-"""Wikipedia's daily Portal:Current events pages: the record of major events the judge grades against.
+"""Wikipedia's daily Portal:Current events pages: the record of major events the judge grades against, and
+the prophet's evidence of what's happening in the world (PLAN.md §2, decided 2026-10-02).
 
 PLAN.md §6 step 11. Each day's page lists news items under bold category
 lines ('''Armed conflicts and attacks''', '''Sports'''). They're nested
@@ -9,16 +10,20 @@ with its category and topics:
 
     Sports › 2026 Asian Games › Japan wins the men's 3x3 basketball gold.
 
-The pages are outside the mainspace scope (§2), and are used only for
-grading.
+The pages are outside the mainspace scope (§2). The judge reads them at
+their latest revision. The prophet reads, for day D, the KNOWN_DAYS pages
+before D as they stood at the end of D-1 (`known_at`), since editors keep
+adding a day's events for a day or two after it.
 """
 
 from __future__ import annotations
 
 import re
-from datetime import date
+from datetime import date, datetime, time, timedelta, timezone
 
 from src.stage2.wikitext import plain_text
+
+KNOWN_DAYS = 7  # the week of reports before the day foretold
 
 CATEGORY = re.compile(r"^'''([^']+)'''\s*$")
 BULLET = re.compile(r"^(\*+)\s*(.*)$")
@@ -29,6 +34,11 @@ SEPARATOR = " › "
 
 def page_title(day: date) -> str:
     return f"Portal:Current events/{day.year} {day:%B} {day.day}"
+
+
+def known_at(day: date) -> datetime:
+    """The last moment whose revisions the prophet may read for `day`: the end of the day before, in UTC."""
+    return datetime.combine(day - timedelta(days=1), time(23, 59, 59), tzinfo=timezone.utc)
 
 
 def _clean(text: str) -> str:
