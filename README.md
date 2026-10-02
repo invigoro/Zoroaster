@@ -291,9 +291,32 @@ Wikipedia, which is roughly 100× the test corpus.
   - Nothing is published yet.
 
   Details are in `PLAN.md` §5, "Version 2 model: structured forecasts"
-  and "Version 2: ranked forecasts". The next step is free-text prophecies
-  of real-world events, written and then graded by local LLMs (`PLAN.md`
-  §6 step 11).
+  and "Version 2: ranked forecasts".
+
+- **Version 3: prophecies of real-world events** (in progress,
+  `src/prophecy/`). A local model, Qwen2.5-7B-Instruct, reads the day's top
+  pages as they stood the night before and writes predictions such as "I
+  predict that the United States team will win the 2026 Presidents Cup".
+  - Separate checks drop any prediction that names a person (none for
+    now), touches a sensitive topic, restates its evidence, or isn't about
+    it.
+  - The next day a judge grades each one against what the cited pages
+    gained and Wikipedia's Portal:Current events.
+  - The judge is being checked against hand grades before anything is
+    published.
+
+  ```bash
+  python scripts/build_v3_days.py           # the development days: the site's own prophecies, 2026-09-18 to 10-01
+  python scripts/prophesy.py --days 2026-09-20 2026-09-25   # predictions and checks; --rescreen re-runs only the checks
+  python scripts/fetch_current_events.py --days 2026-09-18 2026-10-01
+  python scripts/grading_packs.py           # each prediction's evidence, before and after, for grading
+  python scripts/judge_prophecies.py        # the local judge; compares with confirmed hand grades if present
+  python scripts/grading_review_docs.py     # documents for the hand-grading review page
+  ```
+
+  First results on the development days: few predictions come true on the
+  day. Most name a result due days or weeks later. Details are in `PLAN.md`
+  §3 items 24–25 and §6 step 11.
 
 Run the tests (no network or data files needed) with:
 

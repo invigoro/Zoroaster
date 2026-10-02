@@ -600,6 +600,93 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
         sanity, on development days only.
     - **Hand grades:** Claude drafts them, and the user confirms or adjusts
       them (decided 2026-10-01).
+25. **Version 3: new checks, the judge, and the first hand grades
+    (2026-10-01)**:
+    - **The instructions' examples leaked into the predictions.** The two
+      example predictions came from development days: a Wild Card game
+      (2026-09-30) and Tropical Storm Fay (09-20). On 09-18 the model copied
+      both, citing unrelated pages, and on 09-26 and 09-28 it predicted the
+      Astros from them.
+      - The instructions now describe good and bad predictions in general
+        terms, with no real-world examples.
+      - Each prediction first names the unsettled question it answers.
+    - **The person check, redesigned:**
+      - It lists the people, then asks what kind of thing each listed name
+        is. On 15 known names this got all 15 right; yes-or-no phrasings got
+        13 and 14.
+      - Words that always mean one person ("coach", "defending champion")
+        drop a prediction outright, unless they begin a name. "The 2026
+        Presidents Cup" was dropped for "presidents", though the US won it
+        that day.
+    - **Three more checks:**
+      - grounding: is the prediction about its cited evidence?
+      - copies of the instructions' example sentences;
+      - repeats within a day, dropped only if what they repeat was kept.
+        On 09-18 the first of two identical predictions cited the wrong
+        page.
+    - **The 14-day run** used the old instructions, since it began before
+      they changed. It took 5.4 minutes a day and wrote 81 predictions.
+      - Re-screened with the new checks (80 seconds for all 14 days), 17 are
+        kept.
+      - The grounding check alone dropped 49. Persons dropped 8 and copies
+        5; novelty was the only reason for 2.
+    - **The judge** (`src/prophecy/judge.py`, `judge_prophecies.py`):
+      - Qwen2.5-7B-Instruct, as a separate step with its own instructions.
+      - Each prediction's pack holds:
+        - the cited pages as the prophet saw them;
+        - what each page gained on the day, with the diff;
+        - the day's Portal:Current events items (`fetch_current_events.py`;
+          11–28 a day, few of them sports).
+    - **What gets graded:** the 17 kept and the 51 dropped only by the
+      quality checks (novelty, grounding), so the hand grades test those
+      checks too. Guardrail drops, copies and repeats aren't graded.
+    - **Drafting the hand grades refined the rubric** before the judge ran:
+      - **Outcome** is whether the prediction had come true by the end of
+        the day. "On the day" would have called Georgia's win the day
+        before a miss.
+      - **Already known** includes a match already played, but not an
+        election held the day before: Morocco voted on 09-23 and its
+        results came out on the 24th.
+      - **Grounded** is false if the prediction is about something else,
+        picks a team or party its evidence never mentions, or predicts for
+        the day what the evidence says comes later.
+      - **Credit** is 0 when already known, even if the pack can't tell the
+        outcome.
+    - **What Claude's 68 draft grades show** (not yet confirmed by the
+      user):
+      - **Outcomes:** 8 happened, 1 partly, 47 didn't, 12 unknown. 12 were
+        already known. Only 4 earn credit:
+        - China's women's team badminton gold (09-24), which the grounding
+          check dropped;
+        - the PAM winning the most seats in Morocco (09-24);
+        - the US winning the Presidents Cup (09-27);
+        - half credit for "the NL Wild Card Series ends by 30 September".
+      - **The main failure is timing.** 41 of the 47 misses name a result
+        that comes after the day: a final days or weeks off, a whole
+        season, an election in November. The evidence usually gives the
+        dates.
+      - **26 pick a team or party the evidence never mentions**, from the
+        model's memory, which ends years earlier: Mercedes EQ in Formula E,
+        LA Galaxy, Al-Ahly in an Asian competition.
+      - **The checks separate somewhat.** Kept predictions average 0.078
+        credit and dropped ones 0.012.
+        - Grounding agrees with the hand "grounded" on 51 of 68.
+        - Novelty flags only 2 of the 12 already-known predictions.
+      - **A guardrail gap:** a team or country "winning" an individual
+        event points to a person ("Red Bull will win the Azerbaijan Grand
+        Prix", "China will win the men's singles"). No check catches it.
+    - **The judge's first grades** (17 kept predictions, compared with the
+      drafts) are poor:
+      - Outcome agrees 41% of the time and grounded 47%; already known
+        and specificity 76%.
+      - It calls every prediction grounded and none already known.
+      - It called Georgia's win, stated in the evidence, "did not happen",
+        and a grand final dated 4 October "happened".
+    - **The review page** is a private claude.ai artifact. Each card shows a
+      prediction, its evidence, the day's diff links, and Claude's draft
+      grade with its reasoning. The user confirms or adjusts each grade, and
+      the page keeps the results in its database, from which they're read
+      back into `grades/confirmed.json`.
 
 ## 4. Data state — important for resuming on a new machine
 
@@ -1929,9 +2016,22 @@ old step 2 (move to English Wikipedia) is now step 5.
            never-predicted list still applies.
     - **Phases:**
       1. **A prophet prototype** on development days, read by hand
-         (started 2026-10-01, §3 item 24). The development days are the
+         (started 2026-10-01, §3 items 24–25). The development days are the
          site's own prophecies, 2026-09-18 to 2026-10-01.
-      2. **The judge and rubric,** checked against hand grades.
+         - **Next:** a timing check. Ask whether the evidence says the
+           prediction's result comes on the day or later, and drop "later".
+           41 of the 47 misses drafted so far were results due after the
+           day.
+         - **Next:** a check for team or country wins in individual events,
+           which point to a person. Try it on known sentences first, as the
+           person check was.
+      2. **The judge and rubric,** checked against hand grades (started
+         2026-10-01, §3 item 25).
+         - The rubric and 68 draft grades are done. The user is confirming
+           or adjusting them on the review page.
+         - The 7B judge's first grades agree poorly with the drafts. Next,
+           try one focused question per field, as the checks do, or a
+           different model.
       3. **A backtest** of prophet and judge over the test days, against
          the baselines. Prompts are tuned on development days only.
          - **Open: which test days.** Version 2's 14 test days are
