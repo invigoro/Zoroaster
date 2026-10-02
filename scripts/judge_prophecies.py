@@ -6,12 +6,13 @@ PLAN.md §6 step 11, phase 2.
    (`src/prophecy/judge.py`). It's Qwen2.5-7B-Instruct, the prophet's model,
    but a separate step with its own instructions, so the prophet never
    grades itself.
-3. Write `data/processed/enwiki/v3/grades/judge.json`.
-4. If hand grades exist (`grades/confirmed.json`: the drafts as the user
+3. Write `judge.json` in the run's grades folder (`grades/` for the first
+   graded run).
+4. If hand grades exist there (`confirmed.json`: the drafts as the user
    confirmed or adjusted them), report how often the judge agrees with them.
 
 Usage:
-    python scripts/judge_prophecies.py [--compare-only]
+    python scripts/judge_prophecies.py [--grades data/processed/enwiki/v3/grades_run7] [--compare-only]
 """
 
 from __future__ import annotations
@@ -53,9 +54,10 @@ def agreement(judge: dict[str, dict], hand: dict[str, dict]) -> dict:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--compare-only", action="store_true", help="skip grading; compare the saved grades")
+    parser.add_argument("--grades", type=Path, default=GRADES_DIR, help="a run's grades folder, with packs.json")
     args = parser.parse_args(argv)
-    packs = json.loads((GRADES_DIR / "packs.json").read_text(encoding="utf-8"))
-    judge_path = GRADES_DIR / "judge.json"
+    packs = json.loads((args.grades / "packs.json").read_text(encoding="utf-8"))
+    judge_path = args.grades / "judge.json"
     if not args.compare_only:
         start = time.monotonic()
         model, tokenizer = load_instruct(INSTRUCT_MODEL)
@@ -73,7 +75,7 @@ def main(argv: list[str] | None = None) -> int:
         unparsed = sum(g is None for g in grades.values())
         print(f"Wrote {judge_path}: {len(grades)} grades, {unparsed} unparsed ({time.monotonic() - start:,.0f}s)")
         torch.cuda.empty_cache()
-    confirmed_path = GRADES_DIR / "confirmed.json"
+    confirmed_path = args.grades / "confirmed.json"
     if confirmed_path.exists():
         judge = json.loads(judge_path.read_text(encoding="utf-8"))["grades"]
         hand = json.loads(confirmed_path.read_text(encoding="utf-8"))

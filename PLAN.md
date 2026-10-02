@@ -665,8 +665,9 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
         the day what the evidence says comes later.
       - **Credit** is 0 when already known, even if the pack can't tell the
         outcome.
-    - **What Claude's 68 draft grades show** (not yet confirmed by the
-      user):
+    - **What the 68 hand grades show** (Claude's drafts, all 68 confirmed
+      by the user on 2026-10-02; `grades/confirmed.json`, read back from
+      the review page by `confirmed_grades.py`):
       - **Outcomes:** 8 happened, 1 partly, 47 didn't, 12 unknown. 12 were
         already known. Only 4 earn credit:
         - China's women's team badminton gold (09-24), which the grounding
@@ -752,6 +753,23 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
         ("India and Japan win their matches" on a day they play each
         other). It still invents scores ("3–2 over China"). A 2025 timeline
         line without a year dated the BC election to the day.
+    - **Run 7's 26 draft grades** (25 kept, one dropped by the novelty
+      check; `grades_run7/`, on the review page for the user to confirm):
+      - Kept predictions average 0.214 credit, against the first
+        prophet's 0.078. 10 of the 21 scored earn credit, against 3 of 16.
+      - Outcomes: 9 happened, 4 partly, 8 didn't, 4 unknown; 4 were
+        already known.
+      - The misses are now mostly misreadings, not timing. Two paired
+        teams that weren't playing each other ("Serbia beats Germany",
+        "Czech Republic beats Spain"). Two came a day late ("the Braves win
+        Game 1" the day after Game 1).
+      - Where a card can't show a result, a later day's evidence decides
+        it, and the draft says so. Bracket cards showed no teams until the
+        cleaner kept flag templates' country codes (`evidence.clean_line`).
+      - The 7B judge, against these drafts, agrees on outcome 54% of the
+        time (46% on the first run), on already known and grounded 81%, and
+        on specificity 69%. It gives 0.23 credit where the drafts give 0.13,
+        on the predictions both score. It's still not to be trusted.
 
 ## 4. Data state — important for resuming on a new machine
 
@@ -2086,15 +2104,15 @@ old step 2 (move to English Wikipedia) is now step 5.
          - **Done (§3 item 26):** dates worked out in code, the page's own
            lines for the day, one page at a time, and a check for contests
            one person wins.
-         - **Next, if the user agrees:**
-           - grade run 7 by hand, against the earlier runs;
+         - **Next:**
+           - the user confirms or adjusts run 7's drafts on the review page;
            - predictions due later than the day, scored as in §7;
            - a stronger model, the same days and checks. The RTX 5090 (§2)
              could run a much larger one.
       2. **The judge and rubric,** checked against hand grades (started
          2026-10-01, §3 item 25).
-         - The rubric and 68 draft grades are done. The user is confirming
-           or adjusting them on the review page.
+         - The rubric and the first 68 hand grades are done: the user
+           confirmed all 68 drafts (2026-10-02).
          - The 7B judge's first grades agree poorly with the drafts. Next,
            try one focused question per field, as the checks do, or a
            different model.

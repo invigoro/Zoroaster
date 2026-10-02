@@ -90,6 +90,8 @@ class EvidenceTest(unittest.TestCase):
         self.assertTrue(marked_today(block))
         self.assertEqual(clean_line("| winner = [[Japan national team|Japan]] {{flagicon|JPN}}<ref>x</ref>"),
                          "winner = Japan JPN")
+        self.assertEqual(clean_line("| RD2-team01={{flagIOC|CHN|2026 Asian Games}} | RD2-score01= 3"),
+                         "RD2-team01=CHN | RD2-score01= 3")  # brackets name their teams with flags
 
 
 class ProphetTest(unittest.TestCase):

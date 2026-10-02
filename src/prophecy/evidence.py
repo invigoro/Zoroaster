@@ -76,6 +76,10 @@ DATE_TEMPLATE = re.compile(r"\{\{\s*(?:start date|end date|start date and age|en
                            r"(?:\s*[a-z]+\s*=[^|{}]*\|)*\s*(\d{4})\s*\|\s*(\d{1,2})\s*\|\s*(\d{1,2})[^{}]*\}\}",
                            re.IGNORECASE)
 SHORT_TEMPLATE = re.compile(r"\{\{\s*[\w -]+\|\s*([^{}|=]{1,30}?)\s*\}\}")  # {{flag|Japan}}, {{fb|JPN}}
+# A flag template's first argument, the country, whatever follows: {{flagIOC|CHN|2026 Asian Games}} → CHN.
+# Brackets and fixtures name their teams this way.
+FLAG_TEMPLATE = re.compile(r"\{\{\s*(?:flag\w*|fbw?(?:-rt)?|crw?|bkw?|vbw?|hbw?|ihw?)\s*\|\s*([^{}|=]{1,40}?)\s*(?:\|[^{}]*)?\}\}",
+                           re.IGNORECASE)
 TEMPLATE = re.compile(r"\{\{[^{}]*\}\}")
 TAG = re.compile(r"<[^>]+>")
 DATE_FIELD = re.compile(r"\s*\|\s*date\s*=", re.IGNORECASE)  # a fixture box's date: its teams follow
@@ -154,7 +158,7 @@ def clean_line(text: str) -> str:
     """A line of wikitext, readable. Unlike `stage2.wikitext.plain_text`, it keeps infobox fields
     ("| champion = …"), where results often go, and short template arguments ({{fb|JPN}} → JPN), and
     writes date templates out ({{Start date|2026|9|24}} → 24 September 2026). Table cells are joined with " · "."""
-    text = DATE_TEMPLATE.sub(_date_template, REF.sub("", text))
+    text = FLAG_TEMPLATE.sub(r"\1", DATE_TEMPLATE.sub(_date_template, REF.sub("", text)))
     for _ in range(3):  # nested templates, innermost first
         text = TEMPLATE.sub("", SHORT_TEMPLATE.sub(r"\1", text))
     text = TAG.sub("", LINK.sub(r"\1", text)).replace("'''", "").replace("''", "")

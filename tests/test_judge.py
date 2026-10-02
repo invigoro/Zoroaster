@@ -48,6 +48,21 @@ class JudgeTest(unittest.TestCase):
         self.assertIsNone(parse_grade("no json"))
 
 
+class ConfirmedGradesTest(unittest.TestCase):
+    def test_reviews_are_keyed_like_their_run_s_packs(self):
+        from scripts.confirmed_grades import confirmed, pack_key
+
+        self.assertEqual(pack_key("2026-09-18-2"), "2026-09-18#2")
+        self.assertEqual(pack_key("run7-2026-09-24-10", "run7"), "2026-09-24#10")
+        self.assertIsNone(pack_key("run7-2026-09-24-0"))  # another run's
+        self.assertIsNone(pack_key("2026-09-24-0", "run7"))
+        grade = {"outcome": "happened", "already_known": False, "specificity": 1, "grounded": True}
+        reviews = {"2026-09-24-0": {"status": "confirmed", "grade": grade, "note": ""},
+                   "run7-2026-09-24-0": {"status": "adjusted", "grade": grade | {"outcome": "partly"}, "note": "x"}}
+        self.assertEqual(confirmed(reviews), {"2026-09-24#0": grade})
+        self.assertEqual(confirmed(reviews, "run7"), {"2026-09-24#0": grade | {"outcome": "partly"}})
+
+
 class AgreementTest(unittest.TestCase):
     def test_field_agreement_and_credit_differences(self):
         from scripts.judge_prophecies import agreement

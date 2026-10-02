@@ -7,16 +7,19 @@ with a database of three collections:
 - `days`: one per day, with its Portal:Current events items;
 - `reviews`: written by the page when the user confirms or adjusts a grade.
 
-This writes the first two as JSON files under `grades/review_docs/`, to seed
+This writes the first two as JSON files under a run's `review_docs/`, to seed
 with the ArtifactData tool. Document ids are the pack keys with "#" made "-",
-because "#" isn't allowed in a database path.
+because "#" isn't allowed in a database path. A later run's ids start with its
+name ("run7-2026-09-24-0"), and its documents carry its name and a label, so
+the page can show the runs apart.
 
 Usage:
-    python scripts/grading_review_docs.py
+    python scripts/grading_review_docs.py [--grades data/processed/enwiki/v3/grades_run7 --run run7 --label "..."]
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from datetime import date
@@ -27,37 +30,42 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from scripts.grading_packs import GRADES_DIR
 from src.prophecy.current_events import page_title
 
-OUT = GRADES_DIR / "review_docs"
+
+def doc_id(key: str, run: str = "") -> str:
+    return (f"{run}-" if run else "") + key.replace("#", "-")
 
 
-def doc_id(key: str) -> str:
-    return key.replace("#", "-")
-
-
-def main() -> int:
-    packs = json.loads((GRADES_DIR / "packs.json").read_text(encoding="utf-8"))
-    drafts = json.loads((GRADES_DIR / "drafts.json").read_text(encoding="utf-8"))
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--grades", type=Path, default=GRADES_DIR, help="the run's grades folder")
+    parser.add_argument("--run", default="", help="the run's name, for its document ids; none for the first run")
+    parser.add_argument("--label", default="", help="what the page calls the run")
+    args = parser.parse_args(argv)
+    out = args.grades / "review_docs"
+    packs = json.loads((args.grades / "packs.json").read_text(encoding="utf-8"))
+    drafts = json.loads((args.grades / "drafts.json").read_text(encoding="utf-8"))
     missing = [k for k in packs if k not in drafts]
     if missing:
         raise SystemExit(f"{len(missing)} predictions have no draft grade yet, e.g. {missing[:3]}")
     for name in ("predictions", "days"):
-        (OUT / name).mkdir(parents=True, exist_ok=True)
+        (out / name).mkdir(parents=True, exist_ok=True)
     days: dict[str, list[str]] = {}
     for key, p in packs.items():
         day, n = key.split("#")
         doc = {"date": day, "n": int(n), "prediction": p["prediction"], "question": p["question"],
                "confidence": p["confidence"], "cited": p["cited"], "kept": p["kept"],
                "dropped_because": p["dropped_because"], "before": p["known_before"], "after": p["day_brought"],
-               "diffs": p["diffs"], "draft": drafts[key]}
-        (OUT / "predictions" / f"{doc_id(key)}.json").write_text(json.dumps(doc, ensure_ascii=False), encoding="utf-8")
+               "diffs": p["diffs"], "draft": drafts[key]} | ({"run": args.run, "run_label": args.label} if args.run else {})
+        (out / "predictions" / f"{doc_id(key, args.run)}.json").write_text(json.dumps(doc, ensure_ascii=False),
+                                                                          encoding="utf-8")
         days[day] = p["current_events"]
     for day, events in days.items():
         url = "https://en.wikipedia.org/wiki/" + page_title(date.fromisoformat(day)).replace(" ", "_")
         doc = {"date": day, "url": url, "events": events}
-        (OUT / "days" / f"{day}.json").write_text(json.dumps(doc, ensure_ascii=False), encoding="utf-8")
-    sizes = [f.stat().st_size for f in (OUT / "predictions").glob("*.json")]
+        (out / "days" / f"{day}.json").write_text(json.dumps(doc, ensure_ascii=False), encoding="utf-8")
+    sizes = [f.stat().st_size for f in (out / "predictions").glob("*.json")]
     print(f"{len(packs)} prediction documents (largest {max(sizes) / 1024:.0f} KB, {sum(sizes) / 1024:.0f} KB in all) "
-          f"and {len(days)} day documents -> {OUT}")
+          f"and {len(days)} day documents -> {out}")
     return 0
 
 

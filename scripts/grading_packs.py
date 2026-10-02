@@ -17,11 +17,12 @@ prediction's index in that day's list). It also writes `packs.md`, the same
 evidence organized by day, for drafting the hand grades.
 
 Usage:
-    python scripts/grading_packs.py
+    python scripts/grading_packs.py [--prophecies data/processed/enwiki/v3/prophecies_run7 --grades data/processed/enwiki/v3/grades_run7]
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -44,13 +45,17 @@ def known_before(record: dict) -> dict[str, str]:
     return dict(zip([p["title"] for p in record["pages"]], record["evidence"].split("\n\n")))
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--prophecies", type=Path, default=PROPHECIES_DIR, help="a run's day records")
+    parser.add_argument("--grades", type=Path, default=GRADES_DIR, help="where that run's packs go")
+    args = parser.parse_args(argv)
     rows = pq.read_table(EXAMPLES_DIR, columns=COLUMNS).to_pylist()
     by_day: dict[str, dict[str, dict]] = {}
     for r in rows:
         by_day.setdefault(r["date"].isoformat(), {})[r["page_title"].replace("_", " ")] = r
     packs, markdown = {}, ["# Prophecies to grade", ""]
-    for path in sorted(PROPHECIES_DIR.glob("????-??-??.json")):
+    for path in sorted(args.prophecies.glob("????-??-??.json")):
         record = json.loads(path.read_text(encoding="utf-8"))
         day = record["date"]
         events = json.loads((EVENTS_DIR / f"{day}.json").read_text(encoding="utf-8"))["items"]
@@ -68,11 +73,11 @@ def main() -> int:
                 markdown += [f"Before ({title}):", p["known_before"].get(title, "(not in the evidence)"), "",
                              f"On the day ({title}; diff: {p['diffs'].get(title)}):",
                              p["day_brought"].get(title, "(no change data)"), ""]
-    GRADES_DIR.mkdir(parents=True, exist_ok=True)
-    (GRADES_DIR / "packs.json").write_text(json.dumps(packs, indent=1, ensure_ascii=False), encoding="utf-8")
-    (GRADES_DIR / "packs.md").write_text("\n".join(markdown), encoding="utf-8")
+    args.grades.mkdir(parents=True, exist_ok=True)
+    (args.grades / "packs.json").write_text(json.dumps(packs, indent=1, ensure_ascii=False), encoding="utf-8")
+    (args.grades / "packs.md").write_text("\n".join(markdown), encoding="utf-8")
     print(f"{len(packs)} predictions to grade ({sum(p['kept'] for p in packs.values())} kept) from "
-          f"{len(list(PROPHECIES_DIR.glob('????-??-??.json')))} days -> {GRADES_DIR / 'packs.json'} and packs.md")
+          f"{len(list(args.prophecies.glob('????-??-??.json')))} days -> {args.grades / 'packs.json'} and packs.md")
     return 0
 
 
