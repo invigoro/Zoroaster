@@ -2,9 +2,11 @@
 
 PLAN.md §6 step 11, phase 2. The review page is a private claude.ai artifact
 with a database of three collections:
-- `predictions`: one document per kept prediction, with the prophecy, its
-  evidence before and after, diff links and the draft grade;
-- `days`: one per day, with its Portal:Current events items;
+- `predictions`: one document per kept prediction, with the prophecy, the
+  day it's due, its evidence before and after, diff links and the draft
+  grade;
+- `days`: one per day, with its Portal:Current events items. A prediction
+  due after its day is graded on its due day's;
 - `reviews`: written by the page when the user confirms or adjusts a grade.
 
 This writes the first two as JSON files under a run's `review_docs/`, to seed
@@ -52,13 +54,14 @@ def main(argv: list[str] | None = None) -> int:
     days: dict[str, list[str]] = {}
     for key, p in packs.items():
         day, n = key.split("#")
-        doc = {"date": day, "n": int(n), "prediction": p["prediction"], "question": p["question"],
+        due = p.get("due") or day
+        doc = {"date": day, "due": due, "n": int(n), "prediction": p["prediction"], "question": p["question"],
                "confidence": p["confidence"], "cited": p["cited"], "kept": p["kept"],
                "dropped_because": p["dropped_because"], "before": p["known_before"], "after": p["day_brought"],
                "diffs": p["diffs"], "draft": drafts[key]} | ({"run": args.run, "run_label": args.label} if args.run else {})
         (out / "predictions" / f"{doc_id(key, args.run)}.json").write_text(json.dumps(doc, ensure_ascii=False),
                                                                           encoding="utf-8")
-        days[day] = p["current_events"]
+        days[due] = p["current_events"]  # the due day's events (`grading_packs.py`), filed under that day
     for day, events in days.items():
         url = "https://en.wikipedia.org/wiki/" + page_title(date.fromisoformat(day)).replace(" ", "_")
         doc = {"date": day, "url": url, "events": events}
