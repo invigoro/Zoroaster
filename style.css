@@ -1,65 +1,147 @@
+/* Dark stone, light text, red accents. The stone texture is two layers of
+   SVG noise drawn by the browser (fine grain and broad mottling), so it costs
+   no download. Each filter's region is exactly its tile, which the noise's
+   stitching needs to tile without seams (the default region is 10% larger). */
 :root {
-  --bg: #fbf8f2;
-  --text: #22201c;
-  --muted: #6b655b;
-  --accent: #9a4a12;
-  --rule: #e4ddd0;
-  --bar: #e9c9a6;
-  --hit: #2f6b3a;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #17150f;
-    --text: #ece6da;
-    --muted: #a39b8c;
-    --accent: #e39a5c;
-    --rule: #332e25;
-    --bar: #5a3d22;
-    --hit: #7fc28c;
-  }
+  color-scheme: dark;
+  --stone: #1e1b19;
+  --stone-deep: #121010;
+  --text: #ece4d8;
+  --muted: #a69d91;
+  --red: #d4412e;
+  --red-bright: #f06a55;
+  --red-deep: #6e1a12;
+  --rule: rgba(236, 228, 216, 0.1);
+  --panel: rgba(0, 0, 0, 0.3);
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='.09'/%3E%3C/svg%3E");
+  --mottle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='520' height='520'%3E%3Cfilter id='m' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.011' numOctaves='5' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23m)' opacity='.12'/%3E%3C/svg%3E");
 }
 
 * { box-sizing: border-box; }
+html { min-height: 100%; }  /* the body's background covers the whole window, even past a short page */
 body {
-  margin: 0 auto;
-  max-width: 46rem;
-  padding: 2.5rem 1rem 3rem;
-  background: var(--bg);
+  margin: 0;
   color: var(--text);
-  font: 1.02rem/1.55 Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  background:
+    var(--grain),
+    var(--mottle),
+    radial-gradient(ellipse 120% 80% at 50% 0%, #2a2522 0%, var(--stone) 50%, var(--stone-deep) 100%) no-repeat,
+    var(--stone-deep);
+  font: 1.02rem/1.6 Georgia, "Iowan Old Style", "Palatino Linotype", serif;
 }
-a { color: var(--accent); }
-h1 { font-size: 2.3rem; line-height: 1.1; margin: 0.2rem 0 0.6rem; font-style: italic; }
-h2 { font-size: 1.05rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 2.2rem 0 0.6rem; }
-.kicker { margin: 0; color: var(--accent); letter-spacing: 0.2em; text-transform: uppercase; font-size: 0.85rem; }
-.lede { margin: 0; color: var(--muted); }
-.lede strong { color: var(--text); }
+a { color: var(--red-bright); }
+a:hover { color: #ff8f7d; }
 
+/* The banner: the art's white is transparent, so a red glow behind it fills the
+   sky and lights the outlines in the crowd. Two crossed masks fade its sides
+   and bottom into the stone. */
+.hero { position: relative; max-width: 76rem; margin: 0 auto; }
+.sky {
+  background:
+    radial-gradient(ellipse 46% 34% at 50% 58%, rgba(214, 64, 44, 0.85), rgba(160, 40, 28, 0.5) 45%, rgba(110, 26, 18, 0) 78%),
+    radial-gradient(ellipse 34% 40% at 50% 30%, rgba(170, 44, 30, 0.55), rgba(170, 44, 30, 0) 72%);
+}
+.banner {
+  display: block;
+  width: 100%;
+  height: auto;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 11%, #000 89%, transparent),
+    linear-gradient(to bottom, #000 66%, transparent 97%);
+  -webkit-mask-composite: source-in;
+          mask-image: linear-gradient(to right, transparent, #000 11%, #000 89%, transparent),
+    linear-gradient(to bottom, #000 66%, transparent 97%);
+          mask-composite: intersect;
+}
+.masthead {
+  position: relative;
+  max-width: 46rem;
+  margin: -9% auto 0;
+  padding: 0 1rem;
+  text-align: center;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.85);
+}
+.kicker { margin: 0; color: var(--red); letter-spacing: 0.35em; text-transform: uppercase; font-size: 0.85rem; }
+h1 {
+  margin: 0.15rem 0 0.7rem;
+  font-size: clamp(2.2rem, 5.5vw, 3.6rem);
+  line-height: 1.05;
+  font-style: italic;
+  font-weight: 400;
+  color: #f5eee4;
+  text-shadow: 0 0 28px rgba(212, 65, 46, 0.45), 0 2px 14px rgba(0, 0, 0, 0.85);
+}
+.lede { margin: 0; color: var(--muted); }
+.lede strong { color: var(--text); font-weight: 400; border-bottom: 1px solid var(--red); }
+
+main { max-width: 46rem; margin: 0 auto; padding: 0 1rem; }
+h2 {
+  margin: 2.6rem 0 0.9rem;
+  color: var(--red);
+  font-size: 0.95rem;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+h2::after { content: ""; display: block; width: 2.5rem; height: 2px; margin-top: 0.45rem; background: var(--red); opacity: 0.7; }
+
+.record {
+  margin-top: 2.4rem;
+  padding: 0.2rem 1.2rem 1.1rem;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--red);
+  border-radius: 6px;
+}
+.record h2 { margin-top: 0.9rem; }
 .record p { margin: 0; }
-.record .hit { color: var(--hit); }
+.record .hit { color: var(--red-bright); }
 
 .pages { list-style: none; padding: 0; margin: 0; }
 .pages li {
   display: grid;
-  grid-template-columns: 2.2rem 1fr auto;
+  grid-template-columns: 2.4rem 1fr auto;
   gap: 0.2rem 0.75rem;
   align-items: baseline;
-  padding: 0.55rem 0;
+  padding: 0.6rem 0;
   border-bottom: 1px solid var(--rule);
 }
-.pages .rank { color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
-.pages .title { font-size: 1.05rem; overflow-wrap: anywhere; }
+.pages .rank { color: var(--red); font-style: italic; text-align: right; font-variant-numeric: tabular-nums; }
+.pages .title { color: var(--text); font-size: 1.06rem; text-decoration: none; overflow-wrap: anywhere; }
+.pages .title:hover { color: var(--red-bright); text-decoration: underline; }
 .pages .chance { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .pages .detail { grid-column: 2 / 4; color: var(--muted); font-size: 0.88rem; }
-.pages .meter { grid-column: 2 / 4; height: 3px; background: var(--rule); border-radius: 2px; }
-.pages .meter span { display: block; height: 100%; background: var(--bar); border-radius: 2px; }
+.pages .meter { grid-column: 2 / 4; height: 3px; background: rgba(236, 228, 216, 0.07); border-radius: 2px; }
+.pages .meter span { display: block; height: 100%; background: linear-gradient(90deg, var(--red-deep), var(--red)); border-radius: 2px; }
 .pages .placeholder { display: block; color: var(--muted); border: 0; }
 
-.about p { margin: 0 0 0.8rem; }
-footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+/* The second picture is a night scene on black. Crossed masks fade all four
+   edges, including the bright horizon at the sides, into the stone. */
+.vision { margin: 3.5rem -1rem 0; }
+.vision img {
+  display: block;
+  width: 100%;
+  height: auto;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 18%, #000 82%, transparent),
+    linear-gradient(to bottom, transparent, #000 16%, #000 80%, transparent);
+  -webkit-mask-composite: source-in;
+          mask-image: linear-gradient(to right, transparent, #000 18%, #000 82%, transparent),
+    linear-gradient(to bottom, transparent, #000 16%, #000 80%, transparent);
+          mask-composite: intersect;
+}
+.vision + .about h2 { margin-top: 0.5rem; }
+
+.about p { margin: 0 0 0.85rem; }
+footer {
+  max-width: 46rem;
+  margin: 2.8rem auto 0;
+  padding: 1.1rem 1rem 3rem;
+  border-top: 1px solid var(--rule);
+  color: var(--muted);
+  font-size: 0.85rem;
+}
 footer p { margin: 0 0 0.5rem; }
 
 @media (max-width: 30rem) {
-  h1 { font-size: 1.8rem; }
-  .pages li { grid-template-columns: 1.8rem 1fr auto; }
+  .masthead { margin-top: -6%; }
+  .pages li { grid-template-columns: 1.9rem 1fr auto; }
 }
