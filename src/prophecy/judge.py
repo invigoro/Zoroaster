@@ -11,16 +11,23 @@ The rubric is the same for the local judge and for the hand grades:
     which would have called Georgia's win the day before (2026-09-20) a
     miss.
 - **already_known:** whether the evidence at the end of the day before
-  already reported or settled it.
+  already reported or settled it, including an event it says already took
+  place, such as an election already held.
 - **specificity:** 0 for vague ("news about X continues"), 1 for an outcome
   without detail ("X wins"), 2 for a named result, score or number
   ("X beats Y 3–1").
-- **grounded:** whether the cited pages' evidence supports making the
-  prediction at all.
+- **grounded:** whether the cited evidence supports making the prediction.
+  It doesn't if the prediction:
+  - is about something else;
+  - picks a team, party or other participant the evidence never mentions;
+  - or predicts for the day what the evidence says comes later.
+  The first runs often picked teams from the model's own memory, which ends
+  years before these days. The prophet's instructions forbid that (rule 5).
 
-`credit` is 0 if already known. Otherwise it's the outcome's points
-(happened 2, partly 1, did not happen 0) times specificity, divided by 4.
-"Unknown" gets no credit and isn't counted.
+`credit` is 0 if already known, whatever the outcome. Otherwise it's the
+outcome's points (happened 2, partly 1, did not happen 0) times
+specificity, divided by 4. An unknown outcome that wasn't already known
+isn't counted.
 
 Each prediction's evidence (`pack`):
 - **what was known by the end of the day before:** the cited pages' blocks,
@@ -54,9 +61,9 @@ JUDGE_SYSTEM = """You grade predictions against what actually happened. Use only
 
 Grade each prediction on four things:
 1. outcome: whether it had come true by the end of the day. "happened" if it had, as stated; "partly" if part of it had; "did not happen" if it hadn't, including when what it predicts comes only later (a final played after that day); "unknown" if the evidence doesn't say.
-2. already_known: true if the evidence from the day before already reported or settled it (a date, venue, line-up, schedule or result already known), false if not.
+2. already_known: true if the evidence from the day before already reported or settled it (a date, venue, line-up, schedule or result already known, or an event it says already took place), false if not.
 3. specificity: 0 if vague ("news about X will continue"), 1 if it names an outcome without detail ("X will win"), 2 if it names a precise result, score or number ("X will beat Y 3-1").
-4. grounded: true if the cited evidence gives a reason to make it, false if it doesn't.
+4. grounded: false if it is about something other than its cited evidence, picks a team, party or other participant the evidence never mentions, or predicts for that day something the evidence says comes later; otherwise true.
 
 Answer with only a JSON object: {"outcome": "...", "already_known": true or false, "specificity": 0, 1 or 2, "grounded": true or false, "reason": "one or two sentences citing the evidence"}"""
 
@@ -138,11 +145,12 @@ def parse_grade(answer: str) -> dict | None:
 
 
 def credit(grade: dict) -> float | None:
-    """0 to 1: the outcome's points times specificity, over 4; 0 if already known; None if unknown."""
-    if grade["outcome"] == "unknown":
-        return None
+    """0 to 1: the outcome's points times specificity, over 4. 0 if already known, whatever
+    the outcome, since restating what's settled earns nothing; otherwise None if unknown."""
     if grade["already_known"]:
         return 0.0
+    if grade["outcome"] == "unknown":
+        return None
     return POINTS[grade["outcome"]] * grade["specificity"] / 4
 
 

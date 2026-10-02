@@ -34,6 +34,8 @@ class JudgeTest(unittest.TestCase):
         self.assertEqual(credit(grade | {"already_known": True}), 0.0)
         self.assertEqual(credit(grade | {"outcome": "partly"}), 0.25)
         self.assertIsNone(credit(grade | {"outcome": "unknown"}))
+        # An election already held: settled before the day, even if the pack doesn't say who won.
+        self.assertEqual(credit(grade | {"outcome": "unknown", "already_known": True}), 0.0)
         self.assertIsNone(parse_grade('{"outcome": "maybe", "specificity": 1}'))  # not in the rubric
         self.assertIsNone(parse_grade("no json"))
 
