@@ -1001,6 +1001,17 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
         days).
       - 124 are due a week out: story questions mostly name no date. Only
         those made by 2026-09-24 can be graded yet: 73, 60 of them stories.
+      - **Draft grades** (`grades_run10/`, for the user to confirm):
+        - The 60 story predictions average 0.038 credit, and 5 earn any.
+          40 didn't happen.
+        - The 13 page predictions average 0.208.
+        - **Most story predictions bet on a breakthrough within the
+          week**: a ceasefire signed, an agreement reached, a trial opened,
+          a court reversing itself. Such things rarely come that fast.
+        - Many came out "did not happen" because no report in the week
+          mentions them. That's a grading call for the user: silence counts
+          as "did not happen" where the event would surely have been
+          reported, else "unknown".
 
 ## 4. Data state — important for resuming on a new machine
 
@@ -2381,6 +2392,12 @@ old step 2 (move to English Wikipedia) is now step 5.
               - **The user grades run 10** on the review page: 73 drafts
                 now. 65 more are due after 2026-10-01 and wait for their
                 days' events.
+              - **Next: aim story predictions at the likeliest development,
+                not a breakthrough.** In the drafts, 40 of 60 didn't happen
+                (0.038 credit). Step 1 could ask for what the reports make
+                likely, a continuation with a checkable detail ("Russian
+                strikes on Ukrainian cities kill civilians in at least two
+                oblasts"), unless something is scheduled.
               - **Still to do: longer horizons** for scheduled world events,
                 such as an election a month away. This needs the update
                 scoring decided first (§7).
