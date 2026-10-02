@@ -45,6 +45,7 @@ import json
 import re
 
 from src.forecast.metrics import main_sections
+from src.prophecy.checks import QUALITY_REASONS
 from src.prophecy.prophet import _objects
 
 LINK = re.compile(r"\[\[(?:[^\]|]*\|)?([^\]]*)\]\]")
@@ -106,13 +107,22 @@ def day_change_text(row: dict) -> str:
     return "\n".join(lines)
 
 
+def gradable(prediction: dict) -> bool:
+    """Whether to grade a screened prediction: kept, or dropped only by the quality checks (novelty,
+    grounding). Their verdicts can then be checked against the hand grades' already_known and
+    grounded. A prediction a guardrail dropped (a person, a sensitive topic), or a copy or repeat,
+    is never graded."""
+    return all(reason in QUALITY_REASONS for reason in prediction["dropped_because"])
+
+
 def pack(prediction: dict, day: str, known_before: dict[str, str], rows_by_title: dict[str, dict],
          current_events: list[str]) -> dict:
     """Everything needed to grade one prediction: before, after, and the day's record of events."""
     cited = prediction["evidence"]
     return {
         "date": day, "prediction": prediction["text"], "question": prediction.get("question", ""),
-        "confidence": prediction.get("confidence"), "cited": cited,
+        "confidence": prediction.get("confidence"), "cited": cited, "kept": prediction.get("kept", True),
+        "dropped_because": prediction.get("dropped_because", []),
         "known_before": {t: known_before[t] for t in cited if t in known_before},
         "day_brought": {t: day_change_text(rows_by_title[t]) for t in cited if t in rows_by_title},
         "diffs": {t: diff_url(rows_by_title[t]) for t in cited if t in rows_by_title},

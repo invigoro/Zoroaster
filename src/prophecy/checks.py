@@ -55,6 +55,8 @@ WORD = re.compile(r"[a-z0-9]+")
 FILLER = frozenset({"i", "predict", "that", "the", "a", "an", "will", "of", "in", "on", "at", "to", "and", "be"})
 COPY_OVERLAP, REPEAT_OVERLAP = 0.6, 0.8
 EXAMPLE = re.compile(r"I predict that [^\"]+")
+SETTLED, NOT_GROUNDED = "the evidence already settles it", "not about its cited evidence"
+QUALITY_REASONS = (SETTLED, NOT_GROUNDED)  # the quality checks; the rest are guardrails, copies and repeats
 
 PERSON_QUESTION = """Does the sentence below name a specific person, living or dead, or point to one, for example by a title or role such as "the president of France" or "the team's coach"? Teams, organizations, places, events and works don't count.
 
@@ -193,9 +195,9 @@ def screen(predictions: list[dict], person_answers: list[str], people: list[list
         elif names_a_person(person):
             reasons.append("names or points to a person")
         if already_known(novelty):
-            reasons.append("the evidence already settles it")
+            reasons.append(SETTLED)
         if not_grounded(grounded):
-            reasons.append("not about its cited evidence")
+            reasons.append(NOT_GROUNDED)
         if not reasons and repeats(prediction["text"], kept):
             reasons.append("repeats an earlier prediction")
         if not reasons:

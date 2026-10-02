@@ -46,8 +46,9 @@ def main() -> int:
     for key, p in packs.items():
         day, n = key.split("#")
         doc = {"date": day, "n": int(n), "prediction": p["prediction"], "question": p["question"],
-               "confidence": p["confidence"], "cited": p["cited"], "before": p["known_before"],
-               "after": p["day_brought"], "diffs": p["diffs"], "draft": drafts[key]}
+               "confidence": p["confidence"], "cited": p["cited"], "kept": p["kept"],
+               "dropped_because": p["dropped_because"], "before": p["known_before"], "after": p["day_brought"],
+               "diffs": p["diffs"], "draft": drafts[key]}
         (OUT / "predictions" / f"{doc_id(key)}.json").write_text(json.dumps(doc, ensure_ascii=False), encoding="utf-8")
         days[day] = p["current_events"]
     for day, events in days.items():

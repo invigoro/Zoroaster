@@ -1,6 +1,6 @@
 import unittest
 
-from src.prophecy.judge import credit, day_change_text, diff_url, judge_messages, pack, parse_grade
+from src.prophecy.judge import credit, day_change_text, diff_url, gradable, judge_messages, pack, parse_grade
 
 ROW = {"prompt_id": 10, "end_id": 12, "sections": ["(lead)", "Game 1"], "section_chars": [20, 900],
        "kinds": ["prose", "table"], "prose": "The Astros won Game 1, 5–3.",
@@ -24,6 +24,14 @@ class JudgeTest(unittest.TestCase):
         chat = judge_messages(p)
         self.assertIn("The prediction, for 2026-09-30 (UTC): I predict that the Astros win Game 1.", chat[1]["content"])
         self.assertIn("- Sports › x", chat[1]["content"])
+        self.assertNotIn("kept", chat[1]["content"])  # the judge isn't told what the checks decided
+
+    def test_what_gets_graded(self):
+        self.assertTrue(gradable({"dropped_because": []}))
+        self.assertTrue(gradable({"dropped_because": ["not about its cited evidence", "the evidence already settles it"]}))
+        for guarded in ("names or points to a person (Joey Logano)", "sensitive topic (trial)",
+                        "copies an example from the instructions", "repeats an earlier prediction"):
+            self.assertFalse(gradable({"dropped_because": ["not about its cited evidence", guarded]}), guarded)
 
     def test_grades_parse_and_score(self):
         grade = parse_grade('Sure: {"outcome": "happened", "already_known": false, "specificity": 1, "grounded": true, '
