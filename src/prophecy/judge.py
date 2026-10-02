@@ -10,9 +10,10 @@ The rubric is the same for the local judge and for the hand grades:
     already_known gives it no credit. The first wording said "on the day",
     which would have called Georgia's win the day before (2026-09-20) a
     miss.
-- **already_known:** whether the evidence at the end of the day before
-  already reported or settled it, including an event it says already took
-  place, such as an election already held.
+- **already_known:** whether it was known by the end of the day before: the
+  evidence from then reports or settles it, or it's about a match already
+  played. An election held the day before may still be counting: Morocco
+  voted on 2026-09-23, and its results came out on the 24th.
 - **specificity:** 0 for vague ("news about X continues"), 1 for an outcome
   without detail ("X wins"), 2 for a named result, score or number
   ("X beats Y 3–1").
@@ -61,7 +62,7 @@ JUDGE_SYSTEM = """You grade predictions against what actually happened. Use only
 
 Grade each prediction on four things:
 1. outcome: whether it had come true by the end of the day. "happened" if it had, as stated; "partly" if part of it had; "did not happen" if it hadn't, including when what it predicts comes only later (a final played after that day); "unknown" if the evidence doesn't say.
-2. already_known: true if the evidence from the day before already reported or settled it (a date, venue, line-up, schedule or result already known, or an event it says already took place), false if not.
+2. already_known: true if it was known by the end of the day before: the evidence from then already reported or settled it (a date, venue, line-up, schedule or result already known, or a match already played), false if not.
 3. specificity: 0 if vague ("news about X will continue"), 1 if it names an outcome without detail ("X will win"), 2 if it names a precise result, score or number ("X will beat Y 3-1").
 4. grounded: false if it is about something other than its cited evidence, picks a team, party or other participant the evidence never mentions, or predicts for that day something the evidence says comes later; otherwise true.
 
