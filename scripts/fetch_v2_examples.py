@@ -17,14 +17,16 @@ so prompts and targets (e.g. whole changed sentences) can be redesigned
 without refetching.
 
 Writes `data/processed/enwiki/v2/examples/part-NNNNN.parquet`. A rerun
-skips page-days already in a part.
+skips page-days already in a part. `--targets` and `--out` fetch another
+set the same way, such as version 3's days (`build_v3_days.py`).
 
 Usage:
-    python scripts/fetch_v2_examples.py
+    python scripts/fetch_v2_examples.py [--targets PATH --out DIR]
 """
 
 from __future__ import annotations
 
+import argparse
 import re
 import sys
 import time
@@ -94,12 +96,17 @@ def derive(target: dict, texts: dict[int, str | None]) -> dict | None:
     }
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--targets", type=Path, default=TARGETS_PATH)
+    parser.add_argument("--out", type=Path, default=EXAMPLES_DIR)
+    args = parser.parse_args(argv)
     start = time.monotonic()
-    targets = pq.read_table(TARGETS_PATH)
+    targets = pq.read_table(args.targets)
     schema = pa.schema(list(targets.schema) + [pa.field(n, t) for n, t in DERIVED])
-    EXAMPLES_DIR.mkdir(parents=True, exist_ok=True)
-    parts = sorted(EXAMPLES_DIR.glob("part-*.parquet"))
+    out_dir = args.out
+    out_dir.mkdir(parents=True, exist_ok=True)
+    parts = sorted(out_dir.glob("part-*.parquet"))
     done = set()
     for part in parts:
         t = pq.read_table(part, columns=["page_id", "date"])
@@ -112,9 +119,9 @@ def main() -> int:
         ids = list(dict.fromkeys(i for t in chunk for i in (t["start_id"], t["prompt_id"], t["end_id"]) if i))
         texts = dict(fetch_contents(ids, session=session))
         rows = [row for row in (derive(t, texts) for t in chunk) if row is not None]
-        tmp = EXAMPLES_DIR / f"part-{n:05d}.parquet.tmp"
+        tmp = out_dir / f"part-{n:05d}.parquet.tmp"
         pq.write_table(pa.Table.from_pylist(rows, schema=schema), tmp, compression="zstd")
-        tmp.replace(EXAMPLES_DIR / f"part-{n:05d}.parquet")
+        tmp.replace(out_dir / f"part-{n:05d}.parquet")
         with_prose = sum(1 for r in rows if r["prose"])
         print(f"  part {n}: {len(rows)}/{len(chunk)} page-days, {with_prose} with new prose, "
               f"{sum(r['living'] for r in rows)} about living people ({time.monotonic() - start:,.0f}s)", flush=True)
