@@ -269,13 +269,22 @@ Wikipedia, which is roughly 100× the test corpus.
   python scripts/build_stage2_titles.py --v2   # titles as of D-1, from the history dumps
   python scripts/v2_baselines.py          # score the baselines
   python scripts/train_v2.py              # QLoRA on Qwen2.5-1.5B; greedy-decoded test forecasts
+  python scripts/rank_v2.py               # forecasts ranked by the model's own probabilities
+  python scripts/v2_report.py             # a readable page of every test forecast next to what happened
   ```
 
-  First result: with the page's recent changes and the Stage 1 signals in
-  its prompt, the model beats the baseline of repeating yesterday's
-  changes on the kinds of change. It's worse at naming the section that
-  changes most, so nothing is published yet. Details are in `PLAN.md` §5,
-  "Version 2 model: structured forecasts".
+  Results so far: the model's prompt holds the page's recent changes and
+  the Stage 1 signals.
+  - With its forecasts ranked by its own probabilities, it beats the
+    baseline of repeating yesterday's changes on the kinds of change.
+  - It ties that baseline on which sections change, once both name as many
+    sections.
+  - Nothing is published yet.
+
+  Details are in `PLAN.md` §5, "Version 2 model: structured forecasts"
+  and "Version 2: ranked forecasts". The next step is free-text prophecies
+  of real-world events, written and then graded by local LLMs (`PLAN.md`
+  §6 step 11).
 
 Run the tests (no network or data files needed) with:
 

@@ -479,6 +479,43 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
           batches, with 1.7 GB allocated between them.
         - The fixed loop's stayed at 2.2 GB between batches.
         - The headers were identical.
+22. **Version 2, ranking and a readable report (2026-10-01)**:
+    - **The report:** `v2_report.py` writes `report.html` into the run
+      directory, a local page of every test forecast next to what
+      actually changed.
+      - It's labeled as machine-generated forecasts, not facts, and it
+        isn't part of the site.
+      - It can be filtered by top or random pages, living people and
+        yesterday's activity.
+    - **Ranking** (`src/forecast/ranking.py`, `rank_v2.py`), chosen after
+      the greedy results (§5 "Version 2 model: structured forecasts"):
+      - **Sections:** each heading on the page, plus the lead, is scored
+        by its probability of being named first, and the top 3 are named.
+      - **Kinds:** all 512 possible kinds lines are scored, which gives
+        each kind's exact probability. Per-kind thresholds are set on
+        validation.
+    - **Speed:** each forward pass of the 4-bit LoRA model has a fixed cost
+      of about 0.14 s here. So the first version took 3.6 s an example:
+      17 batched passes over a copied cache, which also spilled out of
+      GPU memory.
+      - `tree_logprobs` puts every continuation into one token trie after
+        the prompt: 1,360 nodes for the kinds lines instead of 5,890
+        tokens. A custom attention mask lets each node see only the prompt
+        and its ancestors.
+      - That's one pass per example: 0.5 s, peaking at 3.2 GB.
+      - Its scores are within 0.14 nats of scoring each sequence alone;
+        bf16 noise moves those by 0.17 when they're batched.
+      - A tiny Qwen2 test checks it against scoring each sequence alone,
+        and fails on a wrong mask or wrong positions.
+    - **The run:** a one-off scheduled task from 18:47, 44 minutes in all.
+      The results are in §5, "Version 2: ranked forecasts", and the
+      report now shows the ranked forecasts too.
+    - **Publishing failed on 2026-10-02.** The prophecy was made and
+      scored, but the push was rejected: setting the custom domain had
+      committed a CNAME file to `gh-pages` on GitHub.
+      - `publish_site.py` now rebases onto GitHub's branch before building.
+      - It also pushes whenever the branch is ahead, so the stranded commit
+        went out on a rerun at 18:50.
 
 ## 4. Data state — important for resuming on a new machine
 
@@ -1339,6 +1376,54 @@ Paired per-example differences, with standard errors (all / top):
     (Wendy Williams) added a year to an existing section, one that the
     day before's edits had touched.
 
+### Version 2: ranked forecasts (2026-10-01, English Wikipedia)
+
+`rank_v2.py` reads the full-prompt model's own probabilities instead of
+decoding greedily (§3 item 22):
+- **Sections:** the top 3 candidates by the probability of being named
+  first. Candidates hold 83% of that probability; the rest goes to names
+  not on the page, "none", and other tokenizations.
+- **Kinds:** each kind is forecast when its exact probability passes a
+  threshold. The thresholds were chosen on validation to maximize the mean
+  Jaccard, and most are low:
+  - categories 0.8, table 0.4, template fields 0.3;
+  - new section, references and links 0.25;
+  - prose and removals 0.2, copyedits 0.15.
+  - The 512 kinds lines hold 99% of the probability.
+
+Each cell gives all test days / top pages:
+
+| forecaster | section precision | main section named | kinds Jaccard |
+|---|---|---|---|
+| yesterday again | **0.448 / 0.451** | 0.490 / 0.503 | 0.412 / 0.457 |
+| model, greedy | 0.449 / 0.458 | 0.447 / 0.459 | 0.430 / 0.486 |
+| model, ranked | 0.344 / 0.371 | **0.621 / 0.605** | **0.444 / 0.498** |
+| model, ranked, every threshold 0.5 | 0.344 / 0.371 | 0.621 / 0.605 | 0.352 / 0.392 |
+
+Paired against "yesterday again" (all / top):
+- section precision −0.104 ± 0.006 / −0.080 ± 0.006;
+- main section named +0.131 ± 0.008 / +0.102 ± 0.009;
+- kinds Jaccard +0.032 ± 0.004 / +0.041 ± 0.004.
+
+- **Kinds: ranking wins.** It beats "yesterday again", and greedy decoding
+  by +0.014 ± 0.003.
+  - The validation thresholds matter. With every threshold at 0.5, it's
+    worse than "yesterday again" by 0.060.
+  - On random pages there's no gain (+0.005 ± 0.005).
+- **Sections: a tie, once the count is equal.** Ranking names the main
+  section far more often only because it names 2.97 sections a day,
+  against 1.88 for "yesterday again".
+  - Trimmed each day to as many sections as "yesterday again" names, it
+    ties: precision −0.001 ± 0.004, main section +0.003 ± 0.007 (top pages
+    +0.004 ± 0.005 and +0.010 ± 0.008).
+  - So for sections, the model knows about what yesterday's change says.
+- **Rare kinds are still missed.** "New section" is now forecast
+  sometimes, but it's rarely right (precision 0.06). Categories never are.
+- **Living people (557 days):** main section +0.141 ± 0.018, kinds +0.053
+  ± 0.008, precision −0.123 ± 0.014.
+- **Cost:** 44 minutes for 4,068 page-days, including validation's greedy
+  headers. That's 0.5 s each, peaking at 4.7 GB reserved.
+
 ## 6. Next steps, in order
 
 Re-planned 2026-09-28 after the code review in §5, and again after the
@@ -1552,8 +1637,14 @@ old step 2 (move to English Wikipedia) is now step 5.
      - **The page: done, locally** (`web/`, `build_site.py`).
      - **The daily schedule and publishing: done** (§3 item 19). The
        repo is public, and the site is pushed to `gh-pages` daily.
+       - Pages serves it at the custom domain `zoroaster.invigoro.me`
+         (set 2026-10-01). `invigoro.github.io/Zoroaster` redirects
+         there.
+       - "Enforce HTTPS" is off, so the redirect lands on plain HTTP.
+       - Setting the domain committed a CNAME file to `gh-pages` on
+         GitHub, so the 2026-10-02 publish was rejected. `publish_site.py`
+         now rebases onto GitHub's branch first (§3 item 22).
      - **Still to do:**
-       - Turn Pages on: Settings → Pages, deploying from `gh-pages`.
        - Choose a license (none yet, so the code is all rights reserved).
        - For GitHub Actions: a compact rolling state, since recent changes
          keep only 30 days and a runner can't hold the 7 GB of dump
@@ -1644,14 +1735,18 @@ old step 2 (move to English Wikipedia) is now step 5.
            prompt beats "yesterday again".
          - **Result:** it didn't. It's better on kinds and worse at naming
            the main section, so the follow-up runs haven't been started.
-         - **Open: what next.** Options:
-           - Rank instead of decoding greedily. Score each heading on the
-             page, plus the lead, by the model's probability of naming it,
-             and name the top 3, as "yesterday again" does. Set each
-             kind's threshold on validation. No retraining is needed.
-           - The middle variant and a second seed.
-           - Combine yesterday's sections with the model's kinds, judged
-             on validation, not test.
+         - **Ranking (done 2026-10-01, §5 "Version 2: ranked forecasts").**
+           The model's own probabilities name the top 3 sections, and
+           per-kind thresholds come from validation.
+           - Kinds now beat "yesterday again" (+0.032 ± 0.004).
+           - Sections tie it once both name as many.
+         - **Open: what next.** Version 3 (step 11) is to use these
+           forecasts as evidence. Options:
+           - the middle variant and a second seed;
+           - a forecast of yesterday's sections plus the ranked kinds,
+             judged on validation, not test;
+           - or leave version 2 as it is until version 3 shows what its
+             prophet needs.
       4. **Deployment.** A "foretell" step in `run_daily.py`, after the
          predictions.
          - Fetch the top 20 pages' current text (one request), generate

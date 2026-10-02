@@ -91,6 +91,8 @@ def main(argv: list[str] | None = None) -> int:
         if keys != [(r["page_id"], r["date"].isoformat()) for r in test]:
             raise SystemExit("ranked.json doesn't match the test examples' order")
         for name, fs in ranked["test"]["forecasts"].items():
+            if "thresholds 0.5" in name:  # a reference for rank_v2.py's comparisons, not worth reading
+                continue
             named[name] = fs
             table[name] = ranked["test"]["summary"]["all"][name] | {"top": ranked["test"]["summary"]["top"][name]}
     names = list(named)
