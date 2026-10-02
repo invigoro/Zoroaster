@@ -1,9 +1,15 @@
 """Grading a prophecy against what its day actually brought (PLAN.md §6 step 11, phase 2).
 
 The rubric is the same for the local judge and for the hand grades:
-- **outcome:** "happened" (as stated), "partly", "did not happen", or
-  "unknown" (the day's evidence doesn't say). A prediction about something
-  that doesn't take place on the day counts as "did not happen".
+- **outcome:** whether the prediction had come true by the end of the day:
+  "happened" (as stated), "partly", "did not happen", or "unknown" (the
+  evidence doesn't say).
+  - A prediction about something that comes only later, such as a final
+    played after the day, counts as "did not happen".
+  - One that had come true before the day counts as "happened", and
+    already_known gives it no credit. The first wording said "on the day",
+    which would have called Georgia's win the day before (2026-09-20) a
+    miss.
 - **already_known:** whether the evidence at the end of the day before
   already reported or settled it.
 - **specificity:** 0 for vague ("news about X continues"), 1 for an outcome
@@ -47,7 +53,7 @@ LINES_SHOWN = 8
 JUDGE_SYSTEM = """You grade predictions against what actually happened. Use only the evidence given; your own knowledge ends years before these dates.
 
 Grade each prediction on four things:
-1. outcome: "happened" if what it predicts happened on the day as stated; "partly" if part of it did; "did not happen" if it didn't, or if what it predicts doesn't take place on that day; "unknown" if the evidence about the day doesn't say.
+1. outcome: whether it had come true by the end of the day. "happened" if it had, as stated; "partly" if part of it had; "did not happen" if it hadn't, including when what it predicts comes only later (a final played after that day); "unknown" if the evidence doesn't say.
 2. already_known: true if the evidence from the day before already reported or settled it (a date, venue, line-up, schedule or result already known), false if not.
 3. specificity: 0 if vague ("news about X will continue"), 1 if it names an outcome without detail ("X will win"), 2 if it names a precise result, score or number ("X will beat Y 3-1").
 4. grounded: true if the cited evidence gives a reason to make it, false if it doesn't.
