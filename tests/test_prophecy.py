@@ -7,7 +7,7 @@ from src.prophecy.checks import (NO_ANSWER, already_known, confirmed_orgs, confi
 from src.prophecy.evidence import clean_line, dated_lines, eligible, evidence_text, is_biography, mark_dates, page_block
 from src.prophecy.prophet import (marked_within, normalize, parse_prediction, parse_question, prediction_messages,
                                   question_messages)
-from src.prophecy.selection import select, settles_a_title, topic
+from src.prophecy.selection import is_sport_page, select, settles_a_title, topic
 
 ROW = {"page_id": 7, "date": date(2026, 9, 30), "rank": 2, "page_title": "2026_Asian_Games", "living": False,
        "is_burst_1d": True, "edits_1d": 40, "editors_1d": 12, "edits_7d": 90,
@@ -185,6 +185,38 @@ class SelectionTest(unittest.TestCase):
         self.assertEqual(topic("weather"), "other")
         self.assertEqual(topic(""), "other")
         self.assertFalse(settles_a_title("Possibly"))  # only a clear yes lets sport through
+
+    def test_a_sports_page_makes_sport_whatever_the_topic_answer(self):
+        # Run 8: the topic question called "Who wins the gold medal?" on a badminton page "other", and
+        # sport filled the day. And the title question said no to the AFL Grand Final's "Which team wins the match?".
+        badminton, grand_final, vote = (self.prediction("Badminton – Women's team"), self.prediction("2026 AFL Grand Final"),
+                                        self.prediction("2026 Berlin state election"))
+        out = select([badminton, grand_final, vote], {"Badminton – Women's team": 1, "2026 AFL Grand Final": 2,
+                                                       "2026 Berlin state election": 3},
+                     ["other", "other", "politics"], ["no", "no", "no"], {"Badminton – Women's team", "2026 AFL Grand Final"})
+        self.assertEqual([(p["topic"], p["published"]) for p in out], [("sport", False), ("sport", True), ("politics", True)])
+        self.assertEqual(out[0]["unpublished_because"], "a sports prediction that settles no title")
+        self.assertFalse(select([self.prediction("2026 Men's semi-finals")], {}, ["sport"], ["no"])[0]["settles_a_title"])
+
+    def test_sports_pages_from_their_infobox_templates_and_categories(self):
+        sport = ["{{Infobox sports competition event\n| event = Women's team}}",
+                 "{{Infobox country at games\n| NOC = PHI}}",
+                 "{{Infobox racehorse\n| horsename = Hurricane Fly}}",
+                 "{{Short description|Football tournament qualification stage}}\n{{#invoke:Sports table|main}}",
+                 "{{Tennis events|2026|Chengdu Open}}\n[[Category:2026 ATP Tour]]",  # no infobox, no sport category
+                 "{{Short description|Video game tournament series}}\n{{Infobox recurring event}}",
+                 "Text.\n[[Category:Current sports events]]"]
+        world = ["{{Infobox election\n| election_name = 2026 Berlin state election}}\n[[Category:2026 elections in Germany]]",
+                 "{{Short description|2026 gubernatorial race in Georgia}}",
+                 "{{Infobox civilian attack}}\n[[Category:Mass shootings in the United States]]",
+                 "{{Infobox film\n| name = Heart of the Beast}}\n[[Category:Sports films]]",
+                 "{{Infobox automobile}}\n[[Category:Compact sport utility vehicles]]",
+                 "{{Infobox video game}}\n[[Category:PlayStation 5 games]]\n[[Category:Racing video games]]",
+                 "{{Infobox summit meeting}}\n[[Category:General debates of the United Nations General Assembly]]"]
+        for text in sport:
+            self.assertTrue(is_sport_page(text), text)
+        for text in world:
+            self.assertFalse(is_sport_page(text), text)
 
 
 class ChecksTest(unittest.TestCase):

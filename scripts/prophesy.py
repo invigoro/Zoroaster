@@ -55,7 +55,7 @@ from src.prophecy.checks import (NO_ANSWER, confirmed_orgs, confirmed_people, co
 from src.prophecy.evidence import TOP, eligible, evidence_blocks
 from src.prophecy.prophet import (HORIZON, PREDICTION, QUESTION, marked_within, parse_prediction, parse_question,
                                   prediction_messages, question_messages)
-from src.prophecy.selection import select, title_messages, topic_messages
+from src.prophecy.selection import is_sport_page, select, title_messages, topic_messages
 
 INSTRUCT_MODEL = "Qwen/Qwen2.5-7B-Instruct"
 EXAMPLES_DIR = V3_DIR / "examples"
@@ -136,7 +136,7 @@ def check(model, tokenizer, predictions: list[dict], by_title: dict[str, str], i
     return [s | {"people_check": p.strip(), "orgs_check": o.strip()} for s, p, o in zip(screened, people, orgs_answers)]
 
 
-def publish(model, tokenizer, predictions: list[dict], ranks: dict[str, int]) -> list[dict]:
+def publish(model, tokenizer, predictions: list[dict], ranks: dict[str, int], sport_pages: set[str]) -> list[dict]:
     """The day's selection (`src/prophecy/selection.py`): each kept prediction's topic, whether a sports one
     settles a title, and which are published."""
     kept = [i for i, p in enumerate(predictions) if p["kept"]]
@@ -146,7 +146,12 @@ def publish(model, tokenizer, predictions: list[dict], ranks: dict[str, int]) ->
         topics[i] = a
     for i, a in zip(kept, chat_in_batches(model, tokenizer, [title_messages(*q) for q in asked], YES_NO_TOKENS)):
         titles[i] = a
-    return select(predictions, ranks, topics, titles)
+    return select(predictions, ranks, topics, titles, sport_pages)
+
+
+def sport_titles(rows: list[dict]) -> set[str]:
+    """The titles of the sports pages among `rows`, from their text at the end of D-1."""
+    return {r["page_title"].replace("_", " ") for r in rows if is_sport_page(r.get("page_text") or "")}
 
 
 def prophesy(model, tokenizer, day: date, rows: list[dict], forecasts: dict, model_name: str, horizon: int = HORIZON,
@@ -170,8 +175,9 @@ def prophesy(model, tokenizer, day: date, rows: list[dict], forecasts: dict, mod
     parsed = ((parse_prediction(a, titles[i], questions[i][0]), questions[i][1]) for a, i in zip(answers, todo))
     predictions = [p | {"due": due.isoformat()} for p, due in parsed if p]
     predictions = check(model, tokenizer, predictions, dict(zip(titles, blocks)), PREDICTION)
-    predictions = publish(model, tokenizer, predictions, {t: r["rank"] for r, t in zip(pages, titles)})
-    page_notes = [{"rank": r["rank"], "title": t, "dated": i in asked, "asked": asked.get(i, "").strip(),
+    sport = sport_titles(pages)
+    predictions = publish(model, tokenizer, predictions, {t: r["rank"] for r, t in zip(pages, titles)}, sport)
+    page_notes = [{"rank": r["rank"], "title": t, "sport": t in sport, "dated": i in asked, "asked": asked.get(i, "").strip(),
                    "question": questions[i][0] if i in questions else None,
                    "due": questions[i][1].isoformat() if i in questions else None,
                    "contest": contests.get(i, "").strip(), "one_persons_contest": i in questions and i not in todo}
@@ -213,14 +219,18 @@ def main(argv: list[str] | None = None) -> int:
     model, tokenizer = load_instruct(args.model)
     args.out.mkdir(parents=True, exist_ok=True)
     if args.rescreen:
+        texts = pq.read_table(EXAMPLES_DIR, columns=["page_title", "date", "page_text"],
+                              filters=[("date", "in", args.days)]).to_pylist()
         for day in args.days:
             path = args.out / f"{day.isoformat()}.json"
             record = json.loads(path.read_text(encoding="utf-8"))
             by_title = dict(zip([p["title"] for p in record["pages"]], record["evidence"].split("\n\n")))
             bare = [{k: v for k, v in p.items() if k not in CHECK_FIELDS} for p in record["predictions"]]
             ranks = {p["title"]: p["rank"] for p in record["pages"]}
+            sport = sport_titles([r for r in texts if r["date"] == day])
+            record["pages"] = [p | {"sport": p["title"] in sport} for p in record["pages"]]
             screened = check(model, tokenizer, bare, by_title, record["instructions"])
-            record["predictions"] = publish(model, tokenizer, screened, ranks)
+            record["predictions"] = publish(model, tokenizer, screened, ranks, sport)
             path.write_text(json.dumps(record, indent=1, ensure_ascii=False), encoding="utf-8")
             report(day, record)
         return 0
