@@ -60,6 +60,10 @@ DATE_PATTERNS = tuple(re.compile(p) for p in (
     rf"\b{_month(1)}\s+{_day(1)}{_year(1)}\b",  # October 4; November 3, 2026
 ))
 
+# A calendar day's page ("September_23") lists anniversaries, never what's coming. Its dates have no year beside
+# them ("1884 – … runs aground on 23–24 September"), so they read as this year's: run 9 published a prediction
+# that an 1884 shipwreck would lead to a gold rush in 2026.
+CALENDAR_DAY = re.compile(rf"^(?:{_MONTH})[ _]\d{{1,2}}$")
 # A year in a page's title, and a season's second year: "2024 East–West Line disruption", "2025–26 Premier League".
 TITLE_YEAR = re.compile(r"\b(1\d{3}|20\d{2})(?:[–-](\d{2}))?\b")
 
@@ -238,9 +242,10 @@ def is_biography(page_text: str) -> bool:
 
 
 def eligible(rows: list[dict], top: int = TOP, people: bool = False) -> list[dict]:
-    """The day's pages the prophet may read, best ranked first: at most `top`,
-    and, in milestone 1, no biographies (`is_biography` on `page_text`, or `living`)."""
+    """The day's pages the prophet may read, best ranked first: at most `top`, never a calendar day's page
+    (CALENDAR_DAY), and, in milestone 1, no biographies (`is_biography` on `page_text`, or `living`)."""
     rows = sorted(rows, key=lambda r: r["rank"])
+    rows = [r for r in rows if not CALENDAR_DAY.match(r["page_title"])]
     return [r for r in rows if people or not (r["living"] or is_biography(r.get("page_text", "")))][:top]
 
 

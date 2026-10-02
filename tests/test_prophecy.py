@@ -30,6 +30,11 @@ class EvidenceTest(unittest.TestCase):
         self.assertEqual([r["page_id"] for r in eligible(rows)], [3, 1])
         self.assertEqual([r["page_id"] for r in eligible(rows, people=True)], [2, 3, 1, 4])
         self.assertEqual([r["page_id"] for r in eligible(rows, top=1)], [3])
+        # A calendar day's page lists anniversaries (run 9: an 1884 shipwreck read as 2026's), but a year's doesn't.
+        days = [ROW | {"rank": 1, "page_id": 5, "page_title": "September_23"},
+                ROW | {"rank": 2, "page_id": 6, "page_title": "2026"},
+                ROW | {"rank": 3, "page_id": 7, "page_title": "September_2026_nor'easter"}]
+        self.assertEqual([r["page_id"] for r in eligible(days)], [6, 7])
 
     def test_biographies_by_category(self):
         for text in ("[[Category:Living people]]", "[[Category:1940 births]]", "[[ Category : 2026_deaths|Smith]]",
