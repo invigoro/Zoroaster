@@ -2,7 +2,8 @@ import unittest
 from datetime import date
 
 from src.forecast.guardrails import sensitive_words
-from src.prophecy.checks import lists_people, names_a_person, screen
+from src.prophecy.checks import (NO_ANSWER, already_known, confirmed_people, listed_names, names_a_person,
+                                 novelty_messages, person_roles, screen)
 from src.prophecy.evidence import eligible, evidence_text, is_biography, page_block
 from src.prophecy.prophet import messages, normalize, parse_predictions
 
@@ -62,8 +63,10 @@ class ProphetTest(unittest.TestCase):
                   '"evidence": "1", "confidence": "sure"}]\nThat is all.')
         got = parse_predictions(answer, ["A", "B"])
         self.assertEqual(got, [
-            {"text": "I predict that Japan will top the medal table.", "evidence": ["B"], "confidence": "high"},
-            {"text": "I predict that a final is played.", "evidence": [], "confidence": None}])
+            {"text": "I predict that Japan will top the medal table.", "question": "", "evidence": ["B"], "confidence": "high"},
+            {"text": "I predict that a final is played.", "question": "", "evidence": [], "confidence": None}])
+        with_question = parse_predictions('[{"question": " Who wins  Game 1? ", "prediction": "I predict that A wins."}]', [])
+        self.assertEqual(with_question[0]["question"], "Who wins Game 1?")
         self.assertEqual(parse_predictions("no list here", ["A"]), [])
         self.assertEqual(parse_predictions("[not json]", ["A"]), [])
 
@@ -73,18 +76,55 @@ class ChecksTest(unittest.TestCase):
         predictions = [{"text": "I predict that Japan will top the medal table."},
                        {"text": "I predict that the trial of the club's owner will open."},
                        {"text": "I predict that the president of France will visit Aichi."}]
-        out = screen(predictions, ["No.", "no", "No"], ["none", "None.", "the president of France"])
+        out = screen(predictions, ["No.", "no", "No"], [[], [], ["the president of France"]], ["no", "No", "no"],
+                     ["yes", "Yes", "yes"], "")
         self.assertEqual([p["kept"] for p in out], [True, False, False])
         self.assertEqual(out[1]["dropped_because"], ["sensitive topic (trial)"])
-        self.assertEqual(out[2]["dropped_because"], ["names or points to a person"])  # the list caught what "No" missed
+        self.assertEqual(out[2]["dropped_because"],  # "No" missed it; the list and the role words didn't
+                         ["names or points to a person (the president of France; president)"])
+        one = predictions[:1]
+        self.assertEqual(screen(one, ["Yes"], [[]], ["no"], ["yes"], "")[0]["dropped_because"],
+                         ["names or points to a person"])
+        self.assertEqual(screen(one, ["no"], [[]], ["Yes."], ["yes"], "")[0]["dropped_because"],
+                         ["the evidence already settles it"])
+        self.assertEqual(screen(one, ["no"], [[]], ["no"], ["No."], "")[0]["dropped_because"],
+                         ["not about its cited evidence"])
+        self.assertTrue(screen(one, ["no"], [[]], ["no"], ["Unclear"], "")[0]["kept"])  # only a clear no drops
+
+    def test_copies_of_instruction_examples_and_repeats_are_dropped(self):
+        instructions = ('A good one: {"question": "Who wins?", "prediction": "I predict that the Houston Astros will '
+                        'beat the Chicago White Sox in Game 1 of the Wild Card Series.", "evidence": [2]}')
+        predictions = [{"text": "I predict that the Houston Astros will beat the Chicago White Sox in Game 1."},
+                       {"text": "I predict that Egypt will win the 2026 Men's African Nations Volleyball Championship."},
+                       {"text": "I predict that Egypt will win the 2026 Men's African Nations Volleyball Championship!"}]
+        out = screen(predictions, ["no"] * 3, [[]] * 3, ["no"] * 3, ["yes"] * 3, instructions)
+        self.assertEqual([p["dropped_because"] for p in out],
+                         [["copies an example from the instructions"], [], ["repeats an earlier prediction"]])
+        self.assertTrue(all(p["kept"] for p in screen(predictions[1:2], ["no"], [[]], ["no"], ["yes"], instructions)))
+
+    def test_the_novelty_check_sees_only_the_cited_evidence(self):
+        chat = novelty_messages("I predict that it is held in Okazaki.", ["[3] Volleyball ... in Okazaki"])
+        self.assertIn("[3] Volleyball ... in Okazaki", chat[0]["content"])
+        self.assertIn("(no pages cited)", novelty_messages("I predict that X.", [])[0]["content"])
+        self.assertTrue(already_known("Yes"))
+        self.assertFalse(already_known("Probably"))  # a quality filter: only a clear yes drops
 
     def test_anything_but_a_clear_no_counts_as_a_person(self):
         self.assertFalse(names_a_person(" No"))
         self.assertTrue(names_a_person("Probably not"))
         self.assertTrue(names_a_person(""))
-        self.assertFalse(lists_people(" None. "))
-        self.assertTrue(lists_people("Luke Hodge"))
-        self.assertTrue(lists_people(""))
+        self.assertEqual(listed_names(" None. "), [])
+        self.assertEqual(listed_names("Atlanta Braves; none"), ["Atlanta Braves"])  # names a team, then hedges
+        self.assertEqual(listed_names("H.E.R.; Liza Soberano"), ["H.E.R.", "Liza Soberano"])
+        self.assertEqual(listed_names(""), [NO_ANSWER])
+        self.assertEqual(confirmed_people(["Atlanta Braves", "Luke Hodge", "Israel"], ["team", "person", "Country."]),
+                         ["Luke Hodge"])
+        self.assertEqual(confirmed_people(["Someone", NO_ANSWER], ["athlete", ""]), ["Someone", NO_ANSWER])  # unclear: a person
+        self.assertEqual(person_roles("The defending champion beats the Coach and the coach"), ["defending champion", "coach"])
+        self.assertEqual(person_roles("Malta will host the contest; the Lions win."), [])
+        dropped = screen([{"text": "I predict that the defending champion will win the darts."}], ["No"], [[]], ["no"],
+                         ["yes"], "")
+        self.assertEqual(dropped[0]["dropped_because"], ["names or points to a person (defending champion)"])
         self.assertEqual(sensitive_words("Arrest, then a Trial and another trial"), ["arrest", "trial"])
 
 

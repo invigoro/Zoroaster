@@ -74,7 +74,10 @@ def page_block(number: int, row: dict, forecast: dict | None) -> str:
     return "\n".join(lines)
 
 
-def evidence_text(rows: list[dict], forecasts: dict[tuple[int, str], dict]) -> str:
+def evidence_blocks(rows: list[dict], forecasts: dict[tuple[int, str], dict]) -> list[str]:
     """Every eligible page's block, numbered from 1 in rank order."""
-    return "\n\n".join(page_block(i, r, forecasts.get((r["page_id"], r["date"].isoformat())))
-                       for i, r in enumerate(rows, start=1))
+    return [page_block(i, r, forecasts.get((r["page_id"], r["date"].isoformat()))) for i, r in enumerate(rows, start=1)]
+
+
+def evidence_text(rows: list[dict], forecasts: dict[tuple[int, str], dict]) -> str:
+    return "\n\n".join(evidence_blocks(rows, forecasts))
