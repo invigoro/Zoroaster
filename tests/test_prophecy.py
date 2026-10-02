@@ -2,10 +2,11 @@ import unittest
 from datetime import date
 
 from src.forecast.guardrails import sensitive_words
-from src.prophecy.checks import (NO_ANSWER, already_known, confirmed_orgs, confirmed_people, listed_names,
-                                 names_a_person, novelty_messages, on_a_sensitive_topic, person_roles, screen)
+from src.prophecy.checks import (NO_ANSWER, already_known, confirmed_orgs, confirmed_people, harms, listed_names,
+                                 names_a_person, novelty_messages, one_persons_contest, person_roles, screen)
 from src.prophecy.evidence import eligible, evidence_text, is_biography, mark_dates, page_block
-from src.prophecy.prophet import normalize, parse_prediction, parse_question, prediction_messages, question_messages
+from src.prophecy.prophet import (marked_today, normalize, parse_prediction, parse_question, prediction_messages,
+                                  question_messages)
 
 ROW = {"page_id": 7, "date": date(2026, 9, 30), "rank": 2, "page_title": "2026_Asian_Games", "living": False,
        "is_burst_1d": True, "edits_1d": 40, "editors_1d": 12, "edits_7d": 90,
@@ -87,12 +88,20 @@ class ProphetTest(unittest.TestCase):
         self.assertIn("The question Thursday, 1 October 2026 will answer: Who wins the final?",
                       prediction_messages(date(2026, 10, 1), "[1] ...", "Who wins the final?")[1]["content"])
 
-    def test_questions_parse_and_none_means_no_question(self):
-        for answer in ("none", "None.", "No.", "Nothing is decided that day.", ""):
+    def test_only_pages_dated_today_are_asked(self):
+        day = date(2026, 9, 24)
+        for lead, asked in (("The final is on 24 September.", True), ("It runs from 20 to 24 September.", True),
+                            ("It runs from 24 to 30 September.", True), ("It runs from 20 to 26 September.", False),
+                            ("The final is on 25 September.", False), ("No dates here.", False)):
+            self.assertEqual(marked_today(page_block(1, ROW | {"date": day, "lead": lead}, None)), asked, lead)
+
+    def test_questions_parse_and_nothing_today_means_no_question(self):
+        self.assertEqual(parse_question("Today: The final is played.\nQuestion: Who  wins the final?"), "Who wins the final?")
+        self.assertEqual(parse_question('**Today:** Game 2.\n**Question:** "Who wins Game 2?"'), "Who wins Game 2?")
+        for answer in ("Today: nothing\nQuestion: none", "Today: The final.\nQuestion: none", "Who wins?", "",
+                       # as for the NRL grand final, four days away: a question after saying nothing happens
+                       "Today: Nothing significant is expected to happen.\nQuestion: Will the final be close?"):
             self.assertIsNone(parse_question(answer), answer)
-        self.assertEqual(parse_question("Who will win the final between A and B?"), "Who will win the final between A and B?")
-        self.assertEqual(parse_question('Question: "Who wins  Game 1?"'), "Who wins Game 1?")
-        self.assertEqual(parse_question("Yes.\nWhich party will win the most seats?"), "Which party will win the most seats?")
 
     def test_predictions_parse_from_json_or_a_bare_sentence(self):
         got = parse_prediction('{"prediction": "Japan will win.", "confidence": "high"}}', "A", "Who wins?")
@@ -115,28 +124,28 @@ class ChecksTest(unittest.TestCase):
                        {"text": "I predict that a major Ukrainian drone attack will take place."},
                        {"text": "I predict that someone will rob the Bank of America."}]
         out = screen(predictions, ["Yes", "No", "Yes", "No", "No"], [["President Trump"], [], ["Vladimir Putin"], [], []],
-                     ["Yes"] * 5, [["Bank of America"], [], [], [], ["Bank of America"]], clean(5), ["yes"] * 5, "")
+                     [["Bank of America"], [], [], [], ["Bank of America"]], [[["Yes", "No", "company"]], [], [], [], [["No", "yes.", "company"]]],
+                     clean(5), ["yes"] * 5, "")
         self.assertEqual([p["kept"] for p in out], [False, True, False, True, False])
-        self.assertIn("sensitive topic with a specific person or organization (by the topic question: President Trump; "
-                      "president; Bank of America)", out[0]["dropped_because"])  # the title counts too
-        self.assertEqual(out[4]["dropped_because"],
-                         ["sensitive topic with a specific person or organization (by the topic question: Bank of America)"])
-        # Outside those topics an organization is fine: parties win elections and teams win finals.
-        party = screen([{"text": "I predict that the PAM will win the most seats."}], ["No"], [[]], ["No"], [["PAM"]],
-                       clean(1), ["yes"], "")
-        self.assertTrue(party[0]["kept"])
+        self.assertEqual(out[0]["dropped_because"], ["names or points to a person (President Trump; president)",
+                                                     "harm to or by a specific organization (Bank of America)"])
+        self.assertEqual(out[4]["dropped_because"], ["harm to or by a specific organization (Bank of America)"])
+        # An organization is fine when nothing harmful happens to or by it: parties win elections, teams win finals.
+        party = [{"text": "I predict that the PAM will win the most seats."}]
+        self.assertTrue(screen(party, ["No"], [[]], [["PAM"]], [[["No.", "no", "party"]]], clean(1), ["yes"], "")[0]["kept"])
+        self.assertFalse(screen(party, ["No"], [[]], [["PAM"]], [[["No", "Possibly", "party"]]], clean(1), ["yes"], "")[0]["kept"])
 
     def test_people_and_quality_drops(self):
         one = [{"text": "I predict that Japan will top the medal table."}]
-        self.assertEqual(screen(one, ["Yes"], [[]], ["no"], [[]], ["no"], ["yes"], "")[0]["dropped_because"],
+        self.assertEqual(screen(one, ["Yes"], [[]], [[]], [[]], ["no"], ["yes"], "")[0]["dropped_because"],
                          ["names or points to a person"])
-        self.assertEqual(screen(one, ["no"], [["the president of France"]], ["no"], [[]], ["no"], ["yes"],
+        self.assertEqual(screen(one, ["no"], [["the president of France"]], [[]], [[]], ["no"], ["yes"],
                                 "")[0]["dropped_because"], ["names or points to a person (the president of France)"])
-        self.assertEqual(screen(one, ["no"], [[]], ["no"], [[]], ["Yes."], ["yes"], "")[0]["dropped_because"],
+        self.assertEqual(screen(one, ["no"], [[]], [[]], [[]], ["Yes."], ["yes"], "")[0]["dropped_because"],
                          ["the evidence already settles it"])
-        self.assertEqual(screen(one, ["no"], [[]], ["no"], [[]], ["no"], ["No."], "")[0]["dropped_because"],
+        self.assertEqual(screen(one, ["no"], [[]], [[]], [[]], ["no"], ["No."], "")[0]["dropped_because"],
                          ["not about its cited evidence"])
-        self.assertTrue(screen(one, ["no"], [[]], ["no"], [[]], ["no"], ["Unclear"], "")[0]["kept"])  # only a clear no drops
+        self.assertTrue(screen(one, ["no"], [[]], [[]], [[]], ["no"], ["Unclear"], "")[0]["kept"])  # only a clear no drops
 
     def test_copies_of_instruction_examples_and_repeats_are_dropped(self):
         instructions = ('A good one: {"question": "Who wins?", "prediction": "I predict that the Houston Astros will '
@@ -144,11 +153,11 @@ class ChecksTest(unittest.TestCase):
         predictions = [{"text": "I predict that the Houston Astros will beat the Chicago White Sox in Game 1."},
                        {"text": "I predict that Egypt will win the 2026 Men's African Nations Volleyball Championship."},
                        {"text": "I predict that Egypt will win the 2026 Men's African Nations Volleyball Championship!"}]
-        out = screen(predictions, clean(3), [[]] * 3, clean(3), [[]] * 3, clean(3), ["yes"] * 3, instructions)
+        out = screen(predictions, clean(3), [[]] * 3, [[]] * 3, [[]] * 3, clean(3), ["yes"] * 3, instructions)
         self.assertEqual([p["dropped_because"] for p in out],
                          [["copies an example from the instructions"], [], ["repeats an earlier prediction"]])
         # As on 2026-09-18: the first copy cites the wrong page, so the second one is the one kept.
-        twice = screen(predictions[1:], clean(2), [[]] * 2, clean(2), [[]] * 2, clean(2), ["No", "yes"], instructions)
+        twice = screen(predictions[1:], clean(2), [[]] * 2, [[]] * 2, [[]] * 2, clean(2), ["No", "yes"], instructions)
         self.assertEqual([p["dropped_because"] for p in twice], [["not about its cited evidence"], []])
 
     def test_the_novelty_check_sees_only_the_cited_evidence(self):
@@ -158,11 +167,22 @@ class ChecksTest(unittest.TestCase):
         self.assertTrue(already_known("Yes"))
         self.assertFalse(already_known("Probably"))  # a quality filter: only a clear yes drops
 
-    def test_a_sensitive_topic_by_word_or_by_question(self):
-        self.assertEqual(on_a_sensitive_topic("I predict that the trial will open.", "no"), ["trial"])
-        self.assertEqual(on_a_sensitive_topic("I predict that a major bank will be robbed.", "Yes."), ["by the topic question"])
-        self.assertEqual(on_a_sensitive_topic("I predict that Brazil will win the shootout.", "No"), [])
-        self.assertEqual(on_a_sensitive_topic("I predict that Brazil will win.", "Maybe"), [])  # only a clear yes
+    def test_harm_and_one_persons_contests(self):
+        self.assertFalse(harms([" No.", "no", "Company."]))  # harm done, harm suffered, the kind of organization
+        for answer in ("Yes", "Possibly", ""):  # a guardrail: anything but a clear no to both counts
+            self.assertTrue(harms(["no", answer, "company"]), answer)
+            self.assertTrue(harms([answer, "no", "company"]), answer)
+        self.assertTrue(harms(["No", "No", "Military"]))  # as for "the Israel Defense Forces will strike a hospital"
+        # By title or wording, whatever the model says: it called a Grand Prix a contest between teams.
+        self.assertTrue(one_persons_contest("2026 Azerbaijan Grand Prix", "Who will win the race?", "teams"))
+        self.assertTrue(one_persons_contest("Badminton at the 2026 Asian Games – Men's singles", "Which country wins gold?",
+                                            "teams"))
+        self.assertTrue(one_persons_contest("2026 Presidents Cup", "Who wins?", "individuals"))
+        self.assertTrue(one_persons_contest("2026 Presidents Cup", "Who wins?", "unsure"))  # not clearly teams
+        for answer in ("teams", "Parties.", "neither"):
+            self.assertFalse(one_persons_contest("2026 Presidents Cup", "Who wins the 2026 Presidents Cup?", answer))
+        self.assertFalse(one_persons_contest("2026 São Toméan parliamentary election", "Which party wins the most seats?",
+                                             "parties"))
         self.assertEqual(sensitive_words("Arrest, then a Trial and another trial"), ["arrest", "trial"])
 
     def test_who_counts_as_a_specific_person_or_organization(self):
@@ -178,7 +198,7 @@ class ChecksTest(unittest.TestCase):
         self.assertEqual(confirmed_people(["Someone", NO_ANSWER], ["athlete", ""]), ["Someone", NO_ANSWER])  # unclear: a person
         self.assertEqual(confirmed_orgs(["Bank of America", "Hamas", "Ukraine", "Moscow Oblast", "Manchester City", NO_ANSWER],
                                         ["organization", "Organization.", "country", "place", "team", ""]),
-                         ["Bank of America", "Hamas", "Manchester City", NO_ANSWER])
+                         ["Bank of America", "Hamas", "Manchester City"])
         self.assertEqual(confirmed_orgs(["Boeing"], ["company"]), ["Boeing"])  # not classed as anything else: counts
         self.assertEqual(person_roles("The defending champion beats the Coach and the coach"), ["defending champion", "coach"])
         self.assertEqual(person_roles("Malta will host the contest; the Lions win."), [])
@@ -188,7 +208,7 @@ class ChecksTest(unittest.TestCase):
         self.assertEqual(person_roles("The United States will win the 2026 Presidents Cup, Queens Park Rangers their "
                                       "match, and Mercedes the Drivers' Championship"), [])
         self.assertEqual(person_roles("The president's party wins the President's Cup"), ["president"])
-        dropped = screen([{"text": "I predict that the defending champion will win the darts."}], ["No"], [[]], ["no"],
+        dropped = screen([{"text": "I predict that the defending champion will win the darts."}], ["No"], [[]], [[]],
                          [[]], ["no"], ["yes"], "")
         self.assertEqual(dropped[0]["dropped_because"], ["names or points to a person (defending champion)"])
 

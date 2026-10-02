@@ -1,9 +1,18 @@
 """The prophet's instructions, and reading its answers back (PLAN.md §6 step 11).
 
 The prophet reads the day's pages (`evidence.py`) one at a time, in two steps:
-1. **The question** (QUESTION): is anything about the page's subject decided
-   on day D itself? The answer is the question D will settle, or "none".
-2. **The prediction** (PREDICTION), only for pages with a question: one
+1. **The question** (QUESTION), only for pages whose evidence dates something
+   to day D itself (`marked_today`: "[today]", "ends today", "starts today").
+   The model says what happens that day, then the main question it settles,
+   or "none".
+   - On 16 development page-days whose answers were known, asking every page
+     "is anything decided on D?" got "none" for all of them, finals
+     included. Saying first what happens that day found the right ones, but
+     also wrote questions for finals marked "[tomorrow]". Filtering in code
+     by the date marks got 14 of 16 right.
+   - A question about a contest one person wins is dropped
+     (`checks.one_persons_contest`): milestone 1 names no person.
+2. **The prediction** (PREDICTION), for each remaining question: one
    sentence beginning "I predict that", and a confidence.
 
 Why one page at a time:
@@ -48,11 +57,15 @@ PAGE = """Here is what a Wikipedia page said by the end of {yesterday}. Each dat
 
 QUESTION = PAGE + """
 
-Is anything about this subject decided on {day} itself? For example: a match or final played that day, votes counted, a result or decision announced, a storm reaching land, a launch or a release.
-- Only what is decided on {day}: not something still under way that ends later, not something on a later date, and not something already reported.
-- Its answer can't be a person: skip contests between individuals, such as races, singles matches, golf and boxing, and skip who gets a job or an award.
+What does the evidence say happens on {day} itself? Look for dates marked [today], or "ends today": a match or final played, votes cast or counted, a result or decision announced.
 
-If something is decided on {day}, write the question it answers, in one sentence ending with a question mark. If not, answer with the single word: none."""
+Answer in two lines:
+Today: what the evidence says happens on {day}, or nothing
+Question: the main question {day} will settle about it (who wins, what the result is, what is decided), or none
+
+The question can't be about something that ends on a later date."""
+TODAY_MARK = re.compile(r"\[(?:today|[^\]]*ends today|starts today[^\]]*)\]")
+NOTHING = ("nothing", "none", "no ", "there is nothing", "the evidence does not")
 
 PREDICTION = PAGE + """
 
@@ -87,12 +100,21 @@ def prediction_messages(day: date, block: str, question: str) -> list[dict]:
     return _chat(PREDICTION, day, block, question=question)
 
 
+def marked_today(block: str) -> bool:
+    """Whether a page's evidence dates anything to the day foretold: "[today]", "ends today" or "starts today"."""
+    return bool(TODAY_MARK.search(block))
+
+
 def parse_question(answer: str) -> str | None:
-    """The question in step 1's answer, or None if there's none: "none", or no line ending in "?"."""
+    """The question in step 1's answer: its "Question:" line, if that ends in "?". None if the "Today:"
+    line says nothing happens: the model sometimes writes a question anyway."""
     for line in answer.splitlines():
-        line = re.sub(r"^\W*(?:the )?question\s*:\s*", "", " ".join(line.split()), flags=re.IGNORECASE).strip('"“”* ')
-        if line.endswith("?"):
-            return line
+        label, _, rest = line.partition(":")
+        label, rest = label.strip().strip("*").lower(), " ".join(rest.split()).strip('"“”* ')
+        if label == "today" and rest.lower().startswith(NOTHING):
+            return None
+        if label == "question":
+            return rest if rest.endswith("?") else None
     return None
 
 

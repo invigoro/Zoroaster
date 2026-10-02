@@ -24,16 +24,31 @@ A prediction is dropped if any of these is true:
   - Except where one begins an event's or club's name (NAME_NOUNS):
     "the 2026 Presidents Cup" was dropped on 2026-09-27, though the
     United States team won it that day.
-- **It's about a war, a disaster or a crime, or anyone's death, health or
-  personal life, and names a specific person or organization** (decided
-  2026-10-01). "An important politician will rob a major bank" is kept;
-  "…will rob the Bank of America" is not.
-  - A prediction is on such a topic if it matches the never-published list
-    (`src/forecast/guardrails.py`) or TOPIC_QUESTION says a clear "yes". The
-    list alone misses "rob" and "killed", and a wider list would catch sports
-    talk ("attack", "shootout").
+- **Its question is about a contest one person wins** (`one_persons_contest`,
+  checked on the prophet's question before it predicts): a race, a singles
+  match, darts. "Red Bull will win the Azerbaijan Grand Prix" points to a
+  driver. The page's title or the question's wording can show it
+  (ONE_PERSON_EVENTS), and otherwise CONTEST_QUESTION must say teams,
+  parties or neither. The question alone called a Grand Prix a contest
+  between teams.
+- **It has a specific organization doing, suffering or accused of something
+  harmful**: a crime, an attack, a disaster, a scandal, a legal case (decided
+  2026-10-01). Wars, disasters and crime are fine in general terms: "an
+  important politician will rob a major bank" is kept, and "…will rob the Bank
+  of America" isn't. Specific people are dropped already, above.
   - Its organizations are listed (ORGS_QUESTION) and each one's kind asked
-    (KIND_QUESTION); countries, places and events don't count.
+    (KIND_QUESTION). Countries, places and events don't count.
+  - HARM_QUESTIONS then ask, for each organization or team, whether the
+    sentence has it doing harm, and whether it suffers harm or faces an
+    accusation. Anything but a clear "no" to both drops the prediction. Teams
+    winning finals and parties winning elections are kept.
+  - A named army or armed group always drops it: a prediction naming one is
+    about war, and the harm questions missed "the Israel Defense Forces will
+    strike a hospital".
+  - On known sentences, a general question ("is it about a war, a crime, a
+    disaster…?") said "no" to robbery and to "found guilty", and the
+    never-published list (`src/forecast/guardrails.py`) caught "team time
+    trial". So the question is about each organization.
 - **The evidence already settles it** (NOVELTY_QUESTION). The model sees only
   the cited pages' evidence, as of the end of the day before, and nothing
   from the day itself. This is a quality filter, so only a clear "yes" drops
@@ -52,8 +67,6 @@ A prediction is dropped if any of these is true:
 from __future__ import annotations
 
 import re
-
-from src.forecast.guardrails import sensitive_words
 
 PERSON_ROLES = re.compile(  # singular only: plurals are groups
     r"\b(?:incumbent|candidate|coach|manager|captain|president|prime minister|premier|minister|chancellor|governor|"
@@ -84,11 +97,30 @@ Sentence: {text}
 
 Answer with the people's names or roles, separated by semicolons, or with the single word: none."""
 
-TOPIC_QUESTION = """Is the sentence below about a war, an attack, a crime, a disaster or accident, or anyone's death, health or personal life?
+ONE_PERSON_EVENTS = re.compile(r"Grand Prix|\b[Ss]ingles\b|\b[Dd]oubles\b|[Mm]arathon|\bOpen\b|[Dd]arts|Night Race|"
+                               r"Formula (?:One|1|2|3|E)\b|NASCAR|IndyCar|MotoGP|[Bb]oxing|\bUFC\b|[Tt]ime trial|"
+                               r"[Rr]oad race|[Ii]ndividual|Masters|Ballon d'Or|\b[Aa]wards?\b|\b[Pp]rizes?\b")
+TEAM_CONTESTS = ("team", "part", "neither", "countr", "nation", "club", "side")
+
+CONTEST_QUESTION = """Who competes for the result the question below asks about? It's from the Wikipedia page "{title}".
+
+Question: {question}
+
+Answer with exactly one word: teams (clubs, national teams, a country's team, sides), parties, individuals (one person wins, as in a race, a singles or doubles match, golf strokeplay, darts or boxing, even if the question asks for their country or team), or neither."""
+
+HARM_QUESTIONS = (  # harm done, harm suffered, and the kind of organization: see harms()
+    """In the sentence below, does "{org}" attack, strike, fire on, kill, rob, cheat or otherwise harm anyone or anything?
 
 Sentence: {text}
 
-Answer with one word: yes or no."""
+Answer with one word: yes or no.""",
+    """In the sentence below, does "{org}" suffer something harmful, such as an attack, a robbery, a disaster or an accident, or face an accusation, a fine, charges or a guilty verdict?
+
+Sentence: {text}
+
+Answer with one word: yes or no.""",
+    """What kind of organization is "{org}"? Answer with exactly one word: military (an army, armed force or armed group), company, party, government, team, or other.""")
+MILITARY = ("military", "army", "armed")
 
 ORGS_QUESTION = """List every specific organization that the sentence below names or points to, such as a company, bank, political party, armed group, government body, army, team or club. Countries, cities, places, events, and general descriptions such as "a major bank", aren't specific organizations.
 
@@ -179,19 +211,32 @@ def person_roles(text: str) -> list[str]:
                               if not NAME_NOUNS.match(text, m.end()) and not GENERAL.search(text[:m.start()])))
 
 
-def topic_messages(text: str) -> list[dict]:
-    return [{"role": "user", "content": TOPIC_QUESTION.format(text=text)}]
+def contest_messages(title: str, question: str) -> list[dict]:
+    return [{"role": "user", "content": CONTEST_QUESTION.format(title=title, question=question)}]
+
+
+def one_persons_contest(title: str, question: str, answer: str) -> bool:
+    """Whether a question for the prophet is about a contest one person wins: its page's title or its own
+    wording says so (ONE_PERSON_EVENTS), or CONTEST_QUESTION's answer isn't clearly teams, parties or neither."""
+    return (bool(ONE_PERSON_EVENTS.search(title) or ONE_PERSON_EVENTS.search(question))
+            or not answer.strip().lower().startswith(TEAM_CONTESTS))
 
 
 def orgs_messages(text: str) -> list[dict]:
     return [{"role": "user", "content": ORGS_QUESTION.format(text=text)}]
 
 
-def on_a_sensitive_topic(text: str, topic_answer: str) -> list[str]:
-    """Why a prediction counts as being about a war, disaster, crime, death, health or personal life:
-    the never-published list's words, or else the topic question's clear "yes". Empty if it doesn't."""
-    words = sensitive_words(text)
-    return words or (["by the topic question"] if topic_answer.strip().lower().startswith("yes") else [])
+def harm_messages(text: str, org: str) -> list[list[dict]]:
+    """The harm questions about one organization in a prediction: harm it does, harm it suffers, its kind."""
+    return [[{"role": "user", "content": q.format(org=org, text=text)}] for q in HARM_QUESTIONS]
+
+
+def harms(answers: list[str]) -> bool:
+    """The harm questions' verdict on one organization: harm unless both harm questions get a clear "no".
+    And a named army or armed group always counts. On known sentences the harm questions missed
+    "the Israel Defense Forces will strike a hospital", and a prediction naming one is about war."""
+    done, suffered, kind = (a.strip().lower() for a in answers)
+    return not (done.startswith("no") and suffered.startswith("no")) or kind.startswith(MILITARY)
 
 
 NO_ANSWER = "(no answer)"  # an empty listing answer: an unknown person, never asked about
@@ -212,9 +257,9 @@ def confirmed_people(names: list[str], answers: list[str]) -> list[str]:
 
 def confirmed_orgs(names: list[str], answers: list[str]) -> list[str]:
     """The listed names that KIND_QUESTION didn't class as a person, country, place, event, work or other:
-    organizations and teams, and any it couldn't class. NO_ANSWER always counts."""
+    organizations and teams, and any it couldn't class. An empty listing answer names none."""
     return [n for n, a in zip(names, answers, strict=True)
-            if n == NO_ANSWER or not a.strip().strip(".").lower().startswith(NOT_ORG_KINDS)]
+            if n != NO_ANSWER and not a.strip().strip(".").lower().startswith(NOT_ORG_KINDS)]
 
 
 def already_known(answer: str) -> bool:
@@ -222,16 +267,18 @@ def already_known(answer: str) -> bool:
     return answer.strip().lower().startswith("yes")
 
 
-def screen(predictions: list[dict], person_answers: list[str], people: list[list[str]], topic_answers: list[str],
-           orgs: list[list[str]], novelty_answers: list[str], grounded_answers: list[str], instructions: str) -> list[dict]:
+def screen(predictions: list[dict], person_answers: list[str], people: list[list[str]], orgs: list[list[str]],
+           harm_answers: list[list[str]], novelty_answers: list[str], grounded_answers: list[str],
+           instructions: str) -> list[dict]:
     """Each prediction with `kept`, and the reasons it was dropped.
     - `people`: each prediction's listed names confirmed as people (`confirmed_people`);
-    - `orgs`: for predictions on a sensitive topic, the listed names confirmed as organizations (`confirmed_orgs`).
+    - `orgs`: its listed names confirmed as organizations (`confirmed_orgs`), and `harm_answers` the harm
+      questions' answers for each of them.
     A prediction that passes every other check is dropped if it repeats one kept earlier."""
     examples = instruction_examples(instructions)
     out, kept = [], []
-    for prediction, person, named, topic, org, novelty, grounded in zip(
-            predictions, person_answers, people, topic_answers, orgs, novelty_answers, grounded_answers, strict=True):
+    for prediction, person, named, org, harm, novelty, grounded in zip(
+            predictions, person_answers, people, orgs, harm_answers, novelty_answers, grounded_answers, strict=True):
         reasons = []
         if copies_an_example(prediction["text"], examples):
             reasons.append("copies an example from the instructions")
@@ -240,10 +287,9 @@ def screen(predictions: list[dict], person_answers: list[str], people: list[list
             reasons.append(f"names or points to a person ({'; '.join([*named, *roles])})")
         elif names_a_person(person):
             reasons.append("names or points to a person")
-        sensitive = on_a_sensitive_topic(prediction["text"], topic)
-        if sensitive and (named or roles or org):
-            reasons.append(f"sensitive topic with a specific person or organization ({', '.join(sensitive)}: "
-                           f"{'; '.join([*named, *roles, *org])})")
+        harmed = [o for o, a in zip(org, harm, strict=True) if harms(a)]
+        if harmed:
+            reasons.append(f"harm to or by a specific organization ({'; '.join(harmed)})")
         if already_known(novelty):
             reasons.append(SETTLED)
         if not_grounded(grounded):
@@ -253,6 +299,7 @@ def screen(predictions: list[dict], person_answers: list[str], people: list[list
         if not reasons:
             kept.append(prediction["text"])
         out.append(prediction | {"kept": not reasons, "dropped_because": reasons, "person_check": person.strip(),
-                                 "people_named": named, "topic_check": topic.strip(), "sensitive": sensitive,
-                                 "orgs_named": org, "novelty_check": novelty.strip(), "grounded_check": grounded.strip()})
+                                 "people_named": named, "orgs_named": org,
+                                 "harm_check": [[a.strip() for a in answers] for answers in harm],
+                                 "novelty_check": novelty.strip(), "grounded_check": grounded.strip()})
     return out
