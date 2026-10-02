@@ -2,8 +2,14 @@
 
 The rubric is the same for the local judge and for the hand grades:
 - **outcome:** whether the prediction had come true by the end of the day:
-  "happened" (as stated), "partly", "did not happen", or "unknown" (the
-  evidence doesn't say).
+  "happened" (as stated), "partly", "did not happen", "not possible", or
+  "unknown" (the evidence doesn't say).
+  - "Not possible" (added by the user, 2026-10-02): it couldn't have come
+    true as stated, whatever happened. It contradicts itself or the rules
+    (both sides of one match winning, a 10–6 record in a 17-game season,
+    more seats than the house has), or it's about a match that wasn't on.
+    It takes precedence over "partly": "India and Japan win their matches",
+    on a day they played each other, isn't partly right because India won.
   - A prediction about something that comes only later, such as a final
     played after the day, counts as "did not happen".
   - One that had come true before the day counts as "happened", and
@@ -26,8 +32,8 @@ The rubric is the same for the local judge and for the hand grades:
   years before these days. The prophet's instructions forbid that (rule 5).
 
 `credit` is 0 if already known, whatever the outcome. Otherwise it's the
-outcome's points (happened 2, partly 1, did not happen 0) times
-specificity, divided by 4. An unknown outcome that wasn't already known
+outcome's points (happened 2, partly 1, did not happen or not possible 0)
+times specificity, divided by 4. An unknown outcome that wasn't already known
 isn't counted.
 
 Each prediction's evidence (`pack`):
@@ -48,8 +54,8 @@ from src.prophecy.checks import QUALITY_REASONS
 from src.prophecy.evidence import clean_line
 from src.prophecy.prophet import _objects
 
-OUTCOMES = ("happened", "partly", "did not happen", "unknown")
-POINTS = {"happened": 2, "partly": 1, "did not happen": 0}
+OUTCOMES = ("happened", "partly", "did not happen", "not possible", "unknown")
+POINTS = {"happened": 2, "partly": 1, "did not happen": 0, "not possible": 0}
 NEW_TEXT_CHARS = 900
 LINE_CHARS = 220
 LINES_SHOWN = 8
@@ -57,7 +63,7 @@ LINES_SHOWN = 8
 JUDGE_SYSTEM = """You grade predictions against what actually happened. Use only the evidence given; your own knowledge ends years before these dates.
 
 Grade each prediction on four things:
-1. outcome: whether it had come true by the end of the day. "happened" if it had, as stated; "partly" if part of it had; "did not happen" if it hadn't, including when what it predicts comes only later (a final played after that day); "unknown" if the evidence doesn't say.
+1. outcome: whether it had come true by the end of the day. "happened" if it had, as stated; "partly" if part of it had; "did not happen" if it hadn't, including when what it predicts comes only later (a final played after that day); "not possible" if it couldn't have come true as stated, whatever happened: it contradicts itself or the rules (both sides of one match winning, a score or record the rules don't allow) or is about a match that wasn't on, even if part of it came true; "unknown" if the evidence doesn't say.
 2. already_known: true if it was known by the end of the day before: the evidence from then already reported or settled it (a date, venue, line-up, schedule or result already known, or a match already played), false if not.
 3. specificity: 0 if vague ("news about X will continue"), 1 if it names an outcome without detail ("X will win"), 2 if it names a precise result, score or number ("X will beat Y 3-1").
 4. grounded: false if it is about something other than its cited evidence, picks a team, party or other participant the evidence never mentions, or predicts for that day something the evidence says comes later; otherwise true.

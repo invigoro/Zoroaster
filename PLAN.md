@@ -755,14 +755,21 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
         line without a year dated the BC election to the day.
     - **Run 7's 26 draft grades** (25 kept, one dropped by the novelty
       check; `grades_run7/`, on the review page for the user to confirm):
-      - Kept predictions average 0.214 credit, against the first
-        prophet's 0.078. 10 of the 21 scored earn credit, against 3 of 16.
-      - Outcomes: 9 happened, 4 partly, 8 didn't, 4 unknown; 4 were
-        already known.
-      - The misses are now mostly misreadings, not timing. Two paired
+      - Kept predictions average 0.193 credit, against the first
+        prophet's 0.078. 9 of the 22 scored earn credit, against 3 of 16.
+      - Outcomes of the 25 kept: 9 happened, 3 partly, 6 didn't, 4 not
+        possible, 3 unknown; 4 were already known.
+      - The misses are now mostly misreadings, not timing. Three paired
         teams that weren't playing each other ("Serbia beats Germany",
-        "Czech Republic beats Spain"). Two came a day late ("the Braves win
-        Game 1" the day after Game 1).
+        "Czech Republic beats Spain"), and one had both sides of a match
+        winning. Two came a day late ("the Braves win Game 1" the day after
+        Game 1).
+      - **"Not possible", a new outcome** (the user, 2026-10-02): it
+        couldn't have come true as stated, whatever happened. It
+        contradicts itself or the rules, or is about a match that wasn't on.
+        It scores 0 but counts, unlike "unknown", and it takes precedence
+        over "partly". "India and Japan win their matches", on a day they
+        played each other, had been graded partly right because India won.
       - Where a card can't show a result, a later day's evidence decides
         it, and the draft says so. Bracket cards showed no teams until the
         cleaner kept flag templates' country codes (`evidence.clean_line`).

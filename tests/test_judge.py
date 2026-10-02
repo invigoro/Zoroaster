@@ -41,6 +41,8 @@ class JudgeTest(unittest.TestCase):
         self.assertEqual(credit(grade | {"specificity": 2}), 1.0)
         self.assertEqual(credit(grade | {"already_known": True}), 0.0)
         self.assertEqual(credit(grade | {"outcome": "partly"}), 0.25)
+        self.assertEqual(credit(grade | {"outcome": "not possible", "specificity": 2}), 0.0)  # scored, unlike unknown
+        self.assertEqual(parse_grade('{"outcome": "not possible", "specificity": 1}')["outcome"], "not possible")
         self.assertIsNone(credit(grade | {"outcome": "unknown"}))
         # An election already held: settled before the day, even if the pack doesn't say who won.
         self.assertEqual(credit(grade | {"outcome": "unknown", "already_known": True}), 0.0)
