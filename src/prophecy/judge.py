@@ -42,16 +42,11 @@ Each prediction's evidence (`pack`):
 from __future__ import annotations
 
 import json
-import re
 
 from src.forecast.metrics import main_sections
 from src.prophecy.checks import QUALITY_REASONS
+from src.prophecy.evidence import clean_line
 from src.prophecy.prophet import _objects
-
-LINK = re.compile(r"\[\[(?:[^\]|]*\|)?([^\]]*)\]\]")
-REF = re.compile(r"<ref[^>]*/>|<ref[^>]*>.*?</ref>", re.DOTALL)
-TEMPLATE = re.compile(r"\{\{[^{}]*\}\}")
-TAG = re.compile(r"<[^>]+>")
 
 OUTCOMES = ("happened", "partly", "did not happen", "unknown")
 POINTS = {"happened": 2, "partly": 1, "did not happen": 0}
@@ -73,16 +68,6 @@ Answer with only a JSON object: {"outcome": "...", "already_known": true or fals
 def _cut(text: str, max_chars: int) -> str:
     text = " ".join(text.split())
     return text if len(text) <= max_chars else text[:max_chars].rsplit(" ", 1)[0] + " …"
-
-
-def clean_line(text: str) -> str:
-    """A changed line, readable. Unlike `stage2.wikitext.plain_text`, it keeps
-    infobox fields ("| champion = …"), which is where results often go."""
-    text = REF.sub("", text)
-    for _ in range(3):  # nested templates, innermost first
-        text = TEMPLATE.sub("", text)
-    text = TAG.sub("", LINK.sub(r"\1", text)).replace("'''", "").replace("''", "")
-    return " ".join(text.strip().lstrip("|!").split())
 
 
 def diff_url(row: dict) -> str | None:

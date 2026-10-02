@@ -17,6 +17,12 @@ for example "will be played on October 4 [in 4 days]". On the development
 days 41 of 47 missed predictions named a result due after the day. In 27 of
 those the lead gave the date, but the model didn't work out that it was
 later. Now the code does that arithmetic.
+
+**Lines of the page dated to the day itself** (`dated_lines`): schedule rows,
+fixtures, an event's last day. Leads give an event's dates, but a day's own
+matches are in its tables. On the development days 13 of 274 page-days'
+evidence dated anything to the day, from the lead and yesterday's text
+alone; 80 pages' text named the day's date somewhere.
 """
 
 from __future__ import annotations
@@ -62,6 +68,18 @@ TOP = 20
 LEAD_CHARS = 900  # the prophet reads one page at a time (prophet.py), so it has room for most of a lead
 NEW_TEXT_CHARS = 600
 NEIGHBORS_SHOWN = 6
+DATED_LINES, DATED_LINE_CHARS = 4, 160
+
+LINK = re.compile(r"\[\[(?:[^\]|]*\|)?([^\]]*)\]\]")
+REF = re.compile(r"<ref[^>]*/>|<ref[^>]*>.*?</ref>", re.DOTALL)
+DATE_TEMPLATE = re.compile(r"\{\{\s*(?:start date|end date|start date and age|end date and age|film date|dts)\s*\|"
+                           r"(?:\s*[a-z]+\s*=[^|{}]*\|)*\s*(\d{4})\s*\|\s*(\d{1,2})\s*\|\s*(\d{1,2})[^{}]*\}\}",
+                           re.IGNORECASE)
+SHORT_TEMPLATE = re.compile(r"\{\{\s*[\w -]+\|\s*([^{}|=]{1,30}?)\s*\}\}")  # {{flag|Japan}}, {{fb|JPN}}
+TEMPLATE = re.compile(r"\{\{[^{}]*\}\}")
+TAG = re.compile(r"<[^>]+>")
+DATE_FIELD = re.compile(r"\s*\|\s*date\s*=", re.IGNORECASE)  # a fixture box's date: its teams follow
+FIELD_LINES = 5
 
 
 def _cut(text: str, max_chars: int) -> str:
@@ -127,6 +145,44 @@ def relative(first: date, last: date, day: date) -> str:
     return f"starts today, {ends}" if first == day else f"under way, {ends}"
 
 
+def _date_template(m: re.Match) -> str:
+    year, month, day_of_month = m.groups()
+    return f"{int(day_of_month)} {MONTHS[int(month) - 1]} {year}" if 1 <= int(month) <= 12 else ""
+
+
+def clean_line(text: str) -> str:
+    """A line of wikitext, readable. Unlike `stage2.wikitext.plain_text`, it keeps infobox fields
+    ("| champion = …"), where results often go, and short template arguments ({{fb|JPN}} → JPN), and
+    writes date templates out ({{Start date|2026|9|24}} → 24 September 2026). Table cells are joined with " · "."""
+    text = DATE_TEMPLATE.sub(_date_template, REF.sub("", text))
+    for _ in range(3):  # nested templates, innermost first
+        text = TEMPLATE.sub("", SHORT_TEMPLATE.sub(r"\1", text))
+    text = TAG.sub("", LINK.sub(r"\1", text)).replace("'''", "").replace("''", "")
+    text = text.strip().lstrip("|!").replace("||", " · ").replace("!!", " · ")
+    return " ".join(text.split())
+
+
+def _is_the_day(text: str, day: date) -> bool:
+    """Whether `text` names `day` itself as a date, or as the first or last day of a span."""
+    return any(span and day in span for p in DATE_PATTERNS for span in (_span(m, day) for m in p.finditer(text)))
+
+
+def dated_lines(page_text: str, day: date) -> list[str]:
+    """The page's lines, as it stood the day before, that date something to `day` itself: schedule rows,
+    fixtures, an event's first or last day. A fixture box's date field brings the lines after it, its teams."""
+    lines, found = page_text.splitlines(), []
+    for i, line in enumerate(lines):
+        if str(day.day) not in line or not _is_the_day(clean_line(line), day):
+            continue
+        part = lines[i : i + FIELD_LINES] if DATE_FIELD.match(line) else [line]
+        text = _cut(" · ".join(t for t in (clean_line(p).strip("{}| ") for p in part) if t), DATED_LINE_CHARS)
+        if text and text not in found:
+            found.append(text)
+        if len(found) == DATED_LINES:
+            break
+    return found
+
+
 def mark_dates(text: str, day: date) -> str:
     """`text` with each date it names followed by when that is relative to `day`, the day
     being foretold: "played on October 4 [in 4 days]"."""
@@ -159,7 +215,7 @@ def eligible(rows: list[dict], top: int = TOP, people: bool = False) -> list[dic
 
 def page_block(number: int, row: dict, forecast: dict | None) -> str:
     """One page's evidence, numbered for citation, with its dates marked relative to the page-day.
-    Only what was known by the end of the day before: the lead and yesterday's change."""
+    Only what was known by the end of the day before: the page then, and yesterday's change."""
     day = row["date"]
     burst = ", a burst" if row["is_burst_1d"] else ""
     lines = [f"[{number}] {_title(row['page_title'])} (ranked {row['rank']} for bursting today)",
@@ -174,6 +230,9 @@ def page_block(number: int, row: dict, forecast: dict | None) -> str:
         if row["yesterday_prose"]:
             change += f'. New text: "{_cut(mark_dates(row["yesterday_prose"], day), NEW_TEXT_CHARS)}"'
         lines.append(change)
+    dated = dated_lines(row.get("page_text") or "", day)
+    if dated:
+        lines.append("Dated today on the page: " + " | ".join(mark_dates(d, day) for d in dated))
     if row["bursting_neighbors"]:
         lines.append("Linked pages that burst yesterday: "
                      + "; ".join(_title(t) for t in row["bursting_neighbors"][:NEIGHBORS_SHOWN]))

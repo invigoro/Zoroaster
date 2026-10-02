@@ -14,6 +14,12 @@ The prophet reads the day's pages (`evidence.py`) one at a time, in two steps:
      (`checks.one_persons_contest`): milestone 1 names no person.
 2. **The prediction** (PREDICTION), for each remaining question: one
    sentence beginning "I predict that", and a confidence.
+   - In the first per-page run, "a general description such as 'an
+     important politician'" spilled over to teams ("an important team will
+     win the gold medal"), and asking for "the result, the number" gave
+     three Wild Card games the same score, 5–3. So the prediction names the
+     teams, countries or parties, and gives a number only if the evidence
+     gives a reason for one.
 
 Why one page at a time:
 - **Timing.** In the development days' first runs, a single call over all 20
@@ -73,9 +79,10 @@ The question {day} will answer: {question}
 
 Answer it with one prediction, using only this evidence.
 - One sentence beginning "I predict that", about this page's subject.
-- Be specific (who wins, the result, the number), but don't restate what the evidence already reports, and keep it possible.
-- Name no specific person, living or dead, and don't point to one by a title or role. General descriptions, such as "an important politician", are fine.
-- Wars, disasters and crime are fine in general terms, but never about a specific person or a named organization (a company, party, armed group, government body or team).
+- Answer the question directly: who wins, what the result is, or what is decided. Name the teams, countries or parties involved.
+- Give a score or number only if the evidence gives a reason for one. Don't restate what the evidence already reports, and keep it possible.
+- Name no specific person, living or dead, and don't point to one by a title or role. A general description of a person, such as "an important politician", is fine.
+- Wars, disasters and crime are fine in general terms, but name no organization in them: no company, party, armed group, government body or team. Countries and places are fine.
 - Nothing about anyone's health or personal life.
 
 Answer with only a JSON object: {{"prediction": "I predict that ...", "confidence": "low", "medium" or "high"}}"""

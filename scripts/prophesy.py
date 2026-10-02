@@ -18,7 +18,6 @@ PLAN.md §6 step 11. For each day:
    - specific people, and harm done to, by or alleged of a specific
      organization;
    - whether the evidence already settles the prediction;
-   - whether the prediction is about its cited evidence at all;
    - copies of example sentences in the instructions, and repeats.
 
 Writes `data/processed/enwiki/v3/prophecies/D.json` with each page's question,
@@ -46,9 +45,9 @@ import pyarrow.parquet as pq
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 from scripts.build_v3_days import V3_DIR
-from src.prophecy.checks import (NO_ANSWER, confirmed_orgs, confirmed_people, contest_messages, grounded_messages,
-                                 harm_messages, kind_messages, listed_names, novelty_messages, one_persons_contest,
-                                 orgs_messages, people_messages, person_messages, screen)
+from src.prophecy.checks import (NO_ANSWER, confirmed_orgs, confirmed_people, contest_messages, harm_messages,
+                                 kind_messages, listed_names, novelty_messages, one_persons_contest, orgs_messages,
+                                 people_messages, person_messages, screen)
 from src.prophecy.evidence import eligible, evidence_blocks
 from src.prophecy.prophet import (PREDICTION, QUESTION, marked_today, parse_prediction, parse_question, prediction_messages,
                                   question_messages)
@@ -125,8 +124,7 @@ def check(model, tokenizer, predictions: list[dict], by_title: dict[str, str], i
     harm_said = iter(ask([chat for t, os in zip(texts, orgs) for o in os for chat in harm_messages(t, o)], YES_NO_TOKENS))
     harm = [[[next(harm_said) for _ in range(questions_per_org)] for _ in os] for os in orgs]
     novelty = ask([novelty_messages(t, c) for t, c in zip(texts, cited)], YES_NO_TOKENS)
-    grounded = ask([grounded_messages(t, c) for t, c in zip(texts, cited)], YES_NO_TOKENS)
-    screened = screen(predictions, person, confirmed, orgs, harm, novelty, grounded, instructions)
+    screened = screen(predictions, person, confirmed, orgs, harm, novelty, instructions)
     return [s | {"people_check": p.strip(), "orgs_check": o.strip()} for s, p, o in zip(screened, people, orgs_answers)]
 
 

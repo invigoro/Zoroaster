@@ -53,9 +53,13 @@ A prediction is dropped if any of these is true:
   the cited pages' evidence, as of the end of the day before, and nothing
   from the day itself. This is a quality filter, so only a clear "yes" drops
   a prediction.
-- **It isn't about its cited evidence** (GROUNDED_QUESTION), on the same
-  evidence. Only a clear "no" drops it. One run predicted a baseball game
-  from a fitness-race page.
+- **No longer checked: whether it's about its cited evidence** (NOT_GROUNDED,
+  still in older records). One single-call run predicted a baseball game
+  from a fitness-race page. But the question dropped 49 of 81 predictions,
+  agreeing with the hand grades 51 times in 68. In the first per-page run it
+  dropped 4 of 9, all on topic ("the Padres will win Game 2" from the Wild
+  Card Series). Each prediction is now written from its one page, which
+  rules out the mix-up it guarded against.
 - **It copies an example sentence from the instructions it was made with,
   or repeats an earlier prediction that day.** Both are word overlap, with
   no model involved.
@@ -139,14 +143,6 @@ A prediction about the next day: {text}
 Does the evidence above already report or settle what this prediction says, for example a date, venue, line-up, schedule or result that is already known? Answer with one word: yes or no."""
 
 
-GROUNDED_QUESTION = """Here is the evidence a prediction cites, as known by the end of the day before:
-
-{evidence}
-
-The prediction, about the next day: {text}
-
-Is the prediction about the event or subject in this evidence, with the evidence giving a reason to make it? Answer with one word: yes or no."""
-
 
 def _words(text: str) -> set[str]:
     return set(WORD.findall(text.lower())) - FILLER
@@ -170,16 +166,6 @@ def copies_an_example(text: str, examples: list[str]) -> bool:
 def repeats(text: str, earlier: list[str]) -> bool:
     """Whether `text` says nearly the same as one of `earlier`."""
     return any(overlap(text, e) >= REPEAT_OVERLAP for e in earlier)
-
-
-def grounded_messages(text: str, cited_blocks: list[str]) -> list[dict]:
-    evidence = "\n\n".join(cited_blocks) or "(no pages cited)"
-    return [{"role": "user", "content": GROUNDED_QUESTION.format(evidence=evidence, text=text)}]
-
-
-def not_grounded(answer: str) -> bool:
-    """The grounding check's verdict: only a clear "no" counts."""
-    return answer.strip().lower().startswith("no")
 
 
 def person_messages(text: str) -> list[dict]:
@@ -268,8 +254,7 @@ def already_known(answer: str) -> bool:
 
 
 def screen(predictions: list[dict], person_answers: list[str], people: list[list[str]], orgs: list[list[str]],
-           harm_answers: list[list[str]], novelty_answers: list[str], grounded_answers: list[str],
-           instructions: str) -> list[dict]:
+           harm_answers: list[list[str]], novelty_answers: list[str], instructions: str) -> list[dict]:
     """Each prediction with `kept`, and the reasons it was dropped.
     - `people`: each prediction's listed names confirmed as people (`confirmed_people`);
     - `orgs`: its listed names confirmed as organizations (`confirmed_orgs`), and `harm_answers` the harm
@@ -277,8 +262,8 @@ def screen(predictions: list[dict], person_answers: list[str], people: list[list
     A prediction that passes every other check is dropped if it repeats one kept earlier."""
     examples = instruction_examples(instructions)
     out, kept = [], []
-    for prediction, person, named, org, harm, novelty, grounded in zip(
-            predictions, person_answers, people, orgs, harm_answers, novelty_answers, grounded_answers, strict=True):
+    for prediction, person, named, org, harm, novelty in zip(
+            predictions, person_answers, people, orgs, harm_answers, novelty_answers, strict=True):
         reasons = []
         if copies_an_example(prediction["text"], examples):
             reasons.append("copies an example from the instructions")
@@ -292,8 +277,6 @@ def screen(predictions: list[dict], person_answers: list[str], people: list[list
             reasons.append(f"harm to or by a specific organization ({'; '.join(harmed)})")
         if already_known(novelty):
             reasons.append(SETTLED)
-        if not_grounded(grounded):
-            reasons.append(NOT_GROUNDED)
         if not reasons and repeats(prediction["text"], kept):
             reasons.append("repeats an earlier prediction")
         if not reasons:
@@ -301,5 +284,5 @@ def screen(predictions: list[dict], person_answers: list[str], people: list[list
         out.append(prediction | {"kept": not reasons, "dropped_because": reasons, "person_check": person.strip(),
                                  "people_named": named, "orgs_named": org,
                                  "harm_check": [[a.strip() for a in answers] for answers in harm],
-                                 "novelty_check": novelty.strip(), "grounded_check": grounded.strip()})
+                                 "novelty_check": novelty.strip()})
     return out

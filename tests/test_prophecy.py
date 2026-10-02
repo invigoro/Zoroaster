@@ -4,7 +4,7 @@ from datetime import date
 from src.forecast.guardrails import sensitive_words
 from src.prophecy.checks import (NO_ANSWER, already_known, confirmed_orgs, confirmed_people, harms, listed_names,
                                  names_a_person, novelty_messages, one_persons_contest, person_roles, screen)
-from src.prophecy.evidence import eligible, evidence_text, is_biography, mark_dates, page_block
+from src.prophecy.evidence import clean_line, dated_lines, eligible, evidence_text, is_biography, mark_dates, page_block
 from src.prophecy.prophet import (marked_today, normalize, parse_prediction, parse_question, prediction_messages,
                                   question_messages)
 
@@ -77,6 +77,20 @@ class EvidenceTest(unittest.TestCase):
         self.assertEqual(mark_dates(unmarked, day), unmarked)
         self.assertIn("4 October [in 4 days]", page_block(1, ROW | {"lead": "The final is on 4 October."}, None))
 
+    def test_lines_dated_today_come_from_the_page_as_it_stood(self):
+        day = date(2026, 9, 24)
+        page = "\n".join(["It began on 20 September.", "{| class=wikitable",
+                          "| 24 September || Thursday || 15:00 || Gold medal match", "| 25 September || Friday || Closing",
+                          "{{Football box", "|date = {{Start date|2026|9|24}}", "|team1 = {{fb|JPN}}", "|score = v",
+                          "|team2 = {{fb|KOR}}", "}}", "On 24 September 2022 the last final was played."])
+        self.assertEqual(dated_lines(page, day), ["24 September · Thursday · 15:00 · Gold medal match",
+                                                  "date = 24 September 2026 · team1 = JPN · score = v · team2 = KOR"])
+        block = page_block(1, ROW | {"date": day, "lead": "No dates.", "page_text": page}, None)
+        self.assertIn("Dated today on the page: 24 September [today] · Thursday", block)
+        self.assertTrue(marked_today(block))
+        self.assertEqual(clean_line("| winner = [[Japan national team|Japan]] {{flagicon|JPN}}<ref>x</ref>"),
+                         "winner = Japan JPN")
+
 
 class ProphetTest(unittest.TestCase):
     def test_both_steps_name_the_day_and_the_evidence_comes_from_the_day_before(self):
@@ -125,27 +139,25 @@ class ChecksTest(unittest.TestCase):
                        {"text": "I predict that someone will rob the Bank of America."}]
         out = screen(predictions, ["Yes", "No", "Yes", "No", "No"], [["President Trump"], [], ["Vladimir Putin"], [], []],
                      [["Bank of America"], [], [], [], ["Bank of America"]], [[["Yes", "No", "company"]], [], [], [], [["No", "yes.", "company"]]],
-                     clean(5), ["yes"] * 5, "")
+                     clean(5), "")
         self.assertEqual([p["kept"] for p in out], [False, True, False, True, False])
         self.assertEqual(out[0]["dropped_because"], ["names or points to a person (President Trump; president)",
                                                      "harm to or by a specific organization (Bank of America)"])
         self.assertEqual(out[4]["dropped_because"], ["harm to or by a specific organization (Bank of America)"])
         # An organization is fine when nothing harmful happens to or by it: parties win elections, teams win finals.
         party = [{"text": "I predict that the PAM will win the most seats."}]
-        self.assertTrue(screen(party, ["No"], [[]], [["PAM"]], [[["No.", "no", "party"]]], clean(1), ["yes"], "")[0]["kept"])
-        self.assertFalse(screen(party, ["No"], [[]], [["PAM"]], [[["No", "Possibly", "party"]]], clean(1), ["yes"], "")[0]["kept"])
+        self.assertTrue(screen(party, ["No"], [[]], [["PAM"]], [[["No.", "no", "party"]]], clean(1), "")[0]["kept"])
+        self.assertFalse(screen(party, ["No"], [[]], [["PAM"]], [[["No", "Possibly", "party"]]], clean(1), "")[0]["kept"])
 
     def test_people_and_quality_drops(self):
         one = [{"text": "I predict that Japan will top the medal table."}]
-        self.assertEqual(screen(one, ["Yes"], [[]], [[]], [[]], ["no"], ["yes"], "")[0]["dropped_because"],
+        self.assertEqual(screen(one, ["Yes"], [[]], [[]], [[]], ["no"], "")[0]["dropped_because"],
                          ["names or points to a person"])
-        self.assertEqual(screen(one, ["no"], [["the president of France"]], [[]], [[]], ["no"], ["yes"],
-                                "")[0]["dropped_because"], ["names or points to a person (the president of France)"])
-        self.assertEqual(screen(one, ["no"], [[]], [[]], [[]], ["Yes."], ["yes"], "")[0]["dropped_because"],
+        self.assertEqual(screen(one, ["no"], [["the president of France"]], [[]], [[]], ["no"], "")[0]["dropped_because"],
+                         ["names or points to a person (the president of France)"])
+        self.assertEqual(screen(one, ["no"], [[]], [[]], [[]], ["Yes."], "")[0]["dropped_because"],
                          ["the evidence already settles it"])
-        self.assertEqual(screen(one, ["no"], [[]], [[]], [[]], ["no"], ["No."], "")[0]["dropped_because"],
-                         ["not about its cited evidence"])
-        self.assertTrue(screen(one, ["no"], [[]], [[]], [[]], ["no"], ["Unclear"], "")[0]["kept"])  # only a clear no drops
+        self.assertTrue(screen(one, ["no"], [[]], [[]], [[]], ["Probably"], "")[0]["kept"])  # only a clear yes drops
 
     def test_copies_of_instruction_examples_and_repeats_are_dropped(self):
         instructions = ('A good one: {"question": "Who wins?", "prediction": "I predict that the Houston Astros will '
@@ -153,12 +165,12 @@ class ChecksTest(unittest.TestCase):
         predictions = [{"text": "I predict that the Houston Astros will beat the Chicago White Sox in Game 1."},
                        {"text": "I predict that Egypt will win the 2026 Men's African Nations Volleyball Championship."},
                        {"text": "I predict that Egypt will win the 2026 Men's African Nations Volleyball Championship!"}]
-        out = screen(predictions, clean(3), [[]] * 3, [[]] * 3, [[]] * 3, clean(3), ["yes"] * 3, instructions)
+        out = screen(predictions, clean(3), [[]] * 3, [[]] * 3, [[]] * 3, clean(3), instructions)
         self.assertEqual([p["dropped_because"] for p in out],
                          [["copies an example from the instructions"], [], ["repeats an earlier prediction"]])
-        # As on 2026-09-18: the first copy cites the wrong page, so the second one is the one kept.
-        twice = screen(predictions[1:], clean(2), [[]] * 2, [[]] * 2, [[]] * 2, clean(2), ["No", "yes"], instructions)
-        self.assertEqual([p["dropped_because"] for p in twice], [["not about its cited evidence"], []])
+        # As on 2026-09-18, when the first copy cited the wrong page: when it's dropped, the second is the one kept.
+        twice = screen(predictions[1:], clean(2), [[]] * 2, [[]] * 2, [[]] * 2, ["Yes.", "no"], instructions)
+        self.assertEqual([p["dropped_because"] for p in twice], [["the evidence already settles it"], []])
 
     def test_the_novelty_check_sees_only_the_cited_evidence(self):
         chat = novelty_messages("I predict that it is held in Okazaki.", ["[3] Volleyball ... in Okazaki"])
@@ -209,7 +221,7 @@ class ChecksTest(unittest.TestCase):
                                       "match, and Mercedes the Drivers' Championship"), [])
         self.assertEqual(person_roles("The president's party wins the President's Cup"), ["president"])
         dropped = screen([{"text": "I predict that the defending champion will win the darts."}], ["No"], [[]], [[]],
-                         [[]], ["no"], ["yes"], "")
+                         [[]], ["no"], "")
         self.assertEqual(dropped[0]["dropped_because"], ["names or points to a person (defending champion)"])
 
 

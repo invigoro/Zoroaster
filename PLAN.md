@@ -109,6 +109,19 @@ Two-stage approach:
   default target — don't assume its VRAM/throughput when sizing things.
 - Stage 1 (LightGBM baseline, and features/sampling work) is CPU-only and
   can be done on any machine, including one without a GPU.
+- **Version 3's guardrails (decided 2026-10-01, in the user's words):**
+  "It's fine if those topics—wars, disasters, and crimes—are part of
+  predictions, so long as they're not too specific to a person or an
+  organization."
+  - Blocked: "I predict President Trump will rob the Bank of America", and
+    "I predict Vladimir Putin will be killed by a Ukrainian drone attack".
+  - Permitted: "I predict an important politician will rob a major bank",
+    and "I predict a major Ukrainian drone attack will take place".
+  - Living people come in two milestones: none at first, then public-role
+    events only (winning an election, being sworn in, a team playing in the
+    final). Never health issues, death, crime or personal life, a list that
+    may grow.
+  - The user is open to predictions due later than the next day (§7).
 
 Full original plan detail (data sources, storage design rationale, model
 architecture options, evaluation plan, milestones) — if you want the fuller
@@ -2087,3 +2100,18 @@ old step 2 (move to English Wikipedia) is now step 5.
   the test window. It currently trains on data ending ~18 months before
   the test year. That's conservative, and fine while the features are all
   relative (counts, recency).
+- **Version 3: predictions due later than the next day, and how updates are
+  scored** (raised 2026-10-01). The user is open to longer horizons, and
+  asked how to grade a forecast the prophet may change. Claude's proposal,
+  not yet decided:
+  - A forecast is never edited. An update is a new forecast with its own
+    date, and every version stays on the record.
+  - Each day a question is open, the forecast standing that day is graded
+    when it resolves, and the question's score is the mean over those days.
+    Forecasting tournaments (the Good Judgment Project, Metaculus) score
+    this way.
+    - Being right early and staying right scores best.
+    - A late switch to the right answer earns credit only from the switch
+      on, and flip-flopping doesn't pay.
+  - Scores are also reported by lead time (the day before, within a week,
+    longer), so easy last-minute forecasts can't hide weak long-range ones.
