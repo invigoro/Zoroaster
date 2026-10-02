@@ -64,7 +64,7 @@ BIOGRAPHY = re.compile(
     r"\[\[\s*Category\s*:\s*(?:Living[ _]people|Possibly[ _]living[ _]people|\d{1,4}s?(?:[ _]BC)?[ _](?:births|deaths)"
     r"|Year[ _]of[ _](?:birth|death)[ _](?:missing|unknown))", re.IGNORECASE)
 
-TOP = 20
+TOP = 100  # every non-biography of the prophecy's top 100: world events are rarer than sports there (PLAN.md §2)
 LEAD_CHARS = 900  # the prophet reads one page at a time (prophet.py), so it has room for most of a lead
 NEW_TEXT_CHARS = 600
 NEIGHBORS_SHOWN = 6
@@ -121,6 +121,13 @@ def _span(m: re.Match, day: date) -> tuple[date, date] | None:
     except ValueError:
         return None
     return (first, last) if first <= last else None
+
+
+def first_date(text: str, day: date) -> date | None:
+    """The first date `text` names, read relative to `day`: a span's last day. None if it names none."""
+    found = [(m.start(), -len(m.group(0)), span[1]) for p in DATE_PATTERNS for m in p.finditer(text)
+             if (span := _span(m, day))]
+    return min(found)[2] if found else None
 
 
 def _ago(days: int) -> str:

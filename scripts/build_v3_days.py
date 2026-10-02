@@ -56,7 +56,7 @@ from src.stage2.examples import MAX_NEIGHBORS_SHOWN
 V3_DIR = Path("data/processed/enwiki/v3")
 DAYS_PATH = V3_DIR / "days.parquet"
 DEV_FIRST, DEV_LAST = date(2026, 9, 18), date(2026, 10, 1)
-TOP = 30
+TOP = 100  # all the daily job saves: world events are rarer than sports among the top pages (PLAN.md §2)
 SIGNALS = ("edits_1d", "edits_7d", "edits_30d", "editors_1d", "burst_z_1d", "is_burst_1d", "page_age_days")
 
 

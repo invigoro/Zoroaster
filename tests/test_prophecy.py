@@ -5,8 +5,9 @@ from src.forecast.guardrails import sensitive_words
 from src.prophecy.checks import (NO_ANSWER, already_known, confirmed_orgs, confirmed_people, harms, listed_names,
                                  names_a_person, novelty_messages, one_persons_contest, person_roles, screen)
 from src.prophecy.evidence import clean_line, dated_lines, eligible, evidence_text, is_biography, mark_dates, page_block
-from src.prophecy.prophet import (marked_today, normalize, parse_prediction, parse_question, prediction_messages,
+from src.prophecy.prophet import (marked_within, normalize, parse_prediction, parse_question, prediction_messages,
                                   question_messages)
+from src.prophecy.selection import select, settles_a_title, topic
 
 ROW = {"page_id": 7, "date": date(2026, 9, 30), "rank": 2, "page_title": "2026_Asian_Games", "living": False,
        "is_burst_1d": True, "edits_1d": 40, "editors_1d": 12, "edits_7d": 90,
@@ -87,7 +88,7 @@ class EvidenceTest(unittest.TestCase):
                                                   "date = 24 September 2026 · team1 = JPN · score = v · team2 = KOR"])
         block = page_block(1, ROW | {"date": day, "lead": "No dates.", "page_text": page}, None)
         self.assertIn("Dated today on the page: 24 September [today] · Thursday", block)
-        self.assertTrue(marked_today(block))
+        self.assertTrue(marked_within(block, 0))
         self.assertEqual(clean_line("| winner = [[Japan national team|Japan]] {{flagicon|JPN}}<ref>x</ref>"),
                          "winner = Japan JPN")
         self.assertEqual(clean_line("| RD2-team01={{flagIOC|CHN|2026 Asian Games}} | RD2-score01= 3"),
@@ -96,28 +97,46 @@ class EvidenceTest(unittest.TestCase):
 
 class ProphetTest(unittest.TestCase):
     def test_both_steps_name_the_day_and_the_evidence_comes_from_the_day_before(self):
-        for chat in (question_messages(date(2026, 10, 1), "[1] ..."),
-                     prediction_messages(date(2026, 10, 1), "[1] ...", "Who wins the final?")):
+        day = date(2026, 10, 1)
+        for chat in (question_messages(day, "[1] ..."), prediction_messages(day, "[1] ...", "Who wins?", day)):
             self.assertIn("by the end of Wednesday, 30 September 2026", chat[1]["content"])
             self.assertIn("[today] means Thursday, 1 October 2026", chat[1]["content"])
             self.assertIn("[1] ...", chat[1]["content"])
-        self.assertIn("The question Thursday, 1 October 2026 will answer: Who wins the final?",
-                      prediction_messages(date(2026, 10, 1), "[1] ...", "Who wins the final?")[1]["content"])
+        self.assertIn("between Thursday, 1 October 2026 and Thursday, 8 October 2026",
+                      question_messages(day, "[1] ...")[1]["content"])
+        self.assertIn("decided on Thursday, 1 October 2026 itself", question_messages(day, "[1] ...", 0)[1]["content"])
+        self.assertIn("The question, settled on Sunday, 4 October 2026: Who wins the final?",
+                      prediction_messages(day, "[1] ...", "Who wins the final?", date(2026, 10, 4))[1]["content"])
 
-    def test_only_pages_dated_today_are_asked(self):
+    def test_pages_are_asked_when_something_is_due_within_the_horizon(self):
         day = date(2026, 9, 24)
-        for lead, asked in (("The final is on 24 September.", True), ("It runs from 20 to 24 September.", True),
-                            ("It runs from 24 to 30 September.", True), ("It runs from 20 to 26 September.", False),
-                            ("The final is on 25 September.", False), ("No dates here.", False)):
-            self.assertEqual(marked_today(page_block(1, ROW | {"date": day, "lead": lead}, None)), asked, lead)
+        for lead, today, week in (("The final is on 24 September.", True, True),
+                                  ("It runs from 20 to 24 September.", True, True),
+                                  ("It runs from 24 to 30 September.", True, True),
+                                  ("It runs from 20 to 26 September.", False, True),  # ends in 2 days
+                                  ("The final is on 25 September.", False, True),
+                                  ("The vote is on 1 October.", False, True),  # in 7 days
+                                  ("The vote is on 2 October.", False, False),  # in 8 days
+                                  ("It ended on 22 September.", False, False), ("No dates here.", False, False)):
+            block = page_block(1, ROW | {"date": day, "lead": lead}, None)
+            self.assertEqual((marked_within(block, 0), marked_within(block, 7)), (today, week), lead)
 
-    def test_questions_parse_and_nothing_today_means_no_question(self):
-        self.assertEqual(parse_question("Today: The final is played.\nQuestion: Who  wins the final?"), "Who wins the final?")
-        self.assertEqual(parse_question('**Today:** Game 2.\n**Question:** "Who wins Game 2?"'), "Who wins Game 2?")
-        for answer in ("Today: nothing\nQuestion: none", "Today: The final.\nQuestion: none", "Who wins?", "",
-                       # as for the NRL grand final, four days away: a question after saying nothing happens
-                       "Today: Nothing significant is expected to happen.\nQuestion: Will the final be close?"):
-            self.assertIsNone(parse_question(answer), answer)
+    def test_questions_parse_with_their_due_date(self):
+        day = date(2026, 9, 24)
+        self.assertEqual(parse_question("Event: The final is played.\nDate: 24 September 2026\nQuestion: Who  wins?", day),
+                         ("Who wins?", day))
+        self.assertEqual(parse_question('**Event:** Game 2.\n**Date:** September 30 [in 6 days]\n**Question:** "Who wins '
+                                        'Game 2?"', day), ("Who wins Game 2?", date(2026, 9, 30)))
+        self.assertEqual(parse_question("Event: The vote.\nDate: tomorrow\nQuestion: Who wins?", day),
+                         ("Who wins?", date(2026, 9, 25)))
+        for answer in ("Event: nothing\nDate: none\nQuestion: none", "Event: The final.\nDate: today\nQuestion: none",
+                       "Event: The final.\nDate: next week\nQuestion: Who wins?",  # no date to read
+                       "Event: The final.\nDate: 4 October 2026\nQuestion: Who wins?",  # 10 days away
+                       # as for the NRL grand final: a question after saying nothing happens
+                       "Event: Nothing significant is expected.\nDate: today\nQuestion: Will the final be close?",
+                       "Who wins?", ""):
+            self.assertIsNone(parse_question(answer, day), answer)
+        self.assertIsNone(parse_question("Event: The vote.\nDate: tomorrow\nQuestion: Who wins?", day, horizon=0))
 
     def test_predictions_parse_from_json_or_a_bare_sentence(self):
         got = parse_prediction('{"prediction": "Japan will win.", "confidence": "high"}}', "A", "Who wins?")
@@ -129,6 +148,36 @@ class ProphetTest(unittest.TestCase):
         self.assertEqual(normalize("Japan will win."), "I predict that Japan will win.")  # proper nouns keep their capital
         self.assertEqual(normalize("The final goes to extra time."), "I predict that the final goes to extra time.")
         self.assertEqual(normalize("i predict that  it rains."), "I predict that it rains.")
+
+
+class SelectionTest(unittest.TestCase):
+    def prediction(self, page: str, kept: bool = True) -> dict:
+        return {"text": f"I predict that {page} …", "question": "?", "evidence": [page], "kept": kept}
+
+    def test_world_events_first_then_only_sports_titles(self):
+        # The user (2026-10-02): at most ten a day, world events first, only the most interesting sport.
+        world = [self.prediction(f"W{n}") for n in range(12)]
+        sport = [self.prediction("final"), self.prediction("pool match"), self.prediction("dropped", kept=False)]
+        ranks = {f"W{n}": 20 + n for n in range(12)} | {"final": 1, "pool match": 2, "dropped": 3}
+        out = select(world + sport, ranks, ["Politics."] * 12 + ["sport", "Sport", ""], ["no"] * 12 + ["Yes", "no", ""])
+        published = [p["evidence"][0] for p in out if p["published"]]
+        self.assertEqual(published, [f"W{n}" for n in range(10)])  # the best ranked ten world events, sport or not
+        self.assertEqual({p["evidence"][0]: p["unpublished_because"] for p in out if p["kept"] and not p["published"]},
+                         {"W10": "over the day's limit: 10, at most 3 of them sport",
+                          "W11": "over the day's limit: 10, at most 3 of them sport",
+                          "final": "over the day's limit: 10, at most 3 of them sport",
+                          "pool match": "a sports prediction that settles no title"})
+        self.assertIsNone(out[-1]["topic"])  # dropped by the checks: never classed
+
+    def test_titles_fill_the_rest_of_a_quiet_day_up_to_three(self):
+        finals = [self.prediction(f"F{n}") for n in range(5)]
+        out = select([self.prediction("vote")] + finals, {"vote": 9} | {f"F{n}": n for n in range(5)},
+                     ["politics"] + ["sport"] * 5, ["no"] + ["yes"] * 5)
+        self.assertEqual([p["evidence"][0] for p in out if p["published"]], ["vote", "F0", "F1", "F2"])
+        self.assertEqual(topic(" Sports."), "sport")
+        self.assertEqual(topic("weather"), "other")
+        self.assertEqual(topic(""), "other")
+        self.assertFalse(settles_a_title("Possibly"))  # only a clear yes lets sport through
 
 
 class ChecksTest(unittest.TestCase):
