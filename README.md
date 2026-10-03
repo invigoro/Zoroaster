@@ -305,6 +305,9 @@ Wikipedia, which is roughly 100× the test corpus.
     brings next ("the Iran war", "the Moroccan general election").
   - A prediction the guardrails drop may be rewritten in general terms and
     checked again ("a prominent actor will die tomorrow").
+  - A story's prediction that gives a number or a name its reports don't
+    ("at least 50 casualties") goes back to the prophet to revise, and is
+    checked again.
   - Separate checks drop any prediction that names a specific person (none
     for now), or has an organization doing or suffering harm. They also
     drop predictions that restate their evidence, or copy or repeat

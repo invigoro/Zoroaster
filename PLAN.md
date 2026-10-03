@@ -1055,6 +1055,81 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
       run 10's packs and 8 of run 11's gained reports. The drafters had
       searched every day's events, so the grades stand.
 
+30. **Version 3: story predictions revise details their reports don't give
+    (2026-10-02)**: the user asked for this after run 11's misses.
+    - **The check** (`src/prophecy/details.py`, no model): every number in a
+      story prediction, in digits or in words from three up, and every
+      capitalized name must appear in its reports.
+      - Dates and years are exempt, and so are "one" and "two" ("at least
+        one more strike", "the two countries").
+      - A nationality counts for its country ("Ukrainian" for Ukraine), and
+        so do common abbreviations ("U.S.", "EU", "GDP").
+    - **The prophet revises.** A flagged prediction goes back to it in its
+      own conversation: the reports, the question, its answer, then a note
+      naming the details the reports don't give. The revision goes through
+      every check again and must add no such detail. Otherwise the original
+      is dropped for a quality reason, so it can still be graded. The record
+      keeps the original (`revised_from`).
+    - **What didn't work:**
+      - Rewriting the sentence alone, without the reports: for numbers the
+        model mostly gave it back unchanged ("at least 500 additional
+        casualties").
+      - Checking page predictions too. A page's evidence names teams by code
+        ("teamA=CHN · teamB=INA") and holds few numbers, so grounded
+        predictions were flagged, and their rewrites lost what they predicted
+        ("one country will defeat another in each matchup"). Pages are left
+        alone; the grounding check and the judge's grounded field still
+        cover them.
+    - **Run 12** (run 11's predictions, re-checked with `--rescreen`, so only
+      this step differs):
+      - 120 of 203 kept story predictions were flagged. 70 revisions were
+        kept. 50 originals were dropped: the revision still gave unsupported
+        details (36), named an organization doing or suffering harm (10) or
+        a person (4), or restated its evidence (1).
+      - 139 published, 120 from stories. Pages went from 12 to 19, and sport
+        came back (7) into the places the drops freed.
+    - **Draft grades** (`grades_run12/`; 40 new, and 33 the same as run 11's
+      word for word, with the same evidence):
+
+      | Story predictions | Run 11 | Run 12 |
+      |---|---|---|
+      | graded | 63 | 60 |
+      | not grounded | 19 | 2 |
+      | already known | 5 | 14 |
+      | unknown | 21 | 22 |
+      | happened or partly | 17 | 20 |
+      | mean credit | 0.105 | 0.058 |
+      | credit if ungrounded earned 0 | 0.058 | 0.045 |
+
+      - Grounding is fixed: 2 ungrounded, against 19.
+      - Credit fell, for two reasons:
+        - Ungrounded guesses that came true no longer count. "United Russia
+          wins the most seats" earned 0.5 and 1.0 in run 11, though the
+          story's reports never named the party.
+        - **Revisions restate the reports.** 11 of the 30 graded revisions
+          were already known, such as the South Cotabato shooting's toll,
+          reported the day before. Told to take every number from the
+          reports, the model takes their own figures, though the note says
+          to predict what comes next. The novelty check passes them.
+      - Unknowns didn't fall: figures taken from the reports often go
+        unreported later too (2,400 more refugees in Djibouti).
+      - Pages went from 0.150 to 0.135 (13 graded; sport came back).
+    - **Still open:**
+      - Restating. A word-overlap test against each report separates the
+        restatements poorly: at 65%, it catches 6 of the 11, and also the
+        one revision that earned credit. Tuning a threshold on these days
+        would overfit.
+      - The story prompt's own example, "the Strait of Hormuz", turns up in
+        2–3 predictions a run on stories that never mention it (the Somali
+        Civil War). The check now catches these; change the example on the
+        next full run.
+      - **A guardrail gap, older than this step:** "the TPLF continues to
+        seize control of more towns" was published. The harm questions
+        answered no, and the TPLF's kind came back as a party, so it wasn't
+        dropped as an armed group. Run 11 published one like it ("Mekele and
+        Mekelle… fall under TPLF control"), and "the closure of T24" (a news
+        site) passes the same way.
+
 ## 4. Data state — important for resuming on a new machine
 
 `data/` is **git-ignored** (see `.gitignore`) — it does not travel with the
@@ -1116,6 +1191,7 @@ python scripts/fetch_current_events.py --days 2026-09-18 2026-10-01
 python scripts/prophesy.py --days 2026-09-18 ... 2026-10-01 --out data/processed/enwiki/v3/prophecies_run8
 python scripts/prophesy.py --model Qwen/Qwen3-8B --batch 4 --days ... --out data/processed/enwiki/v3/prophecies_run9
 python scripts/prophesy.py --rescreen --model Qwen/Qwen2.5-7B-Instruct --days ... --out data/processed/enwiki/v3/prophecies_run9
+python scripts/prophesy.py --rescreen --days ... --out data/processed/enwiki/v3/prophecies_run12   # a copy of run 11, re-checked (item 30)
 python scripts/fetch_due_pages.py --prophecies data/processed/enwiki/v3/prophecies_run8   # due_pages/prophecies_run8.parquet
 python scripts/grading_packs.py --prophecies data/processed/enwiki/v3/prophecies_run8 --grades data/processed/enwiki/v3/grades_run8 --published
 python scripts/grading_review_docs.py --grades data/processed/enwiki/v3/grades_run8 --run run8 --label "Week ahead, Qwen2.5-7B"
@@ -2437,12 +2513,16 @@ old step 2 (move to English Wikipedia) is now step 5.
               - **Done (§3 item 29): story predictions aim at the likeliest
                 development** (the user agreed, 2026-10-02). On the drafts,
                 story credit went from 0.038 to 0.105.
-              - **Next: stop the made-up details.** Run 11's misses are
-                mostly numbers and specifics the reports never give ("at
-                least 50 casualties", the tanker Trend hit again). They're
-                unknowable or ungrounded. A check could drop, or ask the
-                prophet to remove, any number or named place, ship or
-                person the evidence doesn't contain.
+              - **Done (§3 item 30): story predictions revise details their
+                reports don't give** (the user asked, 2026-10-02). On the
+                drafts, ungrounded story predictions fell from 19 to 2 of
+                about 60. Credit fell from 0.105 to 0.058: lucky ungrounded
+                guesses no longer count, and 11 of 30 revisions restate the
+                reports.
+              - **Open, for the user:** keep the revision step, which is
+                grounded but earns less credit? And should a prediction have
+                to be grounded to earn credit? If kept, the next step is to
+                stop revisions restating their reports.
               - **Still to do: longer horizons** for scheduled world events,
                 such as an election a month away. This needs the update
                 scoring decided first (§7).
@@ -2451,6 +2531,11 @@ old step 2 (move to English Wikipedia) is now step 5.
                 place for a final would keep "the most interesting sports
                 predictions" (§2).
               - **Before anything is published:**
+                - The organization check misses an armed group whose kind
+                  comes back as a party: "the TPLF continues to seize
+                  control of more towns" was published in runs 11 and 12
+                  (§3 item 30). One fix: a story about a conflict, a crime
+                  or a disaster names no organization at all.
                 - A story's or a page's title can name a person ("Second
                   impeachment of Sara Duterte"), so the site must never
                   show one beside a rewritten prediction.
