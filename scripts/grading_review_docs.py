@@ -60,6 +60,7 @@ def main(argv: list[str] | None = None) -> int:
         doc = {"date": day, "due": due, "events_from": first, "n": int(n), "prediction": p["prediction"],
                "question": p["question"], "confidence": p["confidence"], "cited": p["cited"], "kept": p["kept"],
                "dropped_because": p["dropped_because"], "rewritten_from": p.get("rewritten_from"),
+               "revised_from": p.get("revised_from"), "unsupported": p.get("unsupported"),
                "before": p["known_before"], "after": p["day_brought"], "diffs": p["diffs"],
                "draft": drafts[key]} | ({"run": args.run, "run_label": args.label} if args.run else {})
         (out / "predictions" / f"{doc_id(key, args.run)}.json").write_text(json.dumps(doc, ensure_ascii=False),

@@ -114,7 +114,7 @@ def gradable(prediction: dict) -> bool:
     grounding). Their verdicts can then be checked against the hand grades' already_known and
     grounded. A prediction a guardrail dropped (a person, a sensitive topic), or a copy or repeat,
     is never graded."""
-    return all(reason in QUALITY_REASONS for reason in prediction["dropped_because"])
+    return all(reason.startswith(QUALITY_REASONS) for reason in prediction["dropped_because"])
 
 
 def pack(prediction: dict, day: str, known_before: dict[str, str], rows_by_title: dict[str, dict],
@@ -129,6 +129,8 @@ def pack(prediction: dict, day: str, known_before: dict[str, str], rows_by_title
         "confidence": prediction.get("confidence"), "cited": cited, "kept": prediction.get("kept", True),
         "dropped_because": prediction.get("dropped_because", []),
         "rewritten_from": prediction.get("rewritten_from"),  # never published; for checking the rewrite by hand
+        "revised_from": prediction.get("revised_from"),  # before the prophet took out what its reports don't give
+        "unsupported": prediction.get("unsupported"),
         "known_before": {t: known_before[t] for t in cited if t in known_before},
         "day_brought": {t: day_change_text(rows_by_title[t], days) for t in cited if t in rows_by_title},
         "diffs": {t: diff_url(rows_by_title[t]) for t in cited if t in rows_by_title},

@@ -1,3 +1,4 @@
+import json
 import unittest
 from datetime import date
 
@@ -419,6 +420,87 @@ class StoriesTest(unittest.TestCase):
                          date(2026, 9, 27))
         self.assertIsNone(parse_question(answer.format("this week"), self.DAY, 7, set()))  # pages: no default
         self.assertIsNone(parse_question(answer.format("15 October 2026"), self.DAY, 7, set(), week_end))
+
+
+class DetailsTest(unittest.TestCase):
+    """Details a story's prediction adds that its reports don't give (the user asked to stop them, 2026-10-02)."""
+
+    def test_numbers_and_names_must_come_from_the_evidence(self):
+        from src.prophecy.details import unsupported_details
+
+        reports = "[2 days ago] Clashes in Abyei kill 26 people and injure 82. Tropical Storm Fay forms near the Azores."
+        self.assertEqual(unsupported_details("I predict that clashes in Abyei will kill at least 30 people by the end of "
+                                             "Monday, 28 September 2026.", reports), ["30"])  # the due date is exempt
+        self.assertEqual(unsupported_details("I predict that Tropical Storm Fay will make landfall in the Canary Islands.",
+                                             reports), ["Canary", "Islands"])
+        self.assertEqual(unsupported_details("I predict that the clashes in Abyei will leave 82 more injured by 2027.",
+                                             reports), [])  # numbers in the evidence, and years, are fine
+        # Numbers in words, from three up; the trial's revisions wrote "ten air strikes" for a made-up "15".
+        self.assertEqual(unsupported_details("I predict that ten air strikes hit Abyei.", reports), ["ten"])
+        self.assertEqual(unsupported_details("I predict that the two sides clash again, with at least one more strike, "
+                                             "on the 29th of September.", reports), [])
+        # Nationalities, abbreviations, possessives and other scripts, as the evidence may write them otherwise.
+        evidence = ("Ukraine launches drones at Moscow. The United States and the European Union meet. El Niño grows. "
+                    "Iran's economy shrinks 10.1% and twenty ships wait.")
+        for allowed in ("I predict that Ukrainian drones will strike Moscow again.",
+                        "I predict that the U.S. will meet the EU's envoys.",
+                        "I predict that El Niño will strengthen.",
+                        "I predict that Iran's GDP shrinks again, with 20 ships still waiting."):
+            self.assertEqual(unsupported_details(allowed, evidence), [], allowed)
+
+    def test_only_kept_story_predictions_are_flagged(self):
+        from src.prophecy.details import flagged
+
+        by_title = {"Current events: Fay": "Tropical Storm Fay forms near the Azores.",
+                    "Basketball at the 2026 Asian Games": "teamA=CHN · teamB=INA"}
+        day = [{"text": "I predict that Fay reaches the Canary Islands.", "evidence": ["Current events: Fay"], "kept": True},
+               {"text": "I predict that Fay reaches the Canary Islands.", "evidence": ["Current events: Fay"], "kept": False},
+               # Grounded, by the codes, but a word check can't tell: page predictions are left alone.
+               {"text": "I predict that China beats Indonesia 80-60.", "evidence": ["Basketball at the 2026 Asian Games"],
+                "kept": True}]
+        self.assertEqual(flagged(day, by_title), {0: ["Canary", "Islands"]})
+
+    def test_the_prophet_revises_in_its_own_conversation(self):
+        from src.prophecy.details import revise_messages
+        from src.prophecy.prophet import story_prediction_messages
+
+        prediction = {"text": "I predict that Fay reaches the Canary Islands.", "question": "Where does Fay go?",
+                      "due": "2026-09-28", "confidence": "low"}
+        chat = revise_messages(date(2026, 9, 21), "Tropical Storm Fay forms near the Azores.", prediction,
+                               ["Canary", "Islands"])
+        self.assertEqual(chat[:2], story_prediction_messages(date(2026, 9, 21), "Tropical Storm Fay forms near the Azores.",
+                                                             "Where does Fay go?", date(2026, 9, 28)))
+        self.assertEqual(json.loads(chat[2]["content"]), {"prediction": prediction["text"], "confidence": "low"})
+        self.assertEqual(chat[2]["role"], "assistant")
+        self.assertIn('none of the reports give: "Canary", "Islands"', chat[3]["content"])
+
+    def test_a_revision_replaces_the_prediction_only_if_it_passes(self):
+        from src.prophecy.details import merge_revisions
+
+        evidence = {0: "Clashes in Abyei kill 26 people.", 1: "Fay forms near the Azores.", 3: "Strikes in Nyala."}
+        day = [{"text": "I predict that clashes in Abyei kill at least 30 people.", "evidence": ["A"], "kept": True,
+                "dropped_because": [], "rewritten_from": "I predict that a named militia kills 30 people in Abyei."},
+               {"text": "I predict that Fay reaches the Canary Islands.", "evidence": ["B"], "kept": True, "dropped_because": []},
+               {"text": "I predict that talks resume in Doha.", "evidence": ["C"], "kept": True, "dropped_because": []},
+               {"text": "I predict that strikes hit Nyala and Kassala.", "evidence": ["D"], "kept": True, "dropped_because": []}]
+        found = {0: ["30"], 1: ["Canary", "Islands"], 3: ["Kassala"]}
+        revisions = {0: {"text": "I predict that clashes in Abyei kill at least 26 more people.", "evidence": ["A"],
+                         "kept": True, "dropped_because": []},
+                     1: {"text": "I predict that Fay reaches the Canary Islands soon.", "evidence": ["B"], "kept": True,
+                         "dropped_because": []},  # the revision kept the made-up place
+                     3: {"text": "I predict that strikes hit Nyala.", "evidence": ["D"], "kept": False,
+                         "dropped_because": ["the evidence already settles it"]}}
+        out = merge_revisions(day, revisions, found, evidence)
+        self.assertEqual([p["kept"] for p in out], [True, False, True, False])
+        self.assertEqual((out[0]["text"], out[0]["revised_from"], out[0]["unsupported"], out[0]["rewritten_from"]),
+                         ("I predict that clashes in Abyei kill at least 26 more people.",
+                          "I predict that clashes in Abyei kill at least 30 people.", ["30"],
+                          "I predict that a named militia kills 30 people in Abyei."))
+        self.assertEqual(out[1]["dropped_because"], ["adds details its evidence doesn't give (Canary; Islands)"])
+        self.assertEqual(out[1]["revision_dropped_because"], ["adds details its evidence doesn't give (Canary; Islands)"])
+        self.assertEqual(out[3]["revision_dropped_because"], ["the evidence already settles it"])
+        from src.prophecy.judge import gradable
+        self.assertTrue(gradable(out[1]))  # a quality drop: still graded, to test the check
 
 
 class RewriteTest(unittest.TestCase):

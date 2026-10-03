@@ -95,7 +95,9 @@ FILLER = frozenset({"i", "predict", "that", "the", "a", "an", "will", "of", "in"
 COPY_OVERLAP, REPEAT_OVERLAP = 0.6, 0.8
 EXAMPLE = re.compile(r"I predict that [^\"]+")
 SETTLED, NOT_GROUNDED = "the evidence already settles it", "not about its cited evidence"
-QUALITY_REASONS = (SETTLED, NOT_GROUNDED)  # the quality checks; the rest are guardrails, copies and repeats
+UNSUPPORTED = "adds details its evidence doesn't give"  # `details.py`, followed by the details
+# The quality checks; the rest are guardrails, copies and repeats. A reason may follow with its details.
+QUALITY_REASONS = (SETTLED, NOT_GROUNDED, UNSUPPORTED)
 
 PERSON_QUESTION = """Does the sentence below name a specific person, living or dead, or point to one by a title or role that fits one person, such as "the president of France" or "the team's coach"? General descriptions that fit many people, such as "an important politician" or "a famous singer", don't count. Teams, organizations, places, events and works don't count either.
 

@@ -54,6 +54,7 @@ from src.prophecy.checks import (NO_ANSWER, apply_identifies, confirmed_orgs, co
                                  general_mention, generalize_messages, guarded_only, harm_messages,
                                  identifies_messages, kind_messages, listed_names, merge_rewrites, novelty_messages,
                                  one_persons_contest, orgs_messages, people_messages, person_messages, screen)
+from src.prophecy.details import flagged, merge_revisions, revise_messages
 from src.prophecy.evidence import TOP, eligible, evidence_blocks
 from src.prophecy.prophet import (HORIZON, PREDICTION, QUESTION, STORY_PREDICTION, STORY_QUESTION, marked_offsets,
                                   marked_within, parse_prediction, parse_question, parse_rewrite, prediction_messages,
@@ -79,7 +80,8 @@ CHECK_FIELDS = ("kept", "dropped_because", "person_check", "people_named", "orgs
                 "topic_check", "sensitive",  # from a version of the checks that ran only on 2026-10-01
                 "topic", "settles_a_title", "published", "unpublished_because",  # the selection (`publish`)
                 "rewritten_from", "dropped_before_rewrite", "rewrite", "rewrite_dropped_because",  # `rewrite`
-                "identifies_check")
+                "identifies_check",
+                "revised_from", "unsupported", "revision", "revision_dropped_because")  # `revise`
 # Both steps' instructions, for the check against copying their example sentences.
 INSTRUCTIONS = PREDICTION + "\n\n" + STORY_PREDICTION
 
@@ -165,6 +167,25 @@ def rewrite(model, tokenizer, screened: list[dict], by_title: dict[str, str], in
     return merge_rewrites(screened, dict(zip(guarded, rechecked)))
 
 
+def revise(model, tokenizer, screened: list[dict], by_title: dict[str, str], day: date, instructions: str) -> list[dict]:
+    """Each kept story prediction that adds details its reports don't give (`details.flagged`), sent back to
+    the prophet with those details named, and checked again (`details.merge_revisions`)."""
+    found = flagged(screened, by_title)
+    if not found:
+        return screened
+    evidence = {i: "\n\n".join(by_title.get(t, "") for t in screened[i]["evidence"]) for i in found}
+    answers = chat_in_batches(model, tokenizer, [revise_messages(day, evidence[i], screened[i], details)
+                                                 for i, details in found.items()], PREDICTION_TOKENS)
+    drafts = []
+    for i, answer in zip(found, answers):
+        p = screened[i]
+        parsed = parse_prediction(answer, p["evidence"][0], p["question"]) or {}  # none: still flagged, and dropped
+        drafts.append({k: v for k, v in p.items() if k not in CHECK_FIELDS} | {"text": parsed.get("text", p["text"])}
+                      | ({"confidence": parsed["confidence"]} if parsed.get("confidence") else {}))
+    rechecked = check(model, tokenizer, drafts, by_title, instructions)
+    return merge_revisions(screened, dict(zip(found, rechecked)), found, evidence)
+
+
 def publish(model, tokenizer, predictions: list[dict], ranks: dict[str, int], sport_pages: set[str],
             story_topics: dict[str, str] | None = None) -> list[dict]:
     """The day's selection (`src/prophecy/selection.py`): each kept prediction's topic, whether a sports one
@@ -236,6 +257,7 @@ def prophesy(model, tokenizer, day: date, rows: list[dict], forecasts: dict, mod
     by_title = dict(zip(titles, blocks)) | {s["title"]: b for s, b in zip(found, story_blocks)}
     predictions = rewrite(model, tokenizer, check(model, tokenizer, predictions, by_title, INSTRUCTIONS), by_title,
                           INSTRUCTIONS)
+    predictions = revise(model, tokenizer, predictions, by_title, day, INSTRUCTIONS)
     sport = sport_titles(pages)
     predictions = publish(model, tokenizer, predictions, {t: r["rank"] for r, t in zip(pages, titles)}, sport,
                           {s["title"]: s["topic"] for s in found})
@@ -263,7 +285,8 @@ def report(day: date, record: dict) -> None:
           f"something due, {sum(bool(p.get('question')) for p in pages)} questions "
           f"({sum(p.get('one_persons_contest', False) for p in pages)} one person's contest); {len(found)} stories, "
           f"{sum(bool(s.get('question')) for s in found)} questions; {len(screened)} predictions, "
-          f"{sum(p['kept'] for p in screened)} kept ({sum(bool(p.get('rewritten_from')) for p in screened)} rewritten), "
+          f"{sum(p['kept'] for p in screened)} kept ({sum(bool(p.get('rewritten_from')) for p in screened)} rewritten, "
+          f"{sum(bool(p.get('revised_from')) for p in screened)} revised), "
           f"{sum(p.get('published', False) for p in screened)} published ({record['seconds']:,}s)", flush=True)
     for p in screened:
         mark = "PUBLISH" if p.get("published") else "KEPT   " if p["kept"] else "DROPPED"
@@ -277,6 +300,11 @@ def report(day: date, record: dict) -> None:
             print(f"          rewritten from: {p['rewritten_from']}", flush=True)
         elif p.get("rewrite"):
             print(f"          its rewrite, dropped too: {p['rewrite']} [{'; '.join(p['rewrite_dropped_because'])}]",
+                  flush=True)
+        if p.get("revised_from"):
+            print(f"          revised for {', '.join(p['unsupported'])}, from: {p['revised_from']}", flush=True)
+        elif p.get("revision"):
+            print(f"          its revision, dropped too: {p['revision']} [{'; '.join(p['revision_dropped_because'])}]",
                   flush=True)
 
 
@@ -304,9 +332,9 @@ def main(argv: list[str] | None = None) -> int:
             stories_seen = record.get("stories", [])
             by_title = (dict(zip([p["title"] for p in record["pages"]], record["evidence"].split("\n\n")))
                         | dict(zip([s["title"] for s in stories_seen], record.get("story_blocks", []))))
-            # A rewritten prediction is checked again from its original, and may be rewritten again.
-            bare = [{k: v for k, v in p.items() if k not in CHECK_FIELDS} | ({"text": p["rewritten_from"]}
-                                                                              if p.get("rewritten_from") else {})
+            # A rewritten or revised prediction is checked again from its original, and may be changed again.
+            bare = [{k: v for k, v in p.items() if k not in CHECK_FIELDS}
+                    | {"text": p.get("rewritten_from") or p.get("revised_from") or p["text"]}
                     for p in record["predictions"]]
             ranks = {p["title"]: p["rank"] for p in record["pages"]}
             sport = sport_titles([r for r in texts if r["date"] == day])
@@ -314,6 +342,7 @@ def main(argv: list[str] | None = None) -> int:
             instructions = record["instructions"] + "\n\n" + record.get("story_instructions", "")
             screened = rewrite(model, tokenizer, check(model, tokenizer, bare, by_title, instructions), by_title,
                                instructions)
+            screened = revise(model, tokenizer, screened, by_title, day, instructions)
             record["predictions"] = publish(model, tokenizer, screened, ranks, sport,
                                             {s["title"]: s["topic"] for s in stories_seen})
             record["checks_model"] = args.model  # the prophet's model stays in "model"
