@@ -1013,6 +1013,48 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
           as "did not happen" where the event would surely have been
           reported, else "unknown".
 
+29. **Version 3: story predictions aim at the likeliest development
+    (2026-10-02)**: the user agreed to try it after run 10's stories bet on
+    breakthroughs.
+    - **What changed** (`prophet.STORY_QUESTION`, `STORY_PREDICTION`):
+      - Step 1 asks first for anything the reports say is scheduled.
+        Otherwise it asks what they make most likely: usually more of what
+        they describe, not a sudden turn, unless the reports say one is
+        close.
+      - Step 2 asks for the likeliest outcome, with one checkable detail
+        such as where it happens or which countries take part.
+      - On two trial days the model copied a quoted example ("at least one
+        more") into most predictions, so the prompt gives none.
+    - **Run 11** (Qwen2.5-7B, pages and stories, the 14 development days):
+      - Every story gets a question now (219 of 219), giving 216 story
+        predictions, 203 of them kept.
+      - The guardrails' rewrites went from 21 to 40: continuations mention
+        armed groups more often.
+      - 140 published, 128 from stories, none sport.
+    - **Draft grades** (`grades_run11/`; 63 new, and 10 the same as run 10's
+      word for word):
+
+      | Story predictions | Run 10 | Run 11 |
+      |---|---|---|
+      | graded | 60 | 63 |
+      | did not happen | 40 | 23 |
+      | happened or partly | 11 | 17 |
+      | unknown | 8 | 21 |
+      | mean credit | 0.038 | 0.105 |
+      | not grounded | 12 | 19 |
+
+      - Nearly three times the credit. But the model still makes up
+        details: "at least 50 casualties", "the Togo-flagged oil tanker
+        Trend will be targeted again", air quality "above 150" in
+        Singapore. That's why there are more unknowns, which the portal
+        wouldn't report, and more ungrounded predictions.
+      - Story credit is still below the pages' (0.150 to 0.208).
+    - **A grading fix**: a story's reports count wherever the story sits in
+      an item's topics (`stories.reports_between`). Run 10's pack for the
+      Houthi–Saudi conflict had shown none, though the days held two. 11 of
+      run 10's packs and 8 of run 11's gained reports. The drafters had
+      searched every day's events, so the grades stand.
+
 ## 4. Data state — important for resuming on a new machine
 
 `data/` is **git-ignored** (see `.gitignore`) — it does not travel with the
@@ -2392,12 +2434,15 @@ old step 2 (move to English Wikipedia) is now step 5.
               - **The user grades run 10** on the review page: 73 drafts
                 now. 65 more are due after 2026-10-01 and wait for their
                 days' events.
-              - **Next: aim story predictions at the likeliest development,
-                not a breakthrough.** In the drafts, 40 of 60 didn't happen
-                (0.038 credit). Step 1 could ask for what the reports make
-                likely, a continuation with a checkable detail ("Russian
-                strikes on Ukrainian cities kill civilians in at least two
-                oblasts"), unless something is scheduled.
+              - **Done (§3 item 29): story predictions aim at the likeliest
+                development** (the user agreed, 2026-10-02). On the drafts,
+                story credit went from 0.038 to 0.105.
+              - **Next: stop the made-up details.** Run 11's misses are
+                mostly numbers and specifics the reports never give ("at
+                least 50 casualties", the tanker Trend hit again). They're
+                unknowable or ungrounded. A check could drop, or ask the
+                prophet to remove, any number or named place, ship or
+                person the evidence doesn't contain.
               - **Still to do: longer horizons** for scheduled world events,
                 such as an election a month away. This needs the update
                 scoring decided first (§7).
