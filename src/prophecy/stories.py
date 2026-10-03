@@ -90,14 +90,16 @@ def story_block(number: int, story: dict, day: date) -> str:
 
 def reports_between(records: dict[str, list[str]], story: str, first: date, last: date) -> list[str]:
     """For grading: a story's reports from `first` to `last`, from the latest pages (`records`: each day's
-    items), each with its date."""
+    items), each with its date. A report counts wherever the story sits in its topics: a later page may file
+    "Houthi–Saudi Arabian conflict" under "Middle Eastern crisis › Yemeni civil war", and matching the first
+    topic alone left run 10's pack for it showing no reports, though the days held two."""
     out = []
     for n in range((last - first).days + 1):
         reported = (first + timedelta(days=n)).isoformat()
         for item in records.get(reported, []):
             category, topics, sentence = split(item)
-            if topics and topics[0] == story:
-                out.append(f"{reported}: {SEPARATOR.join([*topics[1:], sentence])}")
+            if story in topics:
+                out.append(f"{reported}: {SEPARATOR.join([*topics[topics.index(story) + 1:], sentence])}")
     return out
 
 

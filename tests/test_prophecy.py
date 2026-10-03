@@ -399,6 +399,13 @@ class StoriesTest(unittest.TestCase):
                    "2026-10-02": ["Politics and elections › 2026 Moroccan general election › Too late."]}
         self.assertEqual(reports_between(records, "2026 Moroccan general election", self.DAY, date(2026, 10, 1)),
                          ["2026-09-25: The PAM wins.", "2026-09-27: A coalition forms."])
+        # A later page may file the story under an umbrella topic (run 10's Houthi–Saudi pack missed two reports).
+        nested = {"2026-09-27": ["Armed conflicts and attacks › Middle Eastern crisis › Yemeni civil war › "
+                                 "Houthi–Saudi Arabian conflict › A Saudi airstrike hits a market in Taiz."]}
+        self.assertEqual(reports_between(nested, "Houthi–Saudi Arabian conflict", self.DAY, date(2026, 10, 1)),
+                         ["2026-09-27: A Saudi airstrike hits a market in Taiz."])
+        self.assertEqual(reports_between(nested, "Yemeni civil war", self.DAY, date(2026, 10, 1)),
+                         ["2026-09-27: Houthi–Saudi Arabian conflict › A Saudi airstrike hits a market in Taiz."])
 
     def test_a_story_s_question_without_a_date_is_due_at_the_week_s_end(self):
         week_end = date(2026, 10, 2)
