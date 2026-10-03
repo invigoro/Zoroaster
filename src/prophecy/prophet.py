@@ -109,14 +109,19 @@ STORY = """Here is what Wikipedia's Portal:Current events reported about one sto
 
 {block}"""
 
+# Aimed at the likeliest development since run 10 (the user agreed, 2026-10-02): asked what comes next, its
+# stories mostly bet on a breakthrough within the week (a ceasefire signed, a trial opened), and in the draft
+# grades 40 of 60 didn't happen, averaging 0.038 credit.
 STORY_QUESTION = STORY + """
 
-What will this story bring between {day} and {last}? Look first for something the reports say is coming: a vote, a ruling, a deadline, talks, a summit, a launch, a storm's landfall. Otherwise, the next development the reports point to.
+What is most likely to happen in this story between {day} and {last}?
+- First, anything the reports say is scheduled then: a vote, a ruling, a deadline, a summit, talks, a launch, a storm's landfall.
+- Otherwise, what the reports make most likely. That is usually more of what they describe (more strikes, more arrests, more votes counted), not a sudden turn such as a ceasefire, a deal or a resignation, unless the reports say one is close.
 
 Answer in three lines:
-Event: what comes next, or nothing
+Event: the likeliest development, or nothing
 Date: the day it's due, as the reports give it (for example 4 October 2026), or "this week" if they give none
-Question: the question it will settle (whether it happens, who wins, what is decided), or none
+Question: the question it will settle, with a detail that can be checked, such as where it happens or which countries take part, or none
 
 Leave out anything due after {last}."""
 
@@ -126,8 +131,9 @@ The question, settled by the end of {due}: {question}
 
 Answer it with one prediction, using only these reports.
 - One sentence beginning "I predict that", naming the story's place or subject in full the first time (for example "the Strait of Hormuz", not "the strait").
-- Say what will have happened by the end of {due}, concretely enough to check: what happens, where, or what is decided. Name the countries involved.
-- Give a number only if the reports give a reason for one. Don't restate what the reports already say, and keep it possible.
+- Predict the likeliest outcome, not a hopeful or dramatic one. If the reports describe something happening again and again (strikes, clashes, protests, arrests), predict that it goes on, with one detail that can be checked, such as where it happens or which countries take part.
+- Say what will have happened by the end of {due}, concretely enough to check. Name the countries involved.
+- Give a number only if the reports give one to go by, and keep it cautious. Don't restate what the reports already say, and keep it possible.
 - Name no specific person, living or dead, and don't point to one by a title or role. A general description that fits many people, such as "an important politician" or "a prominent actor", is fine.
 - Wars, disasters and crime are fine in general terms, but name no organization in them: no company, party, armed group, government body or team. Countries and places are fine.
 
