@@ -52,6 +52,10 @@ class JudgeTest(unittest.TestCase):
         self.assertEqual(credit(grade | {"already_known": True}), 0.0)
         self.assertEqual(credit(grade | {"outcome": "partly"}), 0.25)
         self.assertEqual(credit(grade | {"outcome": "not possible", "specificity": 2}), 0.0)  # scored, unlike unknown
+        # Grounded predictions earn more (the user, 2026-10-04): a lucky guess the evidence doesn't support, half.
+        self.assertEqual(credit(grade | {"specificity": 2, "grounded": False}), 0.5)
+        self.assertEqual(credit(grade | {"outcome": "partly", "grounded": False}), 0.125)
+        self.assertEqual(credit(grade | {"already_known": True, "grounded": False}), 0.0)
         self.assertEqual(parse_grade('{"outcome": "not possible", "specificity": 1}')["outcome"], "not possible")
         self.assertIsNone(credit(grade | {"outcome": "unknown"}))
         # An election already held: settled before the day, even if the pack doesn't say who won.

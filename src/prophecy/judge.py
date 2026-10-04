@@ -33,8 +33,11 @@ The rubric is the same for the local judge and for the hand grades:
 
 `credit` is 0 if already known, whatever the outcome. Otherwise it's the
 outcome's points (happened 2, partly 1, did not happen or not possible 0)
-times specificity, divided by 4. An unknown outcome that wasn't already known
-isn't counted.
+times specificity, divided by 4, and halved if the prediction isn't grounded
+(the user, 2026-10-04: "grounded predictions should earn more credit"). Run
+11's "United Russia wins the most seats" came true, but its story's reports
+never named the party. An unknown outcome that wasn't already known isn't
+counted.
 
 Each prediction's evidence (`pack`):
 - **what was known by the end of the day before:** the cited pages' blocks,
@@ -63,6 +66,7 @@ from src.prophecy.stories import is_story
 
 OUTCOMES = ("happened", "partly", "did not happen", "not possible", "unknown")
 POINTS = {"happened": 2, "partly": 1, "did not happen": 0, "not possible": 0}
+UNGROUNDED_SHARE = 0.5  # of its credit, for a prediction its evidence doesn't support
 NEW_TEXT_CHARS = 900
 LINE_CHARS = 220
 LINES_SHOWN = 8  # per day the change spans, up to MAX_DAYS_SHOWN days' worth
@@ -172,13 +176,14 @@ def parse_grade(answer: str) -> dict | None:
 
 
 def credit(grade: dict) -> float | None:
-    """0 to 1: the outcome's points times specificity, over 4. 0 if already known, whatever
-    the outcome, since restating what's settled earns nothing; otherwise None if unknown."""
+    """0 to 1: the outcome's points times specificity, over 4, and halved if not grounded. 0 if already
+    known, whatever the outcome, since restating what's settled earns nothing; otherwise None if unknown."""
     if grade["already_known"]:
         return 0.0
     if grade["outcome"] == "unknown":
         return None
-    return POINTS[grade["outcome"]] * grade["specificity"] / 4
+    points = POINTS[grade["outcome"]] * grade["specificity"] / 4
+    return points if grade["grounded"] else points * UNGROUNDED_SHARE
 
 
 def dumps(grade: dict) -> str:

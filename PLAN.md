@@ -145,6 +145,13 @@ Two-stage approach:
     must pass the same checks.
   - "All of them" covers the other two ways to more world events in §6:
     what comes next in a story, and longer horizons.
+- **Grounding and the website (decided 2026-10-04, the user):**
+  - Keep the revision step for made-up details "for now" (§3 item 30).
+  - "Grounded predictions should earn more credit": an ungrounded
+    prediction earns half (`judge.UNGROUNDED_SHARE`; §3 item 31).
+  - "We're close to being able to update the website to use the new
+    scheme. Once we do that, I'd like to move the current 'pages most
+    likely to see an edit' to the page explaining how everything works."
 
 Full original plan detail (data sources, storage design rationale, model
 architecture options, evaluation plan, milestones) — if you want the fuller
@@ -1129,6 +1136,29 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
         dropped as an armed group. Run 11 published one like it ("Mekele and
         Mekelle… fall under TPLF control"), and "the closure of T24" (a news
         site) passes the same way.
+
+31. **Grounded predictions earn more credit (2026-10-04)**: the user's
+    decision (§2). An ungrounded prediction now earns half
+    (`judge.UNGROUNDED_SHARE`), in `judge.credit`, the review page and the
+    drafting instructions. Every run's credit, recomputed:
+
+    | Run | Graded | Old credit | New credit | Ungrounded |
+    |---|---|---|---|---|
+    | first (confirmed) | 68 | 0.030 | 0.021 | 50 |
+    | 7 (confirmed) | 26 | 0.185 | 0.179 | 5 |
+    | 8 | 36 | 0.164 | 0.136 | 9 |
+    | 9 | 31 | 0.179 | 0.161 | 13 |
+    | 10 stories | 60 | 0.038 | 0.034 | 12 |
+    | 10 pages | 13 | 0.208 | 0.167 | 2 |
+    | 11 stories | 63 | 0.105 | 0.081 | 19 |
+    | 11 pages | 10 | 0.150 | 0.150 | 0 |
+    | 12 stories | 60 | 0.058 | 0.051 | 2 |
+    | 12 pages | 13 | 0.135 | 0.135 | 0 |
+
+    - Run 12's stories still trail run 11's (0.051 to 0.081): 14 of its
+      60 were already known, against 5.
+    - The first run's 0.030 is over all 68 graded, dropped ones included;
+      its kept predictions alone averaged 0.078.
 
 ## 4. Data state — important for resuming on a new machine
 
@@ -2519,10 +2549,13 @@ old step 2 (move to English Wikipedia) is now step 5.
                 about 60. Credit fell from 0.105 to 0.058: lucky ungrounded
                 guesses no longer count, and 11 of 30 revisions restate the
                 reports.
-              - **Open, for the user:** keep the revision step, which is
-                grounded but earns less credit? And should a prediction have
-                to be grounded to earn credit? If kept, the next step is to
-                stop revisions restating their reports.
+              - **Decided (2026-10-04, §2):** the revision step stays for
+                now, and an ungrounded prediction earns half credit (§3
+                item 31). Still to do: stop revisions restating their
+                reports.
+              - **Next: the website shows version 3** (the user,
+                2026-10-04), and the daily list of pages likeliest to see
+                an edit moves to the page explaining how it works.
               - **Still to do: longer horizons** for scheduled world events,
                 such as an election a month away. This needs the update
                 scoring decided first (§7).
