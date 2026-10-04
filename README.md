@@ -311,8 +311,10 @@ Wikipedia, which is roughly 100× the test corpus.
   - Separate checks drop any prediction that names a specific person (none
     for now), or has an organization doing or suffering harm. Wars,
     disasters and crime are fine in general terms, but name no
-    organization, except a country's government. The checks also drop
-    predictions that restate their evidence, or copy or repeat another.
+    organization. A country's government or armed forces, named by the
+    country ("Ukraine's armed forces"), stand for the country, which may
+    be named. The checks also drop predictions that restate their
+    evidence, or copy or repeat another.
   - At most ten a day are published, world events first. Sport, read from
     the page itself, comes only when it settles a title, at most three a
     day.

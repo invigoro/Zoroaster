@@ -603,6 +603,21 @@ class RewriteTest(unittest.TestCase):
                          ["the rewrite keeps a name its original was dropped for (Sixth Circuit Court)"])
         general = {0: self.screened("I predict that a federal appeals court will uphold a stay of execution.", [])}
         self.assertTrue(merge_rewrites(court, general)[0]["kept"])
+        # About a person, a rewrite keeps no other detail that may single them out, but countries and dates (run 14).
+        duterte = [self.screened("I predict that the Second Impeachment of Vice President Sara Duterte will result in "
+                                 "a 14-14 tie in the Philippine Senate.", ["names or points to a person (Sara Duterte)"])]
+        senate = {0: self.screened("I predict that the Second Impeachment of a prominent politician will result in a "
+                                   "14-14 tie in the Philippine Senate.", [])}
+        out = merge_rewrites(duterte, senate)
+        self.assertFalse(out[0]["kept"])
+        self.assertEqual(out[0]["rewrite_dropped_because"],
+                         ["the rewrite about a person keeps a detail that may single them out (Second; Impeachment; Senate)"])
+        general = {0: self.screened("I predict that a prominent politician in the Philippines will be convicted by "
+                                    "Friday, 2 October.", [])}
+        self.assertTrue(merge_rewrites(duterte, general)[0]["kept"])
+        # Nor any organization, even a country's, which an organization's rewrite may name.
+        named = {0: general[0] | {"orgs_named": ["Philippine Senate"]}}
+        self.assertFalse(merge_rewrites(duterte, named)[0]["kept"])
         # Whole words only: "UN" isn't in "under", nor "Fay" in "Fayetteville".
         self.assertEqual(kept_names(["harm to or by a specific organization (UN; Fay)"], "under Fayetteville's"), [])
         # Names only: the person check once listed "individuals", which a general rewrite may well say.
@@ -637,6 +652,9 @@ class RewriteTest(unittest.TestCase):
         self.assertTrue(armed_groups_only(tplf))
         self.assertTrue(apply_identifies([forces], [NOT_ASKED])[0]["kept"])
         self.assertFalse(armed_groups_only(tplf | {"harm_check": [["No", "Yes", "No", "company"]]}))  # a company
+        # The kind question once called the TPLF a party: in a war's story it's the same.
+        self.assertTrue(armed_groups_only(tplf | {"harm_check": [["No", "No", "No", "party"]], "story_topic": "conflict"}))
+        self.assertFalse(armed_groups_only(tplf | {"harm_check": [["No", "No", "No", "party"]], "story_topic": "crime"}))
         self.assertFalse(armed_groups_only(tplf | {"dropped_because": ["names or points to a person (Abiy Ahmed)",
                                                                         "harm to or by a specific organization (TPLF)"]}))
         self.assertEqual(reason_names(["harm to or by a specific organization (Hamas; Hezbollah)",

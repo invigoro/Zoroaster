@@ -81,6 +81,7 @@ from __future__ import annotations
 import re
 
 from src.prophecy.countries import names_a_country
+from src.prophecy.evidence import MONTHS
 
 PERSON_ROLES = re.compile(  # singular only: plurals are groups
     r"\b(?:incumbent|candidate|coach|manager|captain|president|prime minister|premier|minister|chancellor|governor|"
@@ -144,7 +145,7 @@ Answer with one word: yes or no.""",
 Sentence: {text}
 
 Answer with one word: yes or no.""",
-    """What kind of organization is "{org}"? Answer with exactly one word: state (a country's government, ministry, army, navy, air force or police), armed (an armed group, militia or rebel force that isn't a country's own), company, party, team, or other.""")
+    """What kind of organization is "{org}"? Answer with exactly one word: state (a country's government, ministry, army, navy, air force or police, such as "Ukrainian forces" or the Israel Defense Forces), armed (an armed group, militia or rebel force that isn't a country's own, such as Hamas or the Rapid Support Forces), company, party, team, or other.""")
 # A country's government or armed forces stand for the country, which the rules allow to do anything (the user,
 # 2026-10-04: "it's fine to list countries or their overall government doing something (e.g. Ukraine's armed
 # forces, or as we already have in the second one, Saudi Arabia's air force)"). Before that, any army counted
@@ -352,17 +353,19 @@ def generalize_messages(text: str, names: list[str] | None = None) -> list[dict]
 
 
 def armed_groups_only(prediction: dict) -> bool:
-    """Whether the guardrails dropped a prediction only for armed groups that aren't a country's (`harms`). Its
-    rewrite isn't asked whether it still points to them (IDENTIFIES_QUESTION): the user asked for the place a
-    group fights to be named (2026-10-04), and that often makes plain which group it is. Asked, the model dropped
-    "a prominent armed group continues to seize control of more towns in Afar and Amhara regions", the TPLF's."""
+    """Whether the guardrails dropped a prediction only for organizations, no person, and either all of them armed
+    groups that aren't a country's (`harms`) or in a war. Its rewrite isn't asked whether it still points to them
+    (IDENTIFIES_QUESTION): the user asked for the place a group fights to be named (2026-10-04), and that often makes
+    plain which group it is. Asked, the model dropped "a prominent armed group continues to seize control of more
+    towns in Afar and Amhara regions", the TPLF's, which the kind question once called an armed group, once a party."""
     reasons = prediction["dropped_because"]
     if not reasons or any(r.startswith(GUARDRAIL_REASONS[0]) for r in reasons):  # a person
         return False
+    names = reason_names(reasons)
+    war = prediction.get("story_topic") == "conflict" or prediction.get("topic_check", "").lower().startswith("conflict")
     kinds = {o: (a[-1].strip().lower() if a else "")
              for o, a in zip(prediction.get("orgs_named", []), prediction.get("harm_check", []))}
-    names = reason_names(reasons)
-    return bool(names) and all(kinds.get(n, "").startswith(ARMED_KINDS) for n in names)
+    return bool(names) and (war or all(kinds.get(n, "").startswith(ARMED_KINDS) for n in names))
 
 
 def reason_names(reasons: list[str]) -> list[str]:
@@ -436,6 +439,21 @@ def guarded_only(prediction: dict) -> bool:
 
 
 KEPT_NAME = "the rewrite keeps a name its original was dropped for"
+KEPT_DETAIL = "the rewrite about a person keeps a detail that may single them out"
+CAPITAL = re.compile(r"(?<![\w'’])[A-Z][\w'’-]*")
+DATES_AND_SUCH = {"I", "The", "A", "An", *MONTHS, "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday",
+                  "Sunday"}
+
+
+def kept_details(original: str, rewrite: str) -> list[str]:
+    """The capitalized words a rewrite keeps from its original, but for countries, nationalities and dates: for a
+    person, a named institution or event can single them out. In run 14 "the Second Impeachment of Vice President
+    Sara Duterte will result in a 14-14 tie in the Philippine Senate" became "the Second Impeachment of a prominent
+    politician will result in a 14-14 tie in the Philippine Senate", and the question whether it still points to
+    her said no."""
+    before = set(CAPITAL.findall(original))
+    return list(dict.fromkeys(w for w in CAPITAL.findall(rewrite)
+                              if w in before and w not in DATES_AND_SUCH and not names_a_country(w)))
 
 
 def kept_names(reasons: list[str], rewrite: str) -> list[str]:
@@ -460,12 +478,16 @@ def merge_rewrites(screened: list[dict], rewritten: dict[int, dict]) -> list[dic
             out.append(p)
             continue
         still = kept_names(p["dropped_because"], r["text"])
-        if r["kept"] and not still and not repeats(r["text"], kept):
+        # For a person, stricter: no organization at all, a country's either, and no other detail kept but places.
+        person = any(x.startswith(GUARDRAIL_REASONS[0]) for x in p["dropped_because"])
+        detail = [*r.get("orgs_named", []), *kept_details(p["text"], r["text"])] if person else []
+        if r["kept"] and not still and not detail and not repeats(r["text"], kept):
             kept.append(r["text"])
             out.append(r | {"rewritten_from": p["text"], "dropped_before_rewrite": p["dropped_because"]})
         else:
-            why = r["dropped_because"] or ([f"{KEPT_NAME} ({'; '.join(still)})"] if still
-                                           else ["repeats an earlier prediction"])
+            why = (r["dropped_because"] or ([f"{KEPT_NAME} ({'; '.join(still)})"] if still else [])
+                   or ([f"{KEPT_DETAIL} ({'; '.join(dict.fromkeys(detail))})"] if detail else [])
+                   or ["repeats an earlier prediction"])
             out.append(p | {"rewrite": r["text"], "rewrite_dropped_because": why})
     return out
 
