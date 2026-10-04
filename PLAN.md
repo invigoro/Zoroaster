@@ -152,6 +152,16 @@ Two-stage approach:
   - "We're close to being able to update the website to use the new
     scheme. Once we do that, I'd like to move the current 'pages most
     likely to see an edit' to the page explaining how everything works."
+  - On the preview (§3 item 33): "I do think this is ready to replace the
+    current live site, so please go ahead with that. We can continue to
+    tweak the process and update the site as we go." It liked the label
+    ("Machine-generated forecasts, not news") prominently displayed.
+  - Countries' forces and places (§3 item 34): "it's fine to list
+    countries or their overall government doing something (e.g. Ukraine's
+    armed forces, or as we already have in the second one, Saudi Arabia's
+    air force), and it's fine to name a region explicitly." "A prominent
+    armed group will continue to advance in a region" was too vague: "How
+    will we know if it came true?"
 
 Full original plan detail (data sources, storage design rationale, model
 architecture options, evaluation plan, milestones) — if you want the fuller
@@ -1201,8 +1211,8 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
         additional individuals are arrested in Myanmar for supporting the
         in-exile National Unity Government" was published.
 
-33. **Version 3 on the website (prepared 2026-10-04, on the `site-v3`
-    branch)**: the user asked for the home page to show version 3, and for
+33. **Version 3 on the website (2026-10-04; live from the daily run for
+    2026-10-05)**: the user asked for the home page to show version 3, and for
     the list of pages likeliest to see a burst to move to the page that
     explains how it works (§2).
     - **The nightly step** (`prophesy_daily.py`), which `run_daily.py` runs
@@ -1239,9 +1249,69 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
       - No grades yet: the judge is still being checked against hand
         grades.
     - **Previewed** on a private page with the first day's prophecy, at
-      desktop and phone widths. It goes live when `site-v3` is merged into
-      `stage1` and `main`: the next daily run then makes the prophecy and
-      publishes the new pages.
+      desktop and phone widths, and merged at the user's go-ahead (§2), from
+      the `site-v3` branch.
+      - The first day's prophecy was made at 14:45 UTC, after its day had
+        begun, and one prediction was due that day (the NRL Grand Final).
+        So it stays out of the public record (`v3/daily_trial/`): the first
+        live prophecy is the daily run's, just after 00:30 UTC on
+        2026-10-05.
+      - `publish_site.py` passes the prophecies' folder on, and its test
+        points it at none: in the main checkout the test had read the
+        trial's prophecy and failed.
+
+34. **Version 3: countries' forces may act, and rewrites keep places
+    (2026-10-04)**: the user's guidance after seeing the first day's
+    prophecy (§2). "A prominent armed group will continue to advance in a
+    region, capturing at least one more town" couldn't be checked.
+    - **A country's government or armed forces stand for the country**
+      (`checks.is_state`).
+      - The harm questions' kind question now tells "state" (examples:
+        "Ukrainian forces", the Israel Defense Forces) from an armed group
+        that isn't a country's ("armed": Hamas, the Rapid Support Forces).
+      - A state may do or suffer harm, and be named in a war, if its name
+        says which country (`countries.names_a_country`). The model alone
+        called the Rapid Support Forces and the UN Security Council a
+        country's.
+      - One whose name names no country ("the Pentagon", "the Federal
+        Reserve") is an organization like any other.
+    - **Rewrites keep places.** The rewrite is told which names to replace
+      (`checks.reason_names`), and to keep regions and places and name a
+      country's forces by the country. "Hamas will fire rockets into Tel
+      Aviv" had become "…into a major city"; now it's "an armed group will
+      fire rockets into Tel Aviv".
+    - **A rewrite in a war** isn't asked whether it still points to the
+      group it replaced (`checks.armed_groups_only`): naming where a group
+      fights often makes plain which. Asked, the model dropped "a prominent
+      armed group continues to seize control of more towns in Afar and
+      Amhara regions".
+    - **A rewrite about a person** keeps no other capitalized word but
+      countries, nationalities and dates, and names no organization at all
+      (`checks.kept_details`). Run 14 kept "the Second Impeachment of a
+      prominent politician will result in a 14-14 tie in the Philippine
+      Senate", which the identity question passed.
+    - **Trials:** guardrails 55 of 55. "The Israel Defense Forces will
+      strike a hospital in Gaza" and Ukraine's forces are allowed now; the
+      Rapid Support Forces are still blocked. Rewrites 15 of 16: "Saudi
+      Arabia and the Houthis" still passes unrewritten.
+    - **Runs 14 and 15** (`--rescreen`; run 14 before the person rule):
+
+      | | Run 13 | Run 14 | Run 15 |
+      |---|---|---|---|
+      | rewrites kept | 36 | 41 | 30 |
+      | vague rewrites kept ("in a region", "a prominent individual") | 13 | 5 | 3 |
+      | published | 139 | 139 | 139 |
+
+      - Published in run 15: "Ukrainian forces will launch additional drone
+        attacks on Russian territory, targeting critical infrastructure in
+        the Moscow Oblast region"; "the Ethiopian National Defense Force will
+        continue its offensive in the Tigray Region, with at least two more
+        airstrikes in Alamata"; "a prominent armed group continues its
+        attacks and threats against businesses and public transport in Santa
+        Marta, Magdalena Department, Colombia".
+    - **Still open:** some rewrites garble or mislabel: "another round of
+      airstrikes by major armed forces and an actor"; Puntland's maritime
+      police became "a prominent armed group".
 
 ## 4. Data state — important for resuming on a new machine
 
@@ -2636,11 +2706,13 @@ old step 2 (move to English Wikipedia) is now step 5.
                 now, and an ungrounded prediction earns half credit (§3
                 item 31). Still to do: stop revisions restating their
                 reports.
-              - **Prepared (§3 item 33): the website shows version 3**
-                (the user, 2026-10-04), and the daily list of pages
-                likeliest to see an edit moves to the page explaining how it
-                works. It goes live when the user approves the preview and
-                `site-v3` is merged.
+              - **Done (§3 item 33): the website shows version 3** (the
+                user approved it, 2026-10-04), and the daily list of pages
+                likeliest to see an edit moved to the page explaining how it
+                works. The first live prophecy is the daily run's for
+                2026-10-05.
+              - **Done (§3 item 34):** countries' governments and forces may
+                act, and rewrites keep places (the user, 2026-10-04).
               - **Still to do: longer horizons** for scheduled world events,
                 such as an election a month away. This needs the update
                 scoring decided first (§7).
