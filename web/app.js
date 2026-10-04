@@ -1,8 +1,6 @@
-// Renders data/latest.json (tomorrow's prophecy) and data/latest.outcomes.json
-// (how yesterday's turned out), both written by the daily job.
+// Renders data/prophecies.json: version 3's prophecy for each of the last days, newest first, which the daily
+// job writes (scripts/prophesy_daily.py, then build_site.py). Each holds its published predictions alone.
 "use strict";
-
-const SHOWN = 50;
 
 function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
@@ -11,63 +9,49 @@ function el(tag, attrs = {}, ...children) {
   return node;
 }
 
-function formatDay(iso) {
+function formatDay(iso, options = { weekday: "long", year: "numeric", month: "long", day: "numeric" }) {
   const [y, m, d] = iso.split("-").map(Number);
-  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("en-US", {
-    weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "UTC",
-  });
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("en-US", { ...options, timeZone: "UTC" });
 }
 
-function plural(n, word) {
-  return `${n.toLocaleString("en-US")} ${word}${n === 1 ? "" : "s"}`;
+function daysBetween(a, b) {
+  return Math.round((Date.parse(b + "T00:00:00Z") - Date.parse(a + "T00:00:00Z")) / 86400000);
 }
 
-function renderPages(prophecy) {
+function due(prophecy, prediction) {
+  const n = daysBetween(prophecy.date, prediction.due);
+  const when = formatDay(prediction.due, { weekday: "long", month: "long", day: "numeric" });
+  return n === 0 ? `due by the end of ${when}, the same day` : `due by the end of ${when}`;
+}
+
+function render(prophecy) {
   document.getElementById("day").textContent = formatDay(prophecy.date);
-  const list = document.getElementById("pages");
+  const list = document.getElementById("prophecy");
   list.replaceChildren();
-  const top = prophecy.pages[0] ? prophecy.pages[0].score : 1;
-  for (const page of prophecy.pages.slice(0, SHOWN)) {
-    const url = "https://en.wikipedia.org/wiki/" + encodeURIComponent(page.title.replaceAll(" ", "_"));
-    const activity = page.edits_1d > 0
-      ? `yesterday ${plural(page.edits_1d, "edit")} by ${plural(page.editors_1d, "editor")}`
-      : "no edits yesterday";
-    const meter = el("div", { class: "meter", "aria-hidden": "true" }, el("span"));
-    meter.firstChild.style.width = `${Math.max(2, (100 * page.score) / top)}%`;
-    list.append(el("li", {},
-      el("span", { class: "rank" }, String(page.rank)),
-      el("a", { class: "title", href: url }, page.title),
-      el("span", { class: "chance", title: "the model's estimate of a burst tomorrow" }, `${Math.round(100 * page.score)}%`),
-      meter,
-      el("span", { class: "detail" }, `${activity}; ${plural(page.edits_7d, "edit")} in the last week`),
-    ));
+  if (!prophecy.predictions.length) {
+    list.append(el("li", { class: "placeholder" }, "The prophet foretold nothing that passed its checks that day."));
   }
-  document.getElementById("generated").textContent =
-    `Foretold ${new Date(prophecy.generated_at).toUTCString()} from ${plural(prophecy.candidates, "candidate page")}.`;
-}
-
-function renderRecord(outcomes) {
-  const model = outcomes.precision.model["100"];
-  const baseline = outcomes.precision["edits yesterday"]["100"];
-  const text = document.getElementById("record-text");
-  text.replaceChildren(
-    `For ${formatDay(outcomes.date)}, `,
-    el("strong", { class: "hit" }, `${Math.round(100 * model)} of the top 100`),
-    ` came true: those pages burst. Ranking by yesterday's edits alone would have caught ${Math.round(100 * baseline)}.`,
-  );
-  if (outcomes.hits.length) {
-    text.append(" Among them: " + outcomes.hits.slice(0, 5).join("; ") + ".");
+  for (const p of prophecy.predictions) {
+    const meta = el("p", { class: "meta" }, el("span", { class: "topic" }, p.topic || "other"), ` · ${due(prophecy, p)}`);
+    if (p.confidence) meta.append(` · ${p.confidence} confidence`);
+    list.append(el("li", {}, el("p", { class: "text" }, p.text), meta));
   }
-  document.getElementById("record").hidden = false;
+  document.getElementById("generated").textContent = prophecy.generated_at
+    ? `Foretold ${new Date(prophecy.generated_at).toUTCString()} by ${prophecy.model}.` : "";
 }
 
-async function load(name) {
-  const response = await fetch(`data/${name}`, { cache: "no-cache" });
-  if (!response.ok) throw new Error(`${name}: ${response.status}`);
-  return response.json();
+function renderDays(prophecies) {
+  const select = document.getElementById("days");
+  select.replaceChildren(...prophecies.map((p, i) => el("option", { value: String(i) }, formatDay(p.date))));
+  select.addEventListener("change", () => render(prophecies[Number(select.value)]));
+  document.getElementById("day-pick").hidden = prophecies.length < 2;
+  render(prophecies[0]);
 }
 
-load("latest.json").then(renderPages).catch(() => {
-  document.getElementById("pages").replaceChildren(el("li", { class: "placeholder" }, "The prophecy isn't available right now."));
-});
-load("latest.outcomes.json").then(renderRecord).catch(() => {});
+fetch("data/prophecies.json", { cache: "no-cache" })
+  .then((response) => { if (!response.ok) throw new Error(response.status); return response.json(); })
+  .then((prophecies) => { if (!prophecies.length) throw new Error("none yet"); renderDays(prophecies); })
+  .catch(() => {
+    document.getElementById("prophecy").replaceChildren(
+      el("li", { class: "placeholder" }, "The prophecy isn't available right now."));
+  });

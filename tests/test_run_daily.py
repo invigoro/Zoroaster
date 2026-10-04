@@ -15,20 +15,27 @@ def names(steps):
 class PlanTest(unittest.TestCase):
     def test_normal_missed_and_done_days(self):
         with tempfile.TemporaryDirectory() as tmp:
-            predictions = Path(tmp)
+            predictions, prophecies = Path(tmp), Path(tmp) / "v3"
+            prophecies.mkdir()
             # a missed day: nothing for yesterday
-            self.assertEqual(names(plan(DAY, predictions, forecasts_run=predictions)), [
-                "predict 2026-09-30 (missed)", "predict 2026-10-01", "score 2026-09-30", "build the site",
-                "publish the site", "prune old candidate tables"])
+            self.assertEqual(names(plan(DAY, predictions, forecasts_run=predictions, prophecies=prophecies)), [
+                "predict 2026-09-30 (missed)", "predict 2026-10-01", "score 2026-09-30", "prophesy 2026-10-01",
+                "build the site", "publish the site", "prune old candidate tables"])
             # the normal day: yesterday was predicted, not yet scored
             (predictions / "2026-09-30.parquet").touch()
             (predictions / "2026-09-30.json").touch()
-            self.assertEqual(names(plan(DAY, predictions, forecasts_run=predictions)), [
-                "predict 2026-10-01", "score 2026-09-30", "build the site", "publish the site", "prune old candidate tables"])
-            # already done today
+            self.assertEqual(names(plan(DAY, predictions, forecasts_run=predictions, prophecies=prophecies)), [
+                "predict 2026-10-01", "score 2026-09-30", "prophesy 2026-10-01", "build the site", "publish the site",
+                "prune old candidate tables"])
+            # already done today, but for version 3's prophecy
             (predictions / "2026-10-01.json").touch()
             (predictions / "2026-09-30.outcomes.json").touch()
-            self.assertEqual(names(plan(DAY, predictions, forecasts_run=predictions)), ["build the site", "publish the site", "prune old candidate tables"])
+            self.assertEqual(names(plan(DAY, predictions, forecasts_run=predictions, prophecies=prophecies)), [
+                "prophesy 2026-10-01", "build the site", "publish the site", "prune old candidate tables"])
+            # and all of it: the prophecy's public part marks it done
+            (prophecies / "2026-10-01.prophecy.json").touch()
+            self.assertEqual(names(plan(DAY, predictions, forecasts_run=predictions, prophecies=prophecies)), [
+                "build the site", "publish the site", "prune old candidate tables"])
 
 
 class RunTest(unittest.TestCase):
@@ -38,9 +45,11 @@ class RunTest(unittest.TestCase):
             run_dir.mkdir()
             (predictions / "2026-10-01.json").touch()
             (predictions / "2026-09-30.outcomes.json").touch()
-            self.assertNotIn("refresh the forecasts page", names(plan(DAY, predictions, forecasts_run=run_dir)))
+            (predictions / "2026-10-01.prophecy.json").touch()
+            self.assertNotIn("refresh the forecasts page", names(plan(DAY, predictions, forecasts_run=run_dir,
+                                                                      prophecies=predictions)))
             (run_dir / "ranked.json").touch()
-            self.assertEqual(names(plan(DAY, predictions, forecasts_run=run_dir)), [
+            self.assertEqual(names(plan(DAY, predictions, forecasts_run=run_dir, prophecies=predictions)), [
                 "refresh the forecasts page", "build the site", "publish the site", "prune old candidate tables"])
 
     def test_every_step_runs_and_a_failure_is_reported(self):

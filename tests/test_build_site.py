@@ -19,21 +19,41 @@ class BuildSiteTest(unittest.TestCase):
                 (predictions / name).write_text(json.dumps({"day": day}))
             (predictions / "2026-09-07.parquet").write_text("not copied")
             self.assertEqual(newest(predictions, ".json").name, "2026-09-07.json")  # not an .outcomes.json
-            used = build(out, predictions, web, forecasts=tmp / "none.json")
+            used = build(out, predictions, web, forecasts=tmp / "none.json", prophecies=tmp / "none")
             data = out / "data"
             self.assertEqual(used, {"latest.json": "2026-09-07.json", "latest.outcomes.json": "2026-09-06.outcomes.json",
-                                    "forecasts.json": None})
+                                    "forecasts.json": None, "prophecy.json": None})
             self.assertFalse((data / "forecasts.json").exists())
             self.assertEqual(json.loads((data / "latest.json").read_text()), {"day": "b"})
             self.assertEqual(json.loads((data / "latest.outcomes.json").read_text()), {"day": "c"})
             self.assertTrue((out / "index.html").exists() and (data / "2026-09-07.json").exists())
             self.assertEqual((out / "img" / "banner.webp").read_bytes(), b"image")  # folders are copied too
             (tmp / "site_forecasts.json").write_text(json.dumps({"rows": []}))
-            used = build(out, predictions, web, forecasts=tmp / "site_forecasts.json")  # again, over the last build
+            used = build(out, predictions, web, forecasts=tmp / "site_forecasts.json",  # again, over the last build
+                         prophecies=tmp / "none")
             self.assertEqual(json.loads((data / "forecasts.json").read_text()), {"rows": []})
             self.assertEqual(used["forecasts.json"], str(tmp / "site_forecasts.json"))
             self.assertFalse(list(out.rglob("*.parquet")))
             self.assertIsNone(newest(web, ".json"))
+
+    def test_version_3_s_prophecy_and_the_days_before(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            web, v3, out = tmp / "web", tmp / "v3", tmp / "out"
+            web.mkdir(), v3.mkdir()
+            (web / "index.html").write_text("<html></html>")
+            for day in ("2026-10-03", "2026-10-04"):
+                (v3 / f"{day}.prophecy.json").write_text(json.dumps({"date": day, "predictions": []}))
+                (v3 / f"{day}.json").write_text(json.dumps({"date": day, "secret": "the whole record"}))
+            used = build(out, tmp / "none", web, forecasts=tmp / "none.json", prophecies=v3)
+            data = out / "data"
+            self.assertEqual(used["prophecy.json"], "2026-10-04.prophecy.json")
+            self.assertEqual(json.loads((data / "prophecy.json").read_text())["date"], "2026-10-04")
+            self.assertEqual([d["date"] for d in json.loads((data / "prophecies.json").read_text())],
+                             ["2026-10-04", "2026-10-03"])  # newest first, for the day selector
+            self.assertEqual(sorted(p.name for p in (data / "prophecies").iterdir()), ["2026-10-03.json", "2026-10-04.json"])
+            # Only the public part goes out: a day's whole record names what it cites, titles that can name a person.
+            self.assertNotIn("the whole record", "".join(p.read_text() for p in out.rglob("*.json")))
 
 
 if __name__ == "__main__":
