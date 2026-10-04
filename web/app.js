@@ -34,6 +34,28 @@ function due(prophecy, prediction) {
   return n === 0 ? `due by the end of ${when}, the same day` : `due by the end of ${when}`;
 }
 
+// Each day's prophecy has its own comment thread in the repo's GitHub Discussions, through giscus
+// (https://giscus.app): found by its title, "Prophecy for 2026-10-05", in the Announcements category, where only
+// the maintainer and giscus may start a thread. Strict, so a day's title never matches another's.
+const GISCUS = {
+  "data-repo": "invigoro/Zoroaster", "data-repo-id": "R_kgDOTFSlwA",
+  "data-category": "Announcements", "data-category-id": "DIC_kwDOTFSlwM4DHBq8",
+  "data-mapping": "specific", "data-strict": "1", "data-reactions-enabled": "1", "data-emit-metadata": "0",
+  "data-input-position": "top", "data-theme": "transparent_dark", "data-lang": "en", "data-loading": "lazy",
+  crossorigin: "anonymous",
+};
+let discussion = null;
+
+function discuss(prophecy) {
+  if (discussion) discussion.remove();
+  discussion = document.createElement("script");
+  discussion.src = "https://giscus.app/client.js";
+  discussion.async = true;
+  for (const [key, value] of Object.entries(GISCUS)) discussion.setAttribute(key, value);
+  discussion.setAttribute("data-term", `Prophecy for ${prophecy.date}`);
+  document.body.append(discussion);  // giscus puts its frame in the .giscus box, in place of the last day's
+}
+
 function render(prophecy) {
   document.getElementById("day").textContent = formatDay(prophecy.date);
   const list = document.getElementById("prophecy");
@@ -48,6 +70,7 @@ function render(prophecy) {
   }
   document.getElementById("generated").textContent = prophecy.generated_at
     ? `Foretold ${new Date(prophecy.generated_at).toUTCString()} by ${prophecy.model}.` : "";
+  discuss(prophecy);
 }
 
 function renderDays(prophecies) {

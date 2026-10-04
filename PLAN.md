@@ -162,6 +162,12 @@ Two-stage approach:
     air force), and it's fine to name a region explicitly." "A prominent
     armed group will continue to advance in a region" was too vague: "How
     will we know if it came true?"
+  - Garbled rewrites: "let it run for a few days, and then reassess the
+    rate at which these get garbled before deciding if further action is
+    required on it."
+  - Comments with giscus (§3 item 35): the user asked for it after a side
+    conversation, and installed the giscus app on the repo. Comments live
+    in the repo's GitHub Discussions, so the site needs no database.
 
 Full original plan detail (data sources, storage design rationale, model
 architecture options, evaluation plan, milestones) — if you want the fuller
@@ -1312,6 +1318,24 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
     - **Still open:** some rewrites garble or mislabel: "another round of
       airstrikes by major armed forces and an actor"; Puntland's maritime
       police became "a prominent armed group".
+
+35. **Comments on the website, with giscus (2026-10-04)**: the user's
+    request (§2).
+    - The repo's Discussions are on (`gh repo edit --enable-discussions`),
+      and the user installed the giscus app on the repo.
+    - Each day's prophecy has its own thread, made when its first comment
+      is posted: "Prophecy for 2026-10-05", in the Announcements category,
+      where only the maintainer and giscus may start a thread
+      (`web/app.js`). Strict matching, so one day's title never finds
+      another's. The day selector switches threads.
+    - The note above it: comments are public, posting needs a GitHub
+      account, "be civil, and don't name private individuals". The
+      guardrails can't stop a commenter naming someone, so moderation
+      (delete, lock, block) is in Discussions.
+    - `giscus.json`, on `main`, lets only the site (and local previews)
+      embed the threads.
+    - Checked against giscus's API (the repo and category it sees) and on
+      a local preview: its widget loads in the site's dark theme.
 
 ## 4. Data state — important for resuming on a new machine
 
@@ -2713,6 +2737,11 @@ old step 2 (move to English Wikipedia) is now step 5.
                 2026-10-05.
               - **Done (§3 item 34):** countries' governments and forces may
                 act, and rewrites keep places (the user, 2026-10-04).
+              - **Next: count the garbled rewrites** in the first few live
+                days ("airstrikes by major armed forces and an actor"), then
+                decide with the user whether they need fixing (§2).
+              - **Done (§3 item 35):** comments on the home page with giscus,
+                a thread for each day's prophecy.
               - **Still to do: longer horizons** for scheduled world events,
                 such as an election a month away. This needs the update
                 scoring decided first (§7).

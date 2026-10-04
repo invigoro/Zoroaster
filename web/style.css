@@ -156,6 +156,10 @@ main > .label { margin-top: 2.4rem; }
 .day-pick select { background: var(--stone-deep); color: var(--text); border: 1px solid var(--rule);
   border-radius: 4px; padding: 0.25rem 0.4rem; font: inherit; }
 
+/* Each day's comment thread (giscus), below its prophecy. */
+.comments .note { margin: 0 0 1rem; }
+.comments .giscus { min-height: 6rem; }
+
 /* Stage 1's list, on the "How the prophet works" page. */
 section .record { margin-top: 1.2rem; }
 .record h3 { margin: 0.9rem 0 0.4rem; color: var(--red); font-size: 0.85rem; font-weight: 400;

@@ -231,6 +231,10 @@ Wikipedia, which is roughly 100× the test corpus.
   prophet works" page (`how.html`) shows the top pages and how the
   previous day's list turned out. The home page, headed "Also sprach
   Zarathustra", shows version 3's prophecy (below), which reads them.
+  - Each day's prophecy has a comment thread, through
+    [giscus](https://giscus.app): comments live in the repo's GitHub
+    Discussions, so the static site needs no database. `giscus.json` lets
+    only the site embed them.
   - Yesterday's edits come from the API's recent changes, turned into the
     dumps' records (`src/ingest/recent_changes.py`).
   - Features are computed by the training code itself, from dump history

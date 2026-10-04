@@ -1,0 +1,4 @@
+{
+  "origins": ["https://zoroaster.invigoro.me", "http://zoroaster.invigoro.me"],
+  "originsRegex": ["http://localhost:[0-9]+"]
+}
