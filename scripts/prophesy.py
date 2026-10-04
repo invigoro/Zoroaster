@@ -50,11 +50,12 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 from scripts.build_v3_days import V3_DIR
 from scripts.fetch_current_events import KNOWN_DIR
-from src.prophecy.checks import (NO_ANSWER, SENSITIVE_TOPICS, apply_identifies, confirmed_orgs, confirmed_people,
-                                 contest_messages, general_mention, generalize_messages, guarded_only, harm_messages,
-                                 identifies_messages, kind_messages, listed_names, listed_orgs, merge_rewrites,
-                                 novelty_messages, one_persons_contest, orgs_messages, people_messages,
-                                 person_messages, screen, sensitive_messages, sensitive_topic)
+from src.prophecy.checks import (NO_ANSWER, NOT_ASKED, SENSITIVE_TOPICS, apply_identifies, armed_groups_only,
+                                 confirmed_orgs, confirmed_people, contest_messages, general_mention,
+                                 generalize_messages, guarded_only, harm_messages, identifies_messages, kind_messages,
+                                 listed_names, listed_orgs, merge_rewrites, novelty_messages, one_persons_contest,
+                                 orgs_messages, people_messages, person_messages, reason_names, screen,
+                                 sensitive_messages, sensitive_topic)
 from src.prophecy.details import flagged, merge_revisions, revise_messages
 from src.prophecy.evidence import TOP, eligible, evidence_blocks
 from src.prophecy.prophet import (HORIZON, PREDICTION, QUESTION, STORY_PREDICTION, STORY_QUESTION, fix_weekdays,
@@ -164,15 +165,18 @@ def rewrite(model, tokenizer, screened: list[dict], by_title: dict[str, str], in
     guarded = [i for i, p in enumerate(screened) if guarded_only(p)]
     if not guarded:
         return screened
-    answers = chat_in_batches(model, tokenizer, [generalize_messages(screened[i]["text"]) for i in guarded],
-                              PREDICTION_TOKENS)
+    # Named: the people and organizations the guardrails found, so the rest, places and countries, stays.
+    asks = [generalize_messages(screened[i]["text"], reason_names(screened[i]["dropped_because"])) for i in guarded]
+    answers = chat_in_batches(model, tokenizer, asks, PREDICTION_TOKENS)
     drafts = [{k: v for k, v in screened[i].items() if k not in CHECK_FIELDS} | {"text": parse_rewrite(a)}
               for i, a in zip(guarded, answers)]
     rechecked = check(model, tokenizer, drafts, by_title, instructions)
     # Vague words aren't enough: does the rewrite still point to the one its original was about?
-    asked = [i for i, r in enumerate(rechecked) if r["kept"]]
+    # Not for armed groups only: naming where one fights may make plain which (`checks.armed_groups_only`).
+    asked = [i for i, r in enumerate(rechecked) if r["kept"] and not armed_groups_only(screened[guarded[i]])]
     said = dict(zip(asked, chat_in_batches(model, tokenizer, [
         identifies_messages(rechecked[i]["text"], screened[guarded[i]]["text"]) for i in asked], YES_NO_TOKENS)))
+    said |= {i: NOT_ASKED for i, r in enumerate(rechecked) if r["kept"] and i not in said}
     rechecked = apply_identifies(rechecked, [said.get(i, "") for i in range(len(rechecked))])
     return merge_rewrites(screened, dict(zip(guarded, rechecked)))
 

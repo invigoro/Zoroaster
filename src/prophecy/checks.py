@@ -80,6 +80,8 @@ from __future__ import annotations
 
 import re
 
+from src.prophecy.countries import names_a_country
+
 PERSON_ROLES = re.compile(  # singular only: plurals are groups
     r"\b(?:incumbent|candidate|coach|manager|captain|president|prime minister|premier|minister|chancellor|governor|"
     r"mayor|senator|king|queen|prince|princess|emperor|pope|ceo|chair(?:man|woman|person)|founder|singer|actor|"
@@ -142,8 +144,13 @@ Answer with one word: yes or no.""",
 Sentence: {text}
 
 Answer with one word: yes or no.""",
-    """What kind of organization is "{org}"? Answer with exactly one word: military (an army, armed force or armed group), company, party, government, team, or other.""")
-MILITARY = ("military", "army", "armed")
+    """What kind of organization is "{org}"? Answer with exactly one word: state (a country's government, ministry, army, navy, air force or police), armed (an armed group, militia or rebel force that isn't a country's own), company, party, team, or other.""")
+# A country's government or armed forces stand for the country, which the rules allow to do anything (the user,
+# 2026-10-04: "it's fine to list countries or their overall government doing something (e.g. Ukraine's armed
+# forces, or as we already have in the second one, Saudi Arabia's air force)"). Before that, any army counted
+# as harm, as "the Israel Defense Forces will strike a hospital" did.
+STATE_KINDS = ("state", "government")
+ARMED_KINDS = ("armed", "military", "army", "militia")  # an armed group that isn't a country's: always harm
 
 ORGS_QUESTION = """List every specific organization that the sentence below names or points to, such as a company, bank, newspaper or news website, political party, armed group, government body, army, team or club. Countries, cities, places, events, and general descriptions such as "a major bank", aren't specific organizations.
 
@@ -236,12 +243,23 @@ def harm_messages(text: str, org: str) -> list[list[dict]]:
     return [[{"role": "user", "content": q.format(org=org, text=text)}] for q in HARM_QUESTIONS]
 
 
-def harms(answers: list[str]) -> bool:
-    """The harm questions' verdict on one organization: harm unless every harm question gets a clear "no".
-    And a named army or armed group always counts. On known sentences the harm questions missed
-    "the Israel Defense Forces will strike a hospital", and a prediction naming one is about war."""
+def is_state(name: str, kind: str) -> bool:
+    """Whether an organization stands for its country: the model calls it a country's government or forces
+    (STATE_KINDS), and its name says which country (`countries.names_a_country`). The model alone called the
+    Rapid Support Forces, Sudan's paramilitary at war with its army, a country's forces, and the UN Security
+    Council too."""
+    return kind.strip().lower().startswith(STATE_KINDS) and names_a_country(name)
+
+
+def harms(answers: list[str], name: str = "") -> bool:
+    """The harm questions' verdict on one organization, `name`: harm unless every harm question gets a clear
+    "no". A country's government or armed forces never count (`is_state`): they stand for the country. One whose
+    name names no country is an organization like any other ("the Federal Reserve will cut rates" is fine). An
+    armed group that isn't a country's always counts: a prediction naming one is about war."""
     *questions, kind = (a.strip().lower() for a in answers)
-    return not all(a.startswith("no") for a in questions) or kind.startswith(MILITARY)
+    if is_state(name, kind):
+        return False
+    return kind.startswith(ARMED_KINDS) or not all(a.startswith("no") for a in questions)
 
 
 NO_ANSWER = "(no answer)"  # an empty listing answer: an unknown person, never asked about
@@ -284,10 +302,10 @@ SENSITIVE_TOPICS = ("conflict", "disaster", "crime")
 # The user's rule (2026-10-01): wars, disasters and crimes are fine, "so long as they're not too specific to a
 # person or an organization". The harm questions alone let "the TPLF continues to seize control of more towns"
 # through in runs 11 and 12: no harm, said the model, and the TPLF a party, not an armed group. A country's
-# government stands for the country, which the rule allows ("an armed group will agree to negotiate with the
-# Colombian government"), so an organization the harm questions class as one doesn't count.
+# government or armed forces stand for the country, which the rule allows ("an armed group will agree to
+# negotiate with the Colombian government"), so an organization the harm questions class so (STATE_KINDS)
+# doesn't count.
 IN_SENSITIVE = "names an organization in a war, a disaster or a crime"
-STATE_KINDS = ("government",)
 GUARDRAIL_REASONS = ("names or points to a person", "harm to or by a specific organization", IN_SENSITIVE)
 
 # Asked of a page's prediction that names an organization; a story's topic is its category's
@@ -309,11 +327,14 @@ def sensitive_topic(answer: str) -> bool:
 # will be convicted and removed from office by the Philippine Senate" names nobody, but fits one person. Keeping
 # countries word for word, and descriptions true of whom they replace, came after run 10: "a prominent actor"
 # was copied onto wrestlers, and "Saudi Arabia and the Houthis" became "a prominent actor from a country and an
-# important politician from another country".
+# important politician from another country". Regions, and countries' governments and forces, came after the
+# first live day (2026-10-04): "the TPLF continues to seize control of more towns in Afar and Amhara regions"
+# became "a prominent armed group will continue to advance in a region", which the user found too vague to check.
 GENERALIZE = """Rewrite the sentence below so that no reader could tell which specific person or organization it is about.
-- Replace each specific person or organization with a general description of what it really is, one that fits many: say what kind of person or group it is (an actor, a film producer, a wrestler, a politician, a bank, a technology company, an armed group), adding "prominent" or "major" only if that fits.
+- Replace each specific person or organization{named} with a general description of what it really is, one that fits many: say what kind of person or group it is (an actor, a film producer, a wrestler, a politician, a bank, a technology company, an armed group), adding "prominent" or "major" only if that fits.
 - Also leave out any detail that singles one out: a particular office or title, the institution or court that judges them, a vote count, a sentence's length.
-- Countries, nationalities, cities and places are not organizations: keep each one exactly as the sentence writes it.
+- Countries, nationalities, regions, cities and places are not organizations: keep each one exactly as the sentence writes it, so a reader can still tell where it happens.
+- A country's government or armed forces stand for the country: name them by it ("Ukraine's armed forces", "the Ethiopian government").
 - Keep the rest as it is.
 
 Sentence: {text}
@@ -321,9 +342,35 @@ Sentence: {text}
 Answer with only the rewritten sentence."""
 
 
-def generalize_messages(text: str) -> list[dict]:
-    """The rewrite in general terms, for a prediction or, once published, the judge's reason for a grade."""
-    return [{"role": "user", "content": GENERALIZE.format(text=text)}]
+def generalize_messages(text: str, names: list[str] | None = None) -> list[dict]:
+    """The rewrite in general terms, for a prediction or, once published, the judge's reason for a grade.
+    `names`: the people and organizations the checks dropped it for (`reason_names`), named to the model so it
+    replaces those and keeps the rest. Told only to generalize, it also turned "Tel Aviv" into "a major city"
+    and Israel into "a prominent actor" (2026-10-04)."""
+    named = f" (here: {'; '.join(names)})" if names else ""
+    return [{"role": "user", "content": GENERALIZE.format(text=text, named=named)}]
+
+
+def armed_groups_only(prediction: dict) -> bool:
+    """Whether the guardrails dropped a prediction only for armed groups that aren't a country's (`harms`). Its
+    rewrite isn't asked whether it still points to them (IDENTIFIES_QUESTION): the user asked for the place a
+    group fights to be named (2026-10-04), and that often makes plain which group it is. Asked, the model dropped
+    "a prominent armed group continues to seize control of more towns in Afar and Amhara regions", the TPLF's."""
+    reasons = prediction["dropped_because"]
+    if not reasons or any(r.startswith(GUARDRAIL_REASONS[0]) for r in reasons):  # a person
+        return False
+    kinds = {o: (a[-1].strip().lower() if a else "")
+             for o, a in zip(prediction.get("orgs_named", []), prediction.get("harm_check", []))}
+    names = reason_names(reasons)
+    return bool(names) and all(kinds.get(n, "").startswith(ARMED_KINDS) for n in names)
+
+
+def reason_names(reasons: list[str]) -> list[str]:
+    """The names in a prediction's guardrail reasons: "harm to or by a specific organization (A; B)" gives A
+    and B. Only names, with a capital: the person check once listed "individuals"."""
+    names = [n.strip() for r in reasons if r.startswith(GUARDRAIL_REASONS) and r.endswith(")") and "(" in r
+             for n in r[r.rindex("(") + 1:-1].split(";")]
+    return [n for n in dict.fromkeys(names) if n and n != n.lower()]
 
 
 IDENTIFIABLE = "still points to the one it was about"
@@ -340,6 +387,10 @@ The rewrite: {text}
 Does the rewrite still clearly point to the same person or organization, so that a reader who follows the news would know whom it means? A description that fits many doesn't count: "a prominent actor will die tomorrow", rewritten from a sentence about one actor, doesn't point to that actor.
 
 Answer with one word: yes or no."""
+
+
+# The answer recorded for a rewrite not asked (`armed_groups_only`): a "no", which keeps it.
+NOT_ASKED = "no (not asked: armed groups only, named by where they fight)"
 
 
 def identifies_messages(text: str, original: str) -> list[dict]:
@@ -360,8 +411,11 @@ def apply_identifies(rewrites: list[dict], answers: list[str]) -> list[dict]:
       organization at all, harm or not; only countries and places."""
     out = []
     for r, answer in zip(rewrites, answers, strict=True):
-        if r["kept"] and r.get("orgs_named"):
-            r = r | {"kept": False, "dropped_because": [f"{STILL_NAMES} ({'; '.join(r['orgs_named'])})"]}
+        # A country's government or armed forces may stay, named by its country ("Ethiopia's armed forces").
+        kinds = [a[-1] if a else "" for a in r.get("harm_check") or []]
+        named = [o for i, o in enumerate(r.get("orgs_named", [])) if not (i < len(kinds) and is_state(o, kinds[i]))]
+        if r["kept"] and named:
+            r = r | {"kept": False, "dropped_because": [f"{STILL_NAMES} ({'; '.join(named)})"]}
         elif r["kept"] and not answer.strip().lower().startswith("no"):
             r = r | {"kept": False, "dropped_because": [IDENTIFIABLE]}
         out.append(r | {"identifies_check": answer.strip()})
@@ -388,12 +442,9 @@ def kept_names(reasons: list[str], rewrite: str) -> list[str]:
     """The names a prediction was dropped for, by the guardrails ("harm to or by a specific organization (A; B)"),
     that its rewrite still has, word for word. Run 13 published "the Sixth Circuit Court will uphold the stay on a
     prominent individual's execution": the checks of the rewrite didn't list the court, which they had of the
-    original. Only names, with a capital: the person check once listed "individuals", which a rewrite may say,
-    and a role such as "president" is checked again in the rewrite itself (`person_roles`)."""
-    names = [n.strip() for r in reasons if r.startswith(GUARDRAIL_REASONS) and r.endswith(")") and "(" in r
-             for n in r[r.rindex("(") + 1:-1].split(";")]
-    return [n for n in dict.fromkeys(names)
-            if n != n.lower() and re.search(rf"(?<!\w){re.escape(n)}(?!\w)", rewrite)]
+    original. Only names, with a capital (`reason_names`): a role such as "president" is checked again in the
+    rewrite itself (`person_roles`)."""
+    return [n for n in reason_names(reasons) if re.search(rf"(?<!\w){re.escape(n)}(?!\w)", rewrite)]
 
 
 def merge_rewrites(screened: list[dict], rewritten: dict[int, dict]) -> list[dict]:
@@ -443,12 +494,12 @@ def screen(predictions: list[dict], person_answers: list[str], people: list[list
             reasons.append(f"names or points to a person ({'; '.join([*named, *roles])})")
         elif names_a_person(person):
             reasons.append("names or points to a person")
-        harmed = [o for o, a in zip(org, harm, strict=True) if harms(a)]
+        harmed = [o for o, a in zip(org, harm, strict=True) if harms(a, o)]
         if harmed:
             reasons.append(f"harm to or by a specific organization ({'; '.join(harmed)})")
-        kinds = {o: a[-1].strip().lower() for o, a in zip(org, harm, strict=True)}  # the harm questions' last
+        kinds = {o: a[-1] for o, a in zip(org, harm, strict=True)}  # the harm questions' last
         in_sensitive = [o for o in dict.fromkeys([*org, *wide])
-                        if delicate and o not in harmed and not kinds.get(o, "").startswith(STATE_KINDS)]
+                        if delicate and o not in harmed and not is_state(o, kinds.get(o, ""))]
         if in_sensitive:
             reasons.append(f"{IN_SENSITIVE} ({'; '.join(in_sensitive)})")
         if already_known(novelty):

@@ -350,7 +350,22 @@ class ChecksTest(unittest.TestCase):
         for answer in ("Yes", "Possibly", ""):  # a guardrail: anything but a clear no to both counts
             self.assertTrue(harms(["no", answer, "company"]), answer)
             self.assertTrue(harms([answer, "no", "company"]), answer)
-        self.assertTrue(harms(["No", "No", "Military"]))  # as for "the Israel Defense Forces will strike a hospital"
+        self.assertTrue(harms(["No", "No", "Military"]))  # an army the model won't call a country's
+        self.assertTrue(harms(["No", "No", "No", "armed"]))  # an armed group that isn't a country's: Hamas, the TPLF
+        # A country's government or armed forces stand for the country (the user, 2026-10-04): "Saudi Arabia's air
+        # force will carry out another airstrike at a market in Taiz" is fine, as "Russia will strike Kyiv" is.
+        self.assertFalse(harms(["Yes", "No", "No", "State."], "Saudi Arabia's air force"))
+        self.assertFalse(harms(["No", "Yes", "Yes", "government"], "the Ethiopian government"))
+        # But only one whose name says which country: the model called the Rapid Support Forces, Sudan's
+        # paramilitary at war with its army, a country's forces. Without a country it's like any organization.
+        self.assertTrue(harms(["Yes", "No", "No", "state"], "Rapid Support Forces"))
+        self.assertFalse(harms(["No", "No", "No", "state"], "Federal Reserve"))  # "will cut rates"
+        from src.prophecy.countries import names_a_country
+        for named in ("Israel Defense Forces", "Ukraine's armed forces", "the Sudanese government", "U.S. Army"):
+            self.assertTrue(names_a_country(named), named)
+        for unnamed in ("Rapid Support Forces", "United Nations Security Council", "National Unity Government",
+                        "Tigray People's Liberation Front", "Hamas"):  # "Liberation" doesn't start like Liberia
+            self.assertFalse(names_a_country(unnamed), unnamed)
         # By title or wording, whatever the model says: it called a Grand Prix a contest between teams.
         self.assertTrue(one_persons_contest("2026 Azerbaijan Grand Prix", "Who will win the race?", "teams"))
         self.assertTrue(one_persons_contest("Badminton at the 2026 Asian Games – Men's singles", "Which country wins gold?",
@@ -608,6 +623,24 @@ class RewriteTest(unittest.TestCase):
         self.assertEqual([(p["kept"], p["dropped_because"]) for p in out],
                          [(False, [IDENTIFIABLE]), (True, []), (False, ["harm to or by a specific organization"]),
                           (False, ["the rewrite still names a specific organization (Philippine Senate)"])])
+        # A country's government or armed forces may stay in a rewrite, named by the country (the user, 2026-10-04).
+        forces = self.screened("I predict that Ethiopia's armed forces will retake a town in the Afar Region.", []) | {
+            "orgs_named": ["Ethiopia's armed forces"], "harm_check": [["Yes", "No", "No", "state"]]}
+        self.assertTrue(apply_identifies([forces], ["No"])[0]["kept"])
+        group = forces | {"orgs_named": ["TPLF"], "harm_check": [["No", "No", "No", "armed"]]}
+        self.assertFalse(apply_identifies([group], ["No"])[0]["kept"])
+        # Dropped for armed groups only, a rewrite naming where they fight isn't asked whether it still points to
+        # them: the user asked for the place, and it may well make plain which group fights there.
+        from src.prophecy.checks import NOT_ASKED, armed_groups_only, reason_names
+        tplf = {"dropped_because": ["harm to or by a specific organization (TPLF)"], "orgs_named": ["TPLF"],
+                "harm_check": [["No", "No", "No", "armed"]]}
+        self.assertTrue(armed_groups_only(tplf))
+        self.assertTrue(apply_identifies([forces], [NOT_ASKED])[0]["kept"])
+        self.assertFalse(armed_groups_only(tplf | {"harm_check": [["No", "Yes", "No", "company"]]}))  # a company
+        self.assertFalse(armed_groups_only(tplf | {"dropped_because": ["names or points to a person (Abiy Ahmed)",
+                                                                        "harm to or by a specific organization (TPLF)"]}))
+        self.assertEqual(reason_names(["harm to or by a specific organization (Hamas; Hezbollah)",
+                                       "names or points to a person (individuals)"]), ["Hamas", "Hezbollah"])
         self.assertTrue(general_mention("armed group", "I predict that an armed group will agree to negotiate."))
         self.assertFalse(general_mention("armed group", "I predict that the armed group will agree, as an armed group."))
         self.assertFalse(general_mention("Hamas", "I predict that Hamas will fire rockets."))
