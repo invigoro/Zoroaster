@@ -1201,6 +1201,48 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
         additional individuals are arrested in Myanmar for supporting the
         in-exile National Unity Government" was published.
 
+33. **Version 3 on the website (prepared 2026-10-04, on the `site-v3`
+    branch)**: the user asked for the home page to show version 3, and for
+    the list of pages likeliest to see a burst to move to the page that
+    explains how it works (§2).
+    - **The nightly step** (`prophesy_daily.py`), which `run_daily.py` runs
+      after Stage 1's list for D:
+      - Stage 1's top pages for D, built as the development days were
+        (`build_v3_days.py`), each page's text at the end of D-1 from the
+        API, and the week's Portal:Current events as they stood then.
+      - The prophet on the GPU: questions, predictions, checks, rewrites,
+        revisions and the day's selection.
+      - Version 2's edit forecasts aren't made daily, so the pages'
+        evidence goes without them.
+      - It writes the day's whole record to `v3/daily/D.json`, and the
+        public part to `D.prophecy.json`: the published predictions alone,
+        each with its due date, topic and confidence. Never what they cite
+        (a story's or a page's title can name a person), nor a rewrite's
+        original.
+    - **The first real day, 2026-10-04:** 100 pages and 114 current events
+      (54 s), then 16 predictions, 13 kept (3 rewritten, 3 revised) and 9
+      published, in 146 s in all.
+      - "Likely on Wednesday, October 11, 2026" was a Sunday:
+        `prophet.fix_weekdays` now makes a weekday beside a date that
+        date's own.
+      - Two rewrites say little: "a prominent armed group will continue to
+        advance in a region".
+    - **The pages** (`web/`):
+      - The home page shows the day's prophecy under the label
+        "Machine-generated forecasts, not news", each prediction with its
+        topic, due date and confidence, and a selector for the days before.
+        A sentence's own "by the end of Sunday, 11 October 2026" is left off
+        where the line under it gives the due date.
+      - "How the prophet works" explains version 3 and its checks, then
+        shows the pages likeliest to burst and how yesterday's list fared.
+        Version 2's sections follow, unchanged.
+      - No grades yet: the judge is still being checked against hand
+        grades.
+    - **Previewed** on a private page with the first day's prophecy, at
+      desktop and phone widths. It goes live when `site-v3` is merged into
+      `stage1` and `main`: the next daily run then makes the prophecy and
+      publishes the new pages.
+
 ## 4. Data state — important for resuming on a new machine
 
 `data/` is **git-ignored** (see `.gitignore`) — it does not travel with the
@@ -2594,9 +2636,11 @@ old step 2 (move to English Wikipedia) is now step 5.
                 now, and an ungrounded prediction earns half credit (§3
                 item 31). Still to do: stop revisions restating their
                 reports.
-              - **Next: the website shows version 3** (the user,
-                2026-10-04), and the daily list of pages likeliest to see
-                an edit moves to the page explaining how it works.
+              - **Prepared (§3 item 33): the website shows version 3**
+                (the user, 2026-10-04), and the daily list of pages
+                likeliest to see an edit moves to the page explaining how it
+                works. It goes live when the user approves the preview and
+                `site-v3` is merged.
               - **Still to do: longer horizons** for scheduled world events,
                 such as an election a month away. This needs the update
                 scoring decided first (§7).
