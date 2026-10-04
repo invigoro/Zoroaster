@@ -50,10 +50,11 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 from scripts.build_v3_days import V3_DIR
 from scripts.fetch_current_events import KNOWN_DIR
-from src.prophecy.checks import (NO_ANSWER, apply_identifies, confirmed_orgs, confirmed_people, contest_messages,
-                                 general_mention, generalize_messages, guarded_only, harm_messages,
-                                 identifies_messages, kind_messages, listed_names, merge_rewrites, novelty_messages,
-                                 one_persons_contest, orgs_messages, people_messages, person_messages, screen)
+from src.prophecy.checks import (NO_ANSWER, SENSITIVE_TOPICS, apply_identifies, confirmed_orgs, confirmed_people,
+                                 contest_messages, general_mention, generalize_messages, guarded_only, harm_messages,
+                                 identifies_messages, kind_messages, listed_names, listed_orgs, merge_rewrites,
+                                 novelty_messages, one_persons_contest, orgs_messages, people_messages,
+                                 person_messages, screen, sensitive_messages, sensitive_topic)
 from src.prophecy.details import flagged, merge_revisions, revise_messages
 from src.prophecy.evidence import TOP, eligible, evidence_blocks
 from src.prophecy.prophet import (HORIZON, PREDICTION, QUESTION, STORY_PREDICTION, STORY_QUESTION, marked_offsets,
@@ -140,12 +141,20 @@ def check(model, tokenizer, predictions: list[dict], by_title: dict[str, str], i
     kinds = dict(zip(to_ask, ask([kind_messages(n) for n in to_ask], YES_NO_TOKENS)))
     confirmed = [confirmed_people(names, [kinds.get(n, "") for n in names]) for names in person_names]
     orgs = [confirmed_orgs(names, [kinds.get(n, "") for n in names]) for names in org_names]
+    wide = [listed_orgs(names, [kinds.get(n, "") for n in names]) for names in org_names]
     questions_per_org = len(harm_messages("", ""))
     harm_said = iter(ask([chat for t, os in zip(texts, orgs) for o in os for chat in harm_messages(t, o)], YES_NO_TOKENS))
     harm = [[[next(harm_said) for _ in range(questions_per_org)] for _ in os] for os in orgs]
     novelty = ask([novelty_messages(t, c) for t, c in zip(texts, cited)], YES_NO_TOKENS)
-    screened = screen(predictions, person, confirmed, orgs, harm, novelty, instructions)
-    return [s | {"people_check": p.strip(), "orgs_check": o.strip()} for s, p, o in zip(screened, people, orgs_answers)]
+    # A war, a disaster or a crime may name no organization but a government (`checks.IN_SENSITIVE`). A story's
+    # topic is its category's; a page's prediction that names one is asked.
+    ask_topic = [i for i, (p, ws) in enumerate(zip(predictions, wide)) if ws and not p.get("story_topic")]
+    topic_said = dict(zip(ask_topic, ask([sensitive_messages(texts[i]) for i in ask_topic], YES_NO_TOKENS)))
+    sensitive = [p["story_topic"] in SENSITIVE_TOPICS if p.get("story_topic") else sensitive_topic(topic_said.get(i, ""))
+                 for i, p in enumerate(predictions)]
+    screened = screen(predictions, person, confirmed, orgs, harm, novelty, instructions, sensitive, wide)
+    return [s | {"people_check": p.strip(), "orgs_check": o.strip(), "topic_check": topic_said.get(i, "").strip()}
+            for i, (s, p, o) in enumerate(zip(screened, people, orgs_answers))]
 
 
 def rewrite(model, tokenizer, screened: list[dict], by_title: dict[str, str], instructions: str) -> list[dict]:
@@ -250,9 +259,9 @@ def prophesy(model, tokenizer, day: date, rows: list[dict], forecasts: dict, mod
                                          for i, a in enumerate(story_asked)) if q}
     story_answers = ask([story_prediction_messages(day, story_blocks[i], *story_questions[i]) for i in story_questions],
                         PREDICTION_TOKENS)
-    parsed = ((parse_prediction(a, found[i]["title"], story_questions[i][0]), story_questions[i][1])
+    parsed = ((parse_prediction(a, found[i]["title"], story_questions[i][0]), story_questions[i][1], found[i]["topic"])
               for a, i in zip(story_answers, story_questions))
-    predictions += [p | {"due": due.isoformat(), "source": "story"} for p, due in parsed if p]
+    predictions += [p | {"due": due.isoformat(), "source": "story", "story_topic": topic} for p, due, topic in parsed if p]
 
     by_title = dict(zip(titles, blocks)) | {s["title"]: b for s, b in zip(found, story_blocks)}
     predictions = rewrite(model, tokenizer, check(model, tokenizer, predictions, by_title, INSTRUCTIONS), by_title,
@@ -332,9 +341,12 @@ def main(argv: list[str] | None = None) -> int:
             stories_seen = record.get("stories", [])
             by_title = (dict(zip([p["title"] for p in record["pages"]], record["evidence"].split("\n\n")))
                         | dict(zip([s["title"] for s in stories_seen], record.get("story_blocks", []))))
+            story_topics = {s["title"]: s["topic"] for s in stories_seen}
             # A rewritten or revised prediction is checked again from its original, and may be changed again.
             bare = [{k: v for k, v in p.items() if k not in CHECK_FIELDS}
                     | {"text": p.get("rewritten_from") or p.get("revised_from") or p["text"]}
+                    | ({"story_topic": story_topics[p["evidence"][0]]} if p["evidence"] and p["evidence"][0] in story_topics
+                       else {})
                     for p in record["predictions"]]
             ranks = {p["title"]: p["rank"] for p in record["pages"]}
             sport = sport_titles([r for r in texts if r["date"] == day])
@@ -343,8 +355,7 @@ def main(argv: list[str] | None = None) -> int:
             screened = rewrite(model, tokenizer, check(model, tokenizer, bare, by_title, instructions), by_title,
                                instructions)
             screened = revise(model, tokenizer, screened, by_title, day, instructions)
-            record["predictions"] = publish(model, tokenizer, screened, ranks, sport,
-                                            {s["title"]: s["topic"] for s in stories_seen})
+            record["predictions"] = publish(model, tokenizer, screened, ranks, sport, story_topics)
             record["checks_model"] = args.model  # the prophet's model stays in "model"
             path.write_text(json.dumps(record, indent=1, ensure_ascii=False), encoding="utf-8")
             report(day, record)
