@@ -9,8 +9,8 @@ from src.prophecy.checks import (IDENTIFIABLE, NO_ANSWER, already_known, apply_i
                                  person_roles, screen)
 from src.prophecy.evidence import (clean_line, dated_lines, eligible, evidence_text, is_biography, mark_dates, page_block,
                                    past_year)
-from src.prophecy.prophet import (marked_within, normalize, parse_prediction, parse_question, parse_rewrite,
-                                  prediction_messages, question_messages)
+from src.prophecy.prophet import (fix_weekdays, marked_within, normalize, parse_prediction, parse_question,
+                                  parse_rewrite, prediction_messages, question_messages)
 from src.prophecy.selection import is_sport_page, select, settles_a_title, topic
 from src.prophecy.stories import reports_between, stories, story_block
 
@@ -123,6 +123,17 @@ class EvidenceTest(unittest.TestCase):
 
 
 class ProphetTest(unittest.TestCase):
+    def test_a_weekday_beside_a_date_is_that_date_s(self):
+        day = date(2026, 10, 4)
+        # 2026-10-04's prophecy: 11 October 2026 was a Sunday.
+        self.assertEqual(fix_weekdays("struck likely on Wednesday, October 11, 2026, as part of", day),
+                         "struck likely on Sunday, October 11, 2026, as part of")
+        self.assertEqual(fix_weekdays("by the end of Monday, 6 October.", day), "by the end of Tuesday, 6 October.")
+        for right in ("by the end of Sunday, 11 October 2026.", "on Tuesday the 6th of October",
+                      "Friday, January 1",  # the nearest 1 January, in 2027
+                      "on Monday, 31 September"):  # no such day: left alone
+            self.assertEqual(fix_weekdays(right, day), right)
+
     def test_both_steps_name_the_day_and_the_evidence_comes_from_the_day_before(self):
         day = date(2026, 10, 1)
         for chat in (question_messages(day, "[1] ..."), prediction_messages(day, "[1] ...", "Who wins?", day)):

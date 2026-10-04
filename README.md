@@ -227,9 +227,10 @@ Wikipedia, which is roughly 100× the test corpus.
 - **The daily prophecy** (`src/deploy/`, `web/`). Each day, this ranks
   English Wikipedia's recently edited pages by how likely each is to
   *burst* the next day: far more edits than usual, from 2+ editors. It uses
-  the Stage 1 burst model (`train_stage1.py --target burst`). The page,
-  headed "Also sprach Zarathustra", shows the top pages and how the
-  previous day's prophecy turned out.
+  the Stage 1 burst model (`train_stage1.py --target burst`). The "How the
+  prophet works" page (`how.html`) shows the top pages and how the
+  previous day's list turned out. The home page, headed "Also sprach
+  Zarathustra", shows version 3's prophecy (below), which reads them.
   - Yesterday's edits come from the API's recent changes, turned into the
     dumps' records (`src/ingest/recent_changes.py`).
   - Features are computed by the training code itself, from dump history
@@ -243,17 +244,16 @@ Wikipedia, which is roughly 100× the test corpus.
     on Wikimedia Commons, by Ploxhoi and Kevin McCormick, under CC BY-SA 3.0.
     The site credits it in its footers, and versions made from it carry the
     same license.
-  - A second page, `how.html`, shows how the prophet works and every
-    version 2 test forecast next to what happened. Its data is
-    `data/forecasts.json`, from `v2_report.py --site`, which the daily run
-    refreshes.
+  - `how.html` also shows every version 2 test forecast next to what
+    happened. Its data is `data/forecasts.json`, from `v2_report.py
+    --site`, which the daily run refreshes.
 
   ```bash
   python scripts/fetch_recent_changes.py --days 2026-09-01 2026-09-29   # live days (recent changes keep 30)
   python scripts/daily_predictions.py --day 2026-09-30                  # rank ~1.5M pages, ~2 min
   python scripts/score_predictions.py --day 2026-09-29                  # how a finished day's prophecy did
   python scripts/build_site.py --serve                                  # preview the page at localhost:8000
-  python scripts/run_daily.py                                           # a whole day: predict, score, build, publish
+  python scripts/run_daily.py                                           # a whole day: predict, score, prophesy, build, publish
   ```
 
   A Windows scheduled task runs `run_daily.py` every evening, shortly after
@@ -316,12 +316,17 @@ Wikipedia, which is roughly 100× the test corpus.
   - At most ten a day are published, world events first. Sport, read from
     the page itself, comes only when it settles a title, at most three a
     day.
+  - Each night `prophesy_daily.py` makes the day's prophecy on the GPU,
+    after Stage 1's list, and the home page shows the published
+    predictions, labeled as machine-generated forecasts, not news. Never
+    what they cite: a story's or a page's title can name a person.
   - On its due day a judge grades each one against what the cited pages
     gained by then and that day's Portal:Current events.
-  - The judge is being checked against hand grades before anything is
-    published.
+  - The judge is being checked against hand grades, so the site shows no
+    grades yet.
 
   ```bash
+  python scripts/prophesy_daily.py --day 2026-10-04   # the day's prophecy for the site (run_daily.py runs it)
   python scripts/build_v3_days.py           # the development days: the site's own prophecies, 2026-09-18 to 10-01
   python scripts/prophesy.py --days 2026-09-20 2026-09-25   # predictions, checks and selection; --model, --horizon
   python scripts/prophesy.py --rescreen --model Qwen/Qwen2.5-7B-Instruct --out DIR   # re-run only the checks and selection

@@ -57,9 +57,10 @@ from src.prophecy.checks import (NO_ANSWER, SENSITIVE_TOPICS, apply_identifies, 
                                  person_messages, screen, sensitive_messages, sensitive_topic)
 from src.prophecy.details import flagged, merge_revisions, revise_messages
 from src.prophecy.evidence import TOP, eligible, evidence_blocks
-from src.prophecy.prophet import (HORIZON, PREDICTION, QUESTION, STORY_PREDICTION, STORY_QUESTION, marked_offsets,
-                                  marked_within, parse_prediction, parse_question, parse_rewrite, prediction_messages,
-                                  question_messages, story_prediction_messages, story_question_messages)
+from src.prophecy.prophet import (HORIZON, PREDICTION, QUESTION, STORY_PREDICTION, STORY_QUESTION, fix_weekdays,
+                                  marked_offsets, marked_within, parse_prediction, parse_question, parse_rewrite,
+                                  prediction_messages, question_messages, story_prediction_messages,
+                                  story_question_messages)
 from src.prophecy.selection import is_sport_page, select, title_messages, topic_messages
 from src.prophecy.stories import stories as day_stories
 from src.prophecy.stories import story_block
@@ -270,6 +271,7 @@ def prophesy(model, tokenizer, day: date, rows: list[dict], forecasts: dict, mod
     sport = sport_titles(pages)
     predictions = publish(model, tokenizer, predictions, {t: r["rank"] for r, t in zip(pages, titles)}, sport,
                           {s["title"]: s["topic"] for s in found})
+    predictions = [p | {"text": fix_weekdays(p["text"], day)} for p in predictions]
     page_notes = [{"rank": r["rank"], "title": t, "sport": t in sport, "dated": i in asked, "asked": asked.get(i, "").strip(),
                    "question": questions[i][0] if i in questions else None,
                    "due": questions[i][1].isoformat() if i in questions else None,
@@ -355,7 +357,8 @@ def main(argv: list[str] | None = None) -> int:
             screened = rewrite(model, tokenizer, check(model, tokenizer, bare, by_title, instructions), by_title,
                                instructions)
             screened = revise(model, tokenizer, screened, by_title, day, instructions)
-            record["predictions"] = publish(model, tokenizer, screened, ranks, sport, story_topics)
+            record["predictions"] = [p | {"text": fix_weekdays(p["text"], day)}
+                                     for p in publish(model, tokenizer, screened, ranks, sport, story_topics)]
             record["checks_model"] = args.model  # the prophet's model stays in "model"
             path.write_text(json.dumps(record, indent=1, ensure_ascii=False), encoding="utf-8")
             report(day, record)

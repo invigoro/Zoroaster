@@ -53,7 +53,7 @@ import json
 import re
 from datetime import date, timedelta
 
-from src.prophecy.evidence import first_date
+from src.prophecy.evidence import MONTHS, first_date
 
 CONFIDENCES = ("low", "medium", "high")
 PREFIX = "I predict that "
@@ -271,6 +271,32 @@ def normalize(sentence: str) -> str:
     if re.match(r"(The|A|An) ", sentence):
         sentence = sentence[0].lower() + sentence[1:]
     return PREFIX + sentence
+
+
+WEEKDAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+_MONTHS = "|".join(MONTHS)
+WEEKDAY_DATE = re.compile(rf"\b(?P<weekday>{'|'.join(WEEKDAYS)}),?\s+(?:the\s+)?"
+                          rf"(?:(?P<d1>\d{{1,2}})(?:st|nd|rd|th)?\s+(?:of\s+)?(?P<m1>{_MONTHS})"
+                          rf"|(?P<m2>{_MONTHS})\s+(?P<d2>\d{{1,2}})(?:st|nd|rd|th)?)(?:,?\s+(?P<y>\d{{4}}))?")
+
+
+def fix_weekdays(text: str, day: date) -> str:
+    """The text with each weekday named beside a date made that date's own. 2026-10-04's prophecy said a bridge
+    would be struck "likely on Wednesday, October 11, 2026", a Sunday. A date without a year is the one nearest
+    `day`, the day foretold."""
+    def fixed(m: re.Match) -> str:
+        month = MONTHS.index(m["m1"] or m["m2"]) + 1
+        number = int(m["d1"] or m["d2"])
+        try:
+            if m["y"]:
+                when = date(int(m["y"]), month, number)
+            else:
+                when = min((date(day.year + k, month, number) for k in (-1, 0, 1)), key=lambda d: abs(d - day))
+        except ValueError:  # no such date: "Monday, 31 September"
+            return m[0]
+        return WEEKDAYS[when.weekday()] + m[0][len(m["weekday"]):]
+
+    return WEEKDAY_DATE.sub(fixed, text)
 
 
 def parse_rewrite(answer: str) -> str:

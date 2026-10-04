@@ -18,6 +18,16 @@ function daysBetween(a, b) {
   return Math.round((Date.parse(b + "T00:00:00Z") - Date.parse(a + "T00:00:00Z")) / 86400000);
 }
 
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
+  "November", "December"];
+
+// A prediction's own "… by the end of Sunday, 11 October 2026." at its end, when that's the due date shown below it.
+function withoutDue(text, dueDay) {
+  const [y, m, d] = dueDay.split("-").map(Number);
+  const tail = new RegExp(`,? by the end of [A-Z][a-z]+day, ${d} ${MONTHS[m - 1]} ${y}\\.$`);
+  return text.replace(tail, ".");
+}
+
 function due(prophecy, prediction) {
   const n = daysBetween(prophecy.date, prediction.due);
   const when = formatDay(prediction.due, { weekday: "long", month: "long", day: "numeric" });
@@ -34,7 +44,7 @@ function render(prophecy) {
   for (const p of prophecy.predictions) {
     const meta = el("p", { class: "meta" }, el("span", { class: "topic" }, p.topic || "other"), ` · ${due(prophecy, p)}`);
     if (p.confidence) meta.append(` · ${p.confidence} confidence`);
-    list.append(el("li", {}, el("p", { class: "text" }, p.text), meta));
+    list.append(el("li", {}, el("p", { class: "text" }, withoutDue(p.text, p.due)), meta));
   }
   document.getElementById("generated").textContent = prophecy.generated_at
     ? `Foretold ${new Date(prophecy.generated_at).toUTCString()} by ${prophecy.model}.` : "";
