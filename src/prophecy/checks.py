@@ -145,7 +145,7 @@ Answer with one word: yes or no.""",
     """What kind of organization is "{org}"? Answer with exactly one word: military (an army, armed force or armed group), company, party, government, team, or other.""")
 MILITARY = ("military", "army", "armed")
 
-ORGS_QUESTION = """List every specific organization that the sentence below names or points to, such as a company, bank, political party, armed group, government body, army, team or club. Countries, cities, places, events, and general descriptions such as "a major bank", aren't specific organizations.
+ORGS_QUESTION = """List every specific organization that the sentence below names or points to, such as a company, bank, newspaper or news website, political party, armed group, government body, army, team or club. Countries, cities, places, events, and general descriptions such as "a major bank", aren't specific organizations.
 
 Sentence: {text}
 
@@ -267,12 +267,43 @@ def confirmed_orgs(names: list[str], answers: list[str]) -> list[str]:
             if n != NO_ANSWER and not a.strip().strip(".").lower().startswith(NOT_ORG_KINDS)]
 
 
+def listed_orgs(names: list[str], answers: list[str]) -> list[str]:
+    """The listed organizations that count in a war, a disaster or a crime (IN_SENSITIVE): all but those
+    KIND_QUESTION classed as a person, country, place or event. Wider than `confirmed_orgs`: T24, a news
+    website whose closure was a crime story, came back "other"."""
+    return [n for n, a in zip(names, answers, strict=True)
+            if n != NO_ANSWER and not a.strip().strip(".").lower().startswith(("person", "country", "place", "event"))]
+
+
 def already_known(answer: str) -> bool:
     """The novelty check's verdict: only a clear "yes" counts."""
     return answer.strip().lower().startswith("yes")
 
 
-GUARDRAIL_REASONS = ("names or points to a person", "harm to or by a specific organization")
+SENSITIVE_TOPICS = ("conflict", "disaster", "crime")
+# The user's rule (2026-10-01): wars, disasters and crimes are fine, "so long as they're not too specific to a
+# person or an organization". The harm questions alone let "the TPLF continues to seize control of more towns"
+# through in runs 11 and 12: no harm, said the model, and the TPLF a party, not an armed group. A country's
+# government stands for the country, which the rule allows ("an armed group will agree to negotiate with the
+# Colombian government"), so an organization the harm questions class as one doesn't count.
+IN_SENSITIVE = "names an organization in a war, a disaster or a crime"
+STATE_KINDS = ("government",)
+GUARDRAIL_REASONS = ("names or points to a person", "harm to or by a specific organization", IN_SENSITIVE)
+
+# Asked of a page's prediction that names an organization; a story's topic is its category's
+# (`stories.CATEGORY_TOPICS`).
+SENSITIVE_QUESTION = """What is the sentence below about? Answer with exactly one word: conflict (a war, an armed attack or fighting), disaster (a disaster or an accident), crime (a crime, a trial, an arrest or an investigation), or other.
+
+Sentence: {text}"""
+
+
+def sensitive_messages(text: str) -> list[dict]:
+    return [{"role": "user", "content": SENSITIVE_QUESTION.format(text=text)}]
+
+
+def sensitive_topic(answer: str) -> bool:
+    """SENSITIVE_QUESTION's verdict: a war, a disaster or a crime."""
+    return answer.strip().lower().startswith(SENSITIVE_TOPICS)
 
 # Leaving out the details that single one out came after the first rewrite trial: "a prominent political leader
 # will be convicted and removed from office by the Philippine Senate" names nobody, but fits one person. Keeping
@@ -350,36 +381,60 @@ def guarded_only(prediction: dict) -> bool:
     return bool(reasons) and all(r.startswith(GUARDRAIL_REASONS) for r in reasons)
 
 
+KEPT_NAME = "the rewrite keeps a name its original was dropped for"
+
+
+def kept_names(reasons: list[str], rewrite: str) -> list[str]:
+    """The names a prediction was dropped for, by the guardrails ("harm to or by a specific organization (A; B)"),
+    that its rewrite still has, word for word. Run 13 published "the Sixth Circuit Court will uphold the stay on a
+    prominent individual's execution": the checks of the rewrite didn't list the court, which they had of the
+    original. Only names, with a capital: the person check once listed "individuals", which a rewrite may say,
+    and a role such as "president" is checked again in the rewrite itself (`person_roles`)."""
+    names = [n.strip() for r in reasons if r.startswith(GUARDRAIL_REASONS) and r.endswith(")") and "(" in r
+             for n in r[r.rindex("(") + 1:-1].split(";")]
+    return [n for n in dict.fromkeys(names)
+            if n != n.lower() and re.search(rf"(?<!\w){re.escape(n)}(?!\w)", rewrite)]
+
+
 def merge_rewrites(screened: list[dict], rewritten: dict[int, dict]) -> list[dict]:
     """The day's predictions, each guarded one replaced by its rewrite (`rewritten`: index -> the rewrite as
-    screened) if every check passed it and it repeats no prediction kept that day. Otherwise the original
-    stays dropped, with the rewrite and why it failed."""
+    screened) if every check passed it, it keeps no name its original was dropped for (`kept_names`), and it
+    repeats no prediction kept that day. Otherwise the original stays dropped, with the rewrite and why it
+    failed."""
     kept = [p["text"] for p in screened if p["kept"]]
     out = []
     for i, p in enumerate(screened):
         r = rewritten.get(i)
         if r is None:
             out.append(p)
-        elif r["kept"] and not repeats(r["text"], kept):
+            continue
+        still = kept_names(p["dropped_because"], r["text"])
+        if r["kept"] and not still and not repeats(r["text"], kept):
             kept.append(r["text"])
             out.append(r | {"rewritten_from": p["text"], "dropped_before_rewrite": p["dropped_because"]})
         else:
-            out.append(p | {"rewrite": r["text"],
-                            "rewrite_dropped_because": r["dropped_because"] or ["repeats an earlier prediction"]})
+            why = r["dropped_because"] or ([f"{KEPT_NAME} ({'; '.join(still)})"] if still
+                                           else ["repeats an earlier prediction"])
+            out.append(p | {"rewrite": r["text"], "rewrite_dropped_because": why})
     return out
 
 
 def screen(predictions: list[dict], person_answers: list[str], people: list[list[str]], orgs: list[list[str]],
-           harm_answers: list[list[str]], novelty_answers: list[str], instructions: str) -> list[dict]:
+           harm_answers: list[list[str]], novelty_answers: list[str], instructions: str,
+           sensitive: list[bool] | None = None, listed: list[list[str]] | None = None) -> list[dict]:
     """Each prediction with `kept`, and the reasons it was dropped.
     - `people`: each prediction's listed names confirmed as people (`confirmed_people`);
     - `orgs`: its listed names confirmed as organizations (`confirmed_orgs`), and `harm_answers` the harm
-      questions' answers for each of them.
+      questions' answers for each of them;
+    - `sensitive`: whether each is about a war, a disaster or a crime, where it may name no organization
+      but a government (IN_SENSITIVE), of those `listed` (`listed_orgs`; by default, `orgs`).
     A prediction that passes every other check is dropped if it repeats one kept earlier."""
     examples = instruction_examples(instructions)
+    sensitive = sensitive or [False] * len(predictions)
+    listed = listed or orgs
     out, kept = [], []
-    for prediction, person, named, org, harm, novelty in zip(
-            predictions, person_answers, people, orgs, harm_answers, novelty_answers, strict=True):
+    for prediction, person, named, org, harm, novelty, delicate, wide in zip(
+            predictions, person_answers, people, orgs, harm_answers, novelty_answers, sensitive, listed, strict=True):
         reasons = []
         if copies_an_example(prediction["text"], examples):
             reasons.append("copies an example from the instructions")
@@ -391,6 +446,11 @@ def screen(predictions: list[dict], person_answers: list[str], people: list[list
         harmed = [o for o, a in zip(org, harm, strict=True) if harms(a)]
         if harmed:
             reasons.append(f"harm to or by a specific organization ({'; '.join(harmed)})")
+        kinds = {o: a[-1].strip().lower() for o, a in zip(org, harm, strict=True)}  # the harm questions' last
+        in_sensitive = [o for o in dict.fromkeys([*org, *wide])
+                        if delicate and o not in harmed and not kinds.get(o, "").startswith(STATE_KINDS)]
+        if in_sensitive:
+            reasons.append(f"{IN_SENSITIVE} ({'; '.join(in_sensitive)})")
         if already_known(novelty):
             reasons.append(SETTLED)
         if not reasons and repeats(prediction["text"], kept):
@@ -398,7 +458,7 @@ def screen(predictions: list[dict], person_answers: list[str], people: list[list
         if not reasons:
             kept.append(prediction["text"])
         out.append(prediction | {"kept": not reasons, "dropped_because": reasons, "person_check": person.strip(),
-                                 "people_named": named, "orgs_named": org,
+                                 "people_named": named, "orgs_named": org, "sensitive": delicate,
                                  "harm_check": [[a.strip() for a in answers] for answers in harm],
                                  "novelty_check": novelty.strip()})
     return out

@@ -309,9 +309,10 @@ Wikipedia, which is roughly 100× the test corpus.
     ("at least 50 casualties") goes back to the prophet to revise, and is
     checked again.
   - Separate checks drop any prediction that names a specific person (none
-    for now), or has an organization doing or suffering harm. They also
-    drop predictions that restate their evidence, or copy or repeat
-    another. Wars, disasters and crime are fine in general terms.
+    for now), or has an organization doing or suffering harm. Wars,
+    disasters and crime are fine in general terms, but name no
+    organization, except a country's government. The checks also drop
+    predictions that restate their evidence, or copy or repeat another.
   - At most ten a day are published, world events first. Sport, read from
     the page itself, comes only when it settles a title, at most three a
     day.

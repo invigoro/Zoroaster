@@ -4,8 +4,9 @@ from datetime import date
 
 from src.forecast.guardrails import sensitive_words
 from src.prophecy.checks import (IDENTIFIABLE, NO_ANSWER, already_known, apply_identifies, confirmed_orgs,
-                                 confirmed_people, general_mention, guarded_only, harms, listed_names, merge_rewrites,
-                                 names_a_person, novelty_messages, one_persons_contest, person_roles, screen)
+                                 confirmed_people, general_mention, guarded_only, harms, kept_names, listed_names,
+                                 listed_orgs, merge_rewrites, names_a_person, novelty_messages, one_persons_contest,
+                                 person_roles, screen)
 from src.prophecy.evidence import (clean_line, dated_lines, eligible, evidence_text, is_biography, mark_dates, page_block,
                                    past_year)
 from src.prophecy.prophet import (marked_within, normalize, parse_prediction, parse_question, parse_rewrite,
@@ -273,6 +274,36 @@ class ChecksTest(unittest.TestCase):
         self.assertTrue(screen(party, ["No"], [[]], [["PAM"]], [[["No.", "no", "party"]]], clean(1), "")[0]["kept"])
         self.assertFalse(screen(party, ["No"], [[]], [["PAM"]], [[["No", "Possibly", "party"]]], clean(1), "")[0]["kept"])
 
+    def test_a_war_a_disaster_or_a_crime_names_no_organization(self):
+        from src.prophecy.checks import sensitive_topic
+
+        # Published in runs 11 and 12: no harm, said the harm questions, and the TPLF a party, not an armed group.
+        tplf = [{"text": "I predict that the TPLF continues to seize control of more towns in Afar and Amhara regions."}]
+        no_harm = [[["No", "No", "No", "party"]]]
+        self.assertTrue(screen(tplf, ["No"], [[]], [["TPLF"]], no_harm, clean(1), "")[0]["kept"])  # as before
+        dropped = screen(tplf, ["No"], [[]], [["TPLF"]], no_harm, clean(1), "", [True])[0]
+        self.assertEqual(dropped["dropped_because"], ["names an organization in a war, a disaster or a crime (TPLF)"])
+        self.assertTrue(guarded_only(dropped))  # so it's rewritten in general terms
+        # A country's government stands for the country, which the rule allows.
+        talks = [{"text": "I predict that an armed group will agree to negotiate with the Colombian government."}]
+        self.assertTrue(screen(talks, ["No"], [[]], [["Colombian government"]], [[["No", "No", "No", "government"]]],
+                               clean(1), "", [True])[0]["kept"])
+        # An organization doing or suffering harm is dropped for that, and not twice.
+        hezbollah = [{"text": "I predict that Hezbollah will fire rockets into northern Israel."}]
+        self.assertEqual(screen(hezbollah, ["No"], [[]], [["Hezbollah"]], [[["Yes", "No", "No", "other"]]], clean(1), "",
+                                [True])[0]["dropped_because"], ["harm to or by a specific organization (Hezbollah)"])
+        # T24, a news website, came back "other" from the kind question: not confirmed, but listed, it counts here.
+        t24 = [{"text": "I predict that the closure of T24 will lead to further censorship of news websites in Turkey."}]
+        self.assertEqual(listed_orgs(["T24", "Turkey", "the closure"], ["other", "country", "Event."]), ["T24"])
+        self.assertEqual(confirmed_orgs(["T24"], ["other"]), [])
+        self.assertEqual(screen(t24, ["No"], [[]], [[]], [[]], clean(1), "", [True], [["T24"]])[0]["dropped_because"],
+                         ["names an organization in a war, a disaster or a crime (T24)"])
+        self.assertTrue(screen(t24, ["No"], [[]], [[]], [[]], clean(1), "", [False], [["T24"]])[0]["kept"])
+        self.assertTrue(sensitive_topic(" Conflict."))
+        self.assertTrue(sensitive_topic("crime"))
+        self.assertFalse(sensitive_topic("politics"))
+        self.assertFalse(sensitive_topic(""))
+
     def test_people_and_quality_drops(self):
         one = [{"text": "I predict that Japan will top the medal table."}]
         self.assertEqual(screen(one, ["Yes"], [[]], [[]], [[]], ["no"], "")[0]["dropped_because"],
@@ -534,6 +565,22 @@ class RewriteTest(unittest.TestCase):
         self.assertEqual(out[2]["rewrite_dropped_because"], ["repeats an earlier prediction"])
         self.assertEqual(out[3]["text"], "I predict that the Pope will visit Lebanon.")  # still dropped, as it was
         self.assertEqual(out[3]["rewrite_dropped_because"], ["names or points to a person"])
+        # Run 13: the rewrite's checks missed the court that the original's had found, so its name is checked as words.
+        court = [self.screened("I predict that the Sixth Circuit Court will uphold the stay on Christa Pike's execution.",
+                               ["names or points to a person (Christa Pike)",
+                                "names an organization in a war, a disaster or a crime (Sixth Circuit Court)"])]
+        kept_court = {0: self.screened("I predict that the Sixth Circuit Court will uphold the stay on a prominent "
+                                       "individual's execution.", [])}
+        out = merge_rewrites(court, kept_court)
+        self.assertFalse(out[0]["kept"])
+        self.assertEqual(out[0]["rewrite_dropped_because"],
+                         ["the rewrite keeps a name its original was dropped for (Sixth Circuit Court)"])
+        general = {0: self.screened("I predict that a federal appeals court will uphold a stay of execution.", [])}
+        self.assertTrue(merge_rewrites(court, general)[0]["kept"])
+        # Whole words only: "UN" isn't in "under", nor "Fay" in "Fayetteville".
+        self.assertEqual(kept_names(["harm to or by a specific organization (UN; Fay)"], "under Fayetteville's"), [])
+        # Names only: the person check once listed "individuals", which a general rewrite may well say.
+        self.assertEqual(kept_names(["names or points to a person (individuals)"], "some individuals will run"), [])
         self.assertEqual(parse_rewrite('Rewritten: "I predict that a prominent actor will die tomorrow."\nNote: …'),
                          "I predict that a prominent actor will die tomorrow.")
         self.assertEqual(parse_rewrite("A prominent actor will die tomorrow."),

@@ -1160,6 +1160,47 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
     - The first run's 0.030 is over all 68 graded, dropped ones included;
       its kept predictions alone averaged 0.078.
 
+32. **Version 3: a war, a disaster or a crime names no organization
+    (2026-10-04)**: the gap of §3 item 30, closed before the website shows
+    version 3 (§2).
+    - **The rule** (`checks.IN_SENSITIVE`): a prediction about a war, a
+      disaster or a crime may name no organization, harm or not, and is
+      rewritten in general terms instead. The user's rule (2026-10-01):
+      those topics are fine, "so long as they're not too specific to a
+      person or an organization".
+      - A story's topic is its category's on Portal:Current events. A page's
+        prediction that names an organization is asked
+        (`checks.SENSITIVE_QUESTION`).
+      - A government stands for its country, which the rule allows ("an
+        armed group will agree to negotiate with the Colombian
+        government"): an organization the harm questions class as one
+        doesn't count.
+      - Every listed organization counts, even one the kind question calls
+        "other" (`checks.listed_orgs`): T24, a news website, came back so.
+        The organizations question now names news outlets among its
+        examples.
+    - **A rewrite keeps no name its original was dropped for**
+      (`checks.kept_names`), word for word. In run 13, "the Sixth Circuit
+      Court will uphold the stay on a prominent individual's execution" was
+      published: the rewrite's checks didn't list the court.
+    - **Guardrail trial:** 49 of 49, with 7 new sentences (both TPLF ones,
+      T24, the Haiti force; the Colombian government, a drone attack and
+      the CDU allowed). The old 42 all still pass. "President Trump will
+      rob the Bank of America" got "no" to every harm question this time;
+      the new rule caught the bank anyway.
+    - **Run 13** (run 12 re-checked; `--rescreen`): the rule fired 13
+      times. 6 predictions were dropped (T24, the Kosovo court, the Haiti
+      force) and 7 rewritten ("areas in Afar and Amhara regions fall under a
+      prominent political group's control"). 130 of 139 published stayed
+      the same.
+    - **Still open:**
+      - Places the kind question calls "other" count too: "Garacad" and
+        "Bayla", towns in Puntland, sent two piracy predictions to rewrites
+        that lost the places.
+      - A government in exile passes as a government: "at least 50
+        additional individuals are arrested in Myanmar for supporting the
+        in-exile National Unity Government" was published.
+
 ## 4. Data state — important for resuming on a new machine
 
 `data/` is **git-ignored** (see `.gitignore`) — it does not travel with the
@@ -2564,11 +2605,10 @@ old step 2 (move to English Wikipedia) is now step 5.
                 place for a final would keep "the most interesting sports
                 predictions" (§2).
               - **Before anything is published:**
-                - The organization check misses an armed group whose kind
-                  comes back as a party: "the TPLF continues to seize
-                  control of more towns" was published in runs 11 and 12
-                  (§3 item 30). One fix: a story about a conflict, a crime
-                  or a disaster names no organization at all.
+                - **Done (§3 item 32):** a war, a disaster or a crime names
+                  no organization but a government. "The TPLF continues to
+                  seize control of more towns" had been published in runs 11
+                  and 12.
                 - A story's or a page's title can name a person ("Second
                   impeachment of Sara Duterte"), so the site must never
                   show one beside a rewritten prediction.
