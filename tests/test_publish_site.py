@@ -8,7 +8,8 @@ from scripts.publish_site import publish as _publish
 
 
 def publish(*args, **kwargs):
-    return _publish(*args, forecasts=Path("no-such-forecasts.json"), **kwargs)  # not this machine's data
+    return _publish(*args, forecasts=Path("no-such-forecasts.json"), prophecies=Path("no-such-prophecies"),
+                    **kwargs)  # not this machine's data
 
 
 def git(*args, cwd):
