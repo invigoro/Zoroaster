@@ -4,7 +4,7 @@ from datetime import date
 
 from src.forecast.guardrails import sensitive_words
 from src.prophecy.checks import (IDENTIFIABLE, NO_ANSWER, already_known, apply_identifies, confirmed_orgs,
-                                 confirmed_people, general_mention, guarded_only, harms, kept_names, listed_names,
+                                 confirmed_people, general_mention, guarded_only, harms, kept_names, known_armed_groups, listed_names,
                                  listed_orgs, merge_rewrites, names_a_person, novelty_messages, one_persons_contest,
                                  person_roles, screen)
 from src.prophecy.evidence import (clean_line, dated_lines, eligible, evidence_text, is_biography, mark_dates, page_block,
@@ -295,14 +295,24 @@ class ChecksTest(unittest.TestCase):
         dropped = screen(tplf, ["No"], [[]], [["TPLF"]], no_harm, clean(1), "", [True])[0]
         self.assertEqual(dropped["dropped_because"], ["names an organization in a war, a disaster or a crime (TPLF)"])
         self.assertTrue(guarded_only(dropped))  # so it's rewritten in general terms
+        # But armed groups may be named, harm and all (the user, 2026-10-05: "My main concern is with individuals").
+        # The script counts the TPLF as one whatever the kind question says (`known_armed_groups`).
+        self.assertTrue(screen(tplf, ["No"], [[]], [["TPLF"]], [[["No", "No", "No", "armed"]]], clean(1), "",
+                               [True])[0]["kept"])
+        hezbollah = [{"text": "I predict that Hezbollah will fire rockets into northern Israel."}]
+        self.assertTrue(screen(hezbollah, ["No"], [[]], [["Hezbollah"]], [[["Yes", "No", "No", "armed"]]], clean(1), "",
+                               [True])[0]["kept"])
+        self.assertEqual(known_armed_groups("the Bab al-Mandeb Strait will be under Houthi control, as Hamas warns"),
+                         ["Houthi", "Hamas"])
+        self.assertEqual(known_armed_groups("a hamster in Fanore"), [])  # whole names only
         # A country's government stands for the country, which the rule allows.
         talks = [{"text": "I predict that an armed group will agree to negotiate with the Colombian government."}]
         self.assertTrue(screen(talks, ["No"], [[]], [["Colombian government"]], [[["No", "No", "No", "government"]]],
                                clean(1), "", [True])[0]["kept"])
-        # An organization doing or suffering harm is dropped for that, and not twice.
-        hezbollah = [{"text": "I predict that Hezbollah will fire rockets into northern Israel."}]
-        self.assertEqual(screen(hezbollah, ["No"], [[]], [["Hezbollah"]], [[["Yes", "No", "No", "other"]]], clean(1), "",
-                                [True])[0]["dropped_because"], ["harm to or by a specific organization (Hezbollah)"])
+        # Another organization doing or suffering harm is dropped for that, and not twice.
+        boeing = [{"text": "I predict that Boeing will face criminal charges over the crash."}]
+        self.assertEqual(screen(boeing, ["No"], [[]], [["Boeing"]], [[["No", "Yes", "Yes", "company"]]], clean(1), "",
+                                [True])[0]["dropped_because"], ["harm to or by a specific organization (Boeing)"])
         # T24, a news website, came back "other" from the kind question: not confirmed, but listed, it counts here.
         t24 = [{"text": "I predict that the closure of T24 will lead to further censorship of news websites in Turkey."}]
         self.assertEqual(listed_orgs(["T24", "Turkey", "the closure"], ["other", "country", "Event."]), ["T24"])
@@ -324,6 +334,22 @@ class ChecksTest(unittest.TestCase):
         self.assertEqual(screen(one, ["no"], [[]], [[]], [[]], ["Yes."], "")[0]["dropped_because"],
                          ["the evidence already settles it"])
         self.assertTrue(screen(one, ["no"], [[]], [[]], [[]], ["Probably"], "")[0]["kept"])  # only a clear yes drops
+        # A page's prediction names its teams and countries: the first live day's said neither which, nor at what.
+        judo = [{"text": "I predict that an important team representing a major country will win the mixed team event.",
+                 "evidence": ["2026 World Judo Championships"]}]
+        self.assertEqual(screen(judo, ["No"], [[]], [[]], [[]], ["no"], "")[0]["dropped_because"],
+                         ["doesn't name the teams or countries it means (an important team)"])
+        from src.prophecy.judge import gradable
+        self.assertTrue(gradable(screen(judo, ["No"], [[]], [[]], [[]], ["no"], "")[0]))  # a quality drop
+        asia = "I predict that the mixed team event will be won by a team representing a country from Asia."
+        self.assertFalse(screen([judo[0] | {"text": asia}], ["No"], [[]], [[]], [[]], ["no"], "")[0]["kept"])
+        for named in ("I predict that Japan will win the mixed team event at the 2026 World Judo Championships.",
+                      "I predict that Spain will win a team bronze.", "I predict that Japan will beat a team from France."):
+            self.assertTrue(screen([judo[0] | {"text": named}], ["No"], [[]], [[]], [[]], ["no"], "")[0]["kept"], named)
+        # A story's may: "an armed group" can stand in for one a rewrite wouldn't name.
+        story = [{"text": "I predict that a prominent armed group will seize another town near a major country's border.",
+                  "evidence": ["Current events: Sudanese civil war"]}]
+        self.assertTrue(screen(story, ["No"], [[]], [[]], [[]], ["no"], "")[0]["kept"])
 
     def test_copies_of_instruction_examples_and_repeats_are_dropped(self):
         instructions = ('A good one: {"question": "Who wins?", "prediction": "I predict that the Houston Astros will '
@@ -350,15 +376,16 @@ class ChecksTest(unittest.TestCase):
         for answer in ("Yes", "Possibly", ""):  # a guardrail: anything but a clear no to both counts
             self.assertTrue(harms(["no", answer, "company"]), answer)
             self.assertTrue(harms([answer, "no", "company"]), answer)
-        self.assertTrue(harms(["No", "No", "Military"]))  # an army the model won't call a country's
-        self.assertTrue(harms(["No", "No", "No", "armed"]))  # an armed group that isn't a country's: Hamas, the TPLF
+        # Armed groups and armies may be named, harm and all (the user, 2026-10-05): Hamas, the TPLF, the Houthis.
+        self.assertFalse(harms(["Yes", "No", "No", "armed"], "Hamas"))
+        self.assertFalse(harms(["Yes", "Yes", "No", "Military"], "the Kachin Independence Army"))
         # A country's government or armed forces stand for the country (the user, 2026-10-04): "Saudi Arabia's air
         # force will carry out another airstrike at a market in Taiz" is fine, as "Russia will strike Kyiv" is.
         self.assertFalse(harms(["Yes", "No", "No", "State."], "Saudi Arabia's air force"))
         self.assertFalse(harms(["No", "Yes", "Yes", "government"], "the Ethiopian government"))
-        # But only one whose name says which country: the model called the Rapid Support Forces, Sudan's
-        # paramilitary at war with its army, a country's forces. Without a country it's like any organization.
-        self.assertTrue(harms(["Yes", "No", "No", "state"], "Rapid Support Forces"))
+        # But only one whose name says which country: the model called the UN Security Council a country's
+        # government. Without a country it's like any organization.
+        self.assertTrue(harms(["No", "Yes", "No", "state"], "United Nations Security Council"))
         self.assertFalse(harms(["No", "No", "No", "state"], "Federal Reserve"))  # "will cut rates"
         from src.prophecy.countries import names_a_country
         for named in ("Israel Defense Forces", "Ukraine's armed forces", "the Sudanese government", "U.S. Army"):
@@ -643,7 +670,9 @@ class RewriteTest(unittest.TestCase):
             "orgs_named": ["Ethiopia's armed forces"], "harm_check": [["Yes", "No", "No", "state"]]}
         self.assertTrue(apply_identifies([forces], ["No"])[0]["kept"])
         group = forces | {"orgs_named": ["TPLF"], "harm_check": [["No", "No", "No", "armed"]]}
-        self.assertFalse(apply_identifies([group], ["No"])[0]["kept"])
+        self.assertTrue(apply_identifies([group], ["No"])[0]["kept"])  # armed groups too, since 2026-10-05
+        company = forces | {"orgs_named": ["Boeing"], "harm_check": [["No", "Yes", "No", "company"]]}
+        self.assertFalse(apply_identifies([company], ["No"])[0]["kept"])
         # Dropped for armed groups only, a rewrite naming where they fight isn't asked whether it still points to
         # them: the user asked for the place, and it may well make plain which group fights there.
         from src.prophecy.checks import NOT_ASKED, armed_groups_only, reason_names

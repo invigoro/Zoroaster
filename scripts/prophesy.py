@@ -53,7 +53,7 @@ from scripts.fetch_current_events import KNOWN_DIR
 from src.prophecy.checks import (NO_ANSWER, NOT_ASKED, SENSITIVE_TOPICS, apply_identifies, armed_groups_only,
                                  confirmed_orgs, confirmed_people, contest_messages, general_mention,
                                  generalize_messages, guarded_only, harm_messages, identifies_messages, kind_messages,
-                                 listed_names, listed_orgs, merge_rewrites, novelty_messages, one_persons_contest,
+                                 known_armed_groups, listed_names, listed_orgs, merge_rewrites, novelty_messages, one_persons_contest,
                                  orgs_messages, people_messages, person_messages, reason_names, screen,
                                  sensitive_messages, sensitive_topic)
 from src.prophecy.details import flagged, merge_revisions, revise_messages
@@ -147,6 +147,15 @@ def check(model, tokenizer, predictions: list[dict], by_title: dict[str, str], i
     questions_per_org = len(harm_messages("", ""))
     harm_said = iter(ask([chat for t, os in zip(texts, orgs) for o in os for chat in harm_messages(t, o)], YES_NO_TOKENS))
     harm = [[[next(harm_said) for _ in range(questions_per_org)] for _ in os] for os in orgs]
+    # Armed groups the news often names count as armed groups, which may be named (the user, 2026-10-05), whatever
+    # the model said: it once called the TPLF a party (`checks.known_armed_groups`).
+    for os, answers, t in zip(orgs, harm, texts):
+        for name in known_armed_groups(t):
+            if name in os:
+                answers[os.index(name)] = [*answers[os.index(name)][:-1], "armed"]
+            else:
+                os.append(name)
+                answers.append(["no", "no", "no", "armed"])
     novelty = ask([novelty_messages(t, c) for t, c in zip(texts, cited)], YES_NO_TOKENS)
     # A war, a disaster or a crime may name no organization but a government (`checks.IN_SENSITIVE`). A story's
     # topic is its category's; a page's prediction that names one is asked.

@@ -168,6 +168,18 @@ Two-stage approach:
   - Comments with giscus (§3 item 35): the user asked for it after a side
     conversation, and installed the giscus app on the repo. Comments live
     in the repo's GitHub Discussions, so the site needs no database.
+- **Armed groups may be named (decided 2026-10-05, the user):** "I'm
+  actually okay with the houthis being named. I think I've actually changed
+  my mind about whether military organizations can be named, especially if
+  they're from a non-US country and especially if they're generally
+  considered to be terrorists---those can be named. My main concern is with
+  individuals." (§3 item 36.)
+  - Read as all armed groups and armies; the user can say if US-based ones
+    should stay out. Companies and other organizations keep the rules of
+    2026-10-01, and people the strict ones.
+  - On the first live day's sports prediction: "it doesn't name the team,
+    country, or event, all of which should be allowed to be named by the
+    rules."
 
 Full original plan detail (data sources, storage design rationale, model
 architecture options, evaluation plan, milestones) — if you want the fuller
@@ -1336,6 +1348,41 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
       embed the threads.
     - Checked against giscus's API (the repo and category it sees) and on
       a local preview: its widget loads in the site's dark theme.
+
+36. **Version 3: armed groups may be named, and sport names its teams
+    (2026-10-05)**: the user's decisions on the first live day (§2).
+    - **The first live day** (2026-10-05) published 5 predictions. "An
+      important team representing a major country will win the mixed team
+      event" named no team, country or event; the prophet wrote it so (the
+      page prompt listed "team" among the organizations not to name in a
+      war, and gave "an important politician" as a description to use).
+      "The Bab al-Mandeb Strait will be under Houthi control" named an
+      armed group the organizations question didn't list.
+    - **Armed groups may be named** (`checks.namable`): harm, war or not,
+      like a country's government or armed forces. The harm questions'
+      kind "armed" now passes. A list of armed groups the news often names
+      (`checks.KNOWN_ARMED`: the Houthis, Hamas, the TPLF, the Rapid Support
+      Forces, …) counts as armed whatever the model says: it once called
+      the TPLF a party, and the Rapid Support Forces a country's.
+    - **Sport names its teams:** the page prompt asks for the event and the
+      teams or countries, and no longer lists teams among the organizations
+      not to name. A page's prediction that leaves its teams or countries
+      unnamed is dropped, for a quality reason (`checks.PLACEHOLDER`: "an
+      important team", "a team representing a country from Asia").
+      - Run 15's page questions and the first live day's, answered again
+        with the new prompt: 0 of 149 left their teams unnamed, against 7.
+        "The 2026 WXV Global Series will be won by an unnamed team
+        representing an unspecified country" became "…by the Irish team".
+      - The judo page names no team, so its prediction still hedged ("a
+        team representing a country from Asia"); the check drops it now.
+      - Of 493 earlier page predictions the check flags 14, all vague.
+    - **Trials:** guardrails 56 of 56 (Hamas, Hezbollah, the TPLF, the Rapid
+      Support Forces and the Houthis allowed; the UN Security Council, T24
+      and the Pentagon still blocked); rewrites 16 of 16.
+    - **Review of the live days:** `review_live.py` lists each day's
+      published prophecies, each rewrite's and revision's original, and
+      wording that may be garbled or vague, into
+      `v3/daily_review.md`. For the user's reassessment of the garbles.
 
 ## 4. Data state — important for resuming on a new machine
 
@@ -2738,8 +2785,11 @@ old step 2 (move to English Wikipedia) is now step 5.
               - **Done (§3 item 34):** countries' governments and forces may
                 act, and rewrites keep places (the user, 2026-10-04).
               - **Next: count the garbled rewrites** in the first few live
-                days ("airstrikes by major armed forces and an actor"), then
-                decide with the user whether they need fixing (§2).
+                days ("airstrikes by major armed forces and an actor"), with
+                `review_live.py`, then decide with the user whether they need
+                fixing (§2).
+              - **Done (§3 item 36):** armed groups may be named, and sport
+                names its teams (the user, 2026-10-05).
               - **Done (§3 item 35):** comments on the home page with giscus,
                 a thread for each day's prophecy.
               - **Still to do: longer horizons** for scheduled world events,

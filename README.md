@@ -314,11 +314,13 @@ Wikipedia, which is roughly 100× the test corpus.
     checked again.
   - Separate checks drop any prediction that names a specific person (none
     for now), or has an organization doing or suffering harm. Wars,
-    disasters and crime are fine in general terms, but name no
-    organization. A country's government or armed forces, named by the
-    country ("Ukraine's armed forces"), stand for the country, which may
-    be named. The checks also drop predictions that restate their
-    evidence, or copy or repeat another.
+    disasters and crime are fine, but name no company or other
+    organization. Countries, their governments and armed forces, and
+    armed groups may be named. The checks also drop predictions that
+    restate their evidence, or copy or repeat another, and a page's that
+    leaves its teams or countries unnamed ("an important team").
+  - `review_live.py` lists the live days' published prophecies, with
+    each rewrite's original and wording that may be garbled.
   - At most ten a day are published, world events first. Sport, read from
     the page itself, comes only when it settles a title, at most three a
     day.
@@ -333,6 +335,7 @@ Wikipedia, which is roughly 100× the test corpus.
 
   ```bash
   python scripts/prophesy_daily.py --day 2026-10-04   # the day's prophecy for the site (run_daily.py runs it)
+  python scripts/review_live.py             # the live days' prophecies, rewrites and possible garbles, for review
   python scripts/build_v3_days.py           # the development days: the site's own prophecies, 2026-09-18 to 10-01
   python scripts/prophesy.py --days 2026-09-20 2026-09-25   # predictions, checks and selection; --model, --horizon
   python scripts/prophesy.py --rescreen --model Qwen/Qwen2.5-7B-Instruct --out DIR   # re-run only the checks and selection

@@ -82,6 +82,7 @@ import re
 
 from src.prophecy.countries import names_a_country
 from src.prophecy.evidence import MONTHS
+from src.prophecy.stories import is_story
 
 PERSON_ROLES = re.compile(  # singular only: plurals are groups
     r"\b(?:incumbent|candidate|coach|manager|captain|president|prime minister|premier|minister|chancellor|governor|"
@@ -99,8 +100,36 @@ COPY_OVERLAP, REPEAT_OVERLAP = 0.6, 0.8
 EXAMPLE = re.compile(r"I predict that [^\"]+")
 SETTLED, NOT_GROUNDED = "the evidence already settles it", "not about its cited evidence"
 UNSUPPORTED = "adds details its evidence doesn't give"  # `details.py`, followed by the details
+VAGUE = "doesn't name the teams or countries it means"
 # The quality checks; the rest are guardrails, copies and repeats. A reason may follow with its details.
-QUALITY_REASONS = (SETTLED, NOT_GROUNDED, UNSUPPORTED)
+QUALITY_REASONS = (SETTLED, NOT_GROUNDED, UNSUPPORTED, VAGUE)
+# A page's prediction may name its teams and countries, and should: the first live day's (2026-10-05) "an
+# important team representing a major country will win the mixed team event" said neither which, nor at what.
+# Not for a story's, where "an armed group" stands in for one the guardrails won't name.
+_SOMEWHERE = ("European|Asian|African|American|Latin American|North American|South American|Western|Eastern|Arab|"
+              "Nordic|Balkan|Gulf|Pacific|Caribbean")
+_SIDES = "team|country|nation|club|side|squad"
+PLACEHOLDER = re.compile(
+    r"\b(?:an?|one)\s+(?:(?:important|prominent|major|leading|top|strong|big|certain|powerful|well-known|famous|"
+    rf"dominant|unnamed|unspecified|other|{_SOMEWHERE})\s+)+(?:{_SIDES})s?\b"
+    rf"|\banother\s+(?:{_SIDES})\b"
+    # With the prompt asking for the teams, the judo prediction became "won by a team representing a country from Asia".
+    rf"|\ba\s+(?:{_SIDES})\s+(?:from|representing|of)\s+an?\b"
+    r"|\ban?\s+(?:country|nation)\s+(?:from|in)\s+(?:Asia|Europe|Africa|the Americas|North America|South America|"
+    r"Latin America|Oceania|the Middle East|the Caribbean)\b")
+# Armed groups that aren't a country's and that the news names often, which count as armed groups (`namable`)
+# whatever the model says: the kind question once called the TPLF a party, and the organizations question listed
+# none in "the Bab al-Mandeb Strait will be under Houthi control" (2026-10-05). Not every one.
+KNOWN_ARMED = re.compile(
+    r"(?<![\w-])(?:Houthis?|Ansar Allah|Hamas|Hezbollah|Hizbullah|Palestinian Islamic Jihad|Taliban|TPLF|"
+    r"Tigray People's Liberation Front|Rapid Support Forces|Wagner Group|[Aa]l-Shabaab|Islamic State|ISIS|ISIL|"
+    r"Daesh|Boko Haram|ISWAP|M23|Fano|PKK|Kurdistan Workers' Party|[Aa]l-Qaeda|AQAP|Hayat Tahrir al-Sham|"
+    r"Polisario Front|FARC|Arakan Army|Kachin Independence Army|Viv Ansanm)(?![\w-])")
+
+
+def known_armed_groups(text: str) -> list[str]:
+    """The armed groups KNOWN_ARMED finds in a prediction, each once."""
+    return list(dict.fromkeys(KNOWN_ARMED.findall(text)))
 
 PERSON_QUESTION = """Does the sentence below name a specific person, living or dead, or point to one by a title or role that fits one person, such as "the president of France" or "the team's coach"? General descriptions that fit many people, such as "an important politician" or "a famous singer", don't count. Teams, organizations, places, events and works don't count either.
 
@@ -151,7 +180,11 @@ Answer with one word: yes or no.""",
 # forces, or as we already have in the second one, Saudi Arabia's air force)"). Before that, any army counted
 # as harm, as "the Israel Defense Forces will strike a hospital" did.
 STATE_KINDS = ("state", "government")
-ARMED_KINDS = ("armed", "military", "army", "militia")  # an armed group that isn't a country's: always harm
+# Armed groups that aren't a country's may be named too (the user, 2026-10-05: "I'm actually okay with the houthis
+# being named ... military organizations can be named, especially if they're from a non-US country and especially
+# if they're generally considered to be terrorists ... My main concern is with individuals"). Before that one always
+# counted as harm, a prediction naming one being about war.
+ARMED_KINDS = ("armed", "military", "army", "militia")
 
 ORGS_QUESTION = """List every specific organization that the sentence below names or points to, such as a company, bank, newspaper or news website, political party, armed group, government body, army, team or club. Countries, cities, places, events, and general descriptions such as "a major bank", aren't specific organizations.
 
@@ -252,15 +285,21 @@ def is_state(name: str, kind: str) -> bool:
     return kind.strip().lower().startswith(STATE_KINDS) and names_a_country(name)
 
 
+def namable(name: str, kind: str) -> bool:
+    """Whether an organization may be named, harm or not, even in a war, a disaster or a crime: a country's
+    government or armed forces (`is_state`), or an armed group (ARMED_KINDS). Not a company, a party, a court or
+    any other organization."""
+    return is_state(name, kind) or kind.strip().lower().startswith(ARMED_KINDS)
+
+
 def harms(answers: list[str], name: str = "") -> bool:
     """The harm questions' verdict on one organization, `name`: harm unless every harm question gets a clear
-    "no". A country's government or armed forces never count (`is_state`): they stand for the country. One whose
-    name names no country is an organization like any other ("the Federal Reserve will cut rates" is fine). An
-    armed group that isn't a country's always counts: a prediction naming one is about war."""
+    "no". A country's government or armed forces, and armed groups, never count (`namable`). A state body whose
+    name names no country is an organization like any other ("the Federal Reserve will cut rates" is fine)."""
     *questions, kind = (a.strip().lower() for a in answers)
-    if is_state(name, kind):
+    if namable(name, kind):
         return False
-    return kind.startswith(ARMED_KINDS) or not all(a.startswith("no") for a in questions)
+    return not all(a.startswith("no") for a in questions)
 
 
 NO_ANSWER = "(no answer)"  # an empty listing answer: an unknown person, never asked about
@@ -305,7 +344,7 @@ SENSITIVE_TOPICS = ("conflict", "disaster", "crime")
 # through in runs 11 and 12: no harm, said the model, and the TPLF a party, not an armed group. A country's
 # government or armed forces stand for the country, which the rule allows ("an armed group will agree to
 # negotiate with the Colombian government"), so an organization the harm questions class so (STATE_KINDS)
-# doesn't count.
+# doesn't count. Since 2026-10-05 neither do armed groups (`namable`): the user's concern is individuals.
 IN_SENSITIVE = "names an organization in a war, a disaster or a crime"
 GUARDRAIL_REASONS = ("names or points to a person", "harm to or by a specific organization", IN_SENSITIVE)
 
@@ -416,7 +455,7 @@ def apply_identifies(rewrites: list[dict], answers: list[str]) -> list[dict]:
     for r, answer in zip(rewrites, answers, strict=True):
         # A country's government or armed forces may stay, named by its country ("Ethiopia's armed forces").
         kinds = [a[-1] if a else "" for a in r.get("harm_check") or []]
-        named = [o for i, o in enumerate(r.get("orgs_named", [])) if not (i < len(kinds) and is_state(o, kinds[i]))]
+        named = [o for i, o in enumerate(r.get("orgs_named", [])) if not (i < len(kinds) and namable(o, kinds[i]))]
         if r["kept"] and named:
             r = r | {"kept": False, "dropped_because": [f"{STILL_NAMES} ({'; '.join(named)})"]}
         elif r["kept"] and not answer.strip().lower().startswith("no"):
@@ -521,11 +560,14 @@ def screen(predictions: list[dict], person_answers: list[str], people: list[list
             reasons.append(f"harm to or by a specific organization ({'; '.join(harmed)})")
         kinds = {o: a[-1] for o, a in zip(org, harm, strict=True)}  # the harm questions' last
         in_sensitive = [o for o in dict.fromkeys([*org, *wide])
-                        if delicate and o not in harmed and not is_state(o, kinds.get(o, ""))]
+                        if delicate and o not in harmed and not namable(o, kinds.get(o, ""))]
         if in_sensitive:
             reasons.append(f"{IN_SENSITIVE} ({'; '.join(in_sensitive)})")
         if already_known(novelty):
             reasons.append(SETTLED)
+        vague = PLACEHOLDER.search(prediction["text"])
+        if vague and not all(is_story(t) for t in prediction.get("evidence") or [""]):
+            reasons.append(f"{VAGUE} ({vague.group(0)})")
         if not reasons and repeats(prediction["text"], kept):
             reasons.append("repeats an earlier prediction")
         if not reasons:

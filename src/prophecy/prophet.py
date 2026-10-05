@@ -93,10 +93,10 @@ The question, settled on {due}: {question}
 
 Answer it with one prediction, using only this evidence.
 - One sentence beginning "I predict that", about this page's subject, naming it in full the first time (for example "the film Heart of the Beast", not "the film").
-- Answer the question directly: who wins, what the result is, or what is decided. Name the teams, countries or parties involved.
+- Answer the question directly: who wins, what the result is, or what is decided. Name the teams, countries or parties involved, and in sport the event itself.
 - Give a score or number only if the evidence gives a reason for one. Don't restate what the evidence already reports, and keep it possible.
-- Name no specific person, living or dead, and don't point to one by a title or role. A general description of a person, such as "an important politician", is fine.
-- Wars, disasters and crime are fine in general terms, but name no organization in them: no company, party, armed group, government body or team. Countries and places are fine.
+- Name no specific person, living or dead, and don't point to one by a title or role. Teams, countries, events and armed groups aren't people: name them.
+- Wars, disasters and crime are fine. Name no company or other organization in them; countries, places, armies and armed groups are fine.
 - Nothing about anyone's health or personal life.
 
 Answer with only a JSON object: {{"prediction": "I predict that ...", "confidence": "low", "medium" or "high"}}"""
@@ -135,7 +135,7 @@ Answer it with one prediction, using only these reports.
 - Say what will have happened by the end of {due}, concretely enough to check. Name the countries involved.
 - Give a number only if the reports give one to go by, and keep it cautious. Don't restate what the reports already say, and keep it possible.
 - Name no specific person, living or dead, and don't point to one by a title or role. A general description that fits many people, such as "an important politician" or "a prominent actor", is fine.
-- Wars, disasters and crime are fine in general terms, but name no organization in them: no company, party, armed group, government body or team. Countries and places are fine.
+- Wars, disasters and crime are fine. Name no company or other organization in them; countries, places, armies and armed groups are fine.
 
 Answer with only a JSON object: {{"prediction": "I predict that ...", "confidence": "low", "medium" or "high"}}"""
 
