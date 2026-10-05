@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#151312">
-  <title>Zoroaster: tomorrow's Wikipedia bursts</title>
-  <meta name="description" content="Each night, Zoroaster reads the day's edits to English Wikipedia and foretells which pages will see a burst of editing tomorrow.">
+  <title>Zoroaster: what the coming week may bring</title>
+  <meta name="description" content="Each night, a language model reads English Wikipedia's busiest pages and the week's current events, and foretells what the coming week may bring. Machine-generated forecasts, not news.">
   <link rel="icon" type="image/png" href="img/favicon.png">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -20,20 +20,28 @@
       <span class="emblem" role="img" aria-label="The Faravahar, the winged symbol of Zoroastrianism"></span>
       <p class="kicker">Zoroaster</p>
       <h1>Also sprach Zarathustra</h1>
-      <p class="lede">Thus spoke <a href="https://en.wikipedia.org/wiki/Zoroaster">Zarathustra</a>: the English Wikipedia pages most likely to see a burst of editing
-        on <strong id="day">…</strong> (UTC).</p>
+      <p class="lede">Thus spoke <a href="https://en.wikipedia.org/wiki/Zoroaster">Zarathustra</a>: what the coming week
+        may bring, foretold from English Wikipedia on <strong id="day">…</strong> (UTC).</p>
     </div>
   </header>
 
   <main>
-    <section id="record" class="record" hidden>
-      <h2>Yesterday's prophecy</h2>
-      <p id="record-text"></p>
-    </section>
+    <div class="label" role="note"><strong>Machine-generated forecasts, not news.</strong> A language model wrote these
+      predictions from what Wikipedia said the night before. They are guesses about what may happen, not reports that
+      anything has happened, and they name no individual.</div>
 
     <section>
       <h2>The prophecy</h2>
-      <ol id="pages" class="pages"><li class="placeholder">Consulting the flames…</li></ol>
+      <ol id="prophecy" class="prophecy"><li class="placeholder">Consulting the flames…</li></ol>
+      <p class="day-pick" id="day-pick" hidden><label>Foretold on <select id="days"></select></label></p>
+    </section>
+
+    <section class="comments" aria-labelledby="comments-title">
+      <h2 id="comments-title">Discuss this prophecy</h2>
+      <p class="note">Each day's prophecy has its own thread, kept in the project's
+        <a href="https://github.com/invigoro/Zoroaster/discussions">GitHub Discussions</a>. Comments are public, and
+        posting needs a GitHub account. Please be civil, and don't name private individuals.</p>
+      <div class="giscus"></div>
     </section>
 
     <figure class="vision">
@@ -43,21 +51,25 @@
 
     <section class="about">
       <h2>How the prophecy is made</h2>
-      <p>Every night just after midnight UTC, Zoroaster reads the day's edits to English Wikipedia and ranks
-        about one and a half million recently edited pages by how likely each is to <em>burst</em> the next day:
-        far more edits than usual for that page, from at least two editors (accounts editing dozens of pages a
-        day are left out).</p>
-      <p>Most of tomorrow's bursts are new, so most of the prophecy won't come true: in testing, about one in five
-        of the top 100 did. A listed page is a statistical forecast of editing activity, not a claim that anything
-        has happened or will happen.</p>
-      <p class="more-link"><a href="how.html">How the prophet works, and how its forecasts have fared →</a></p>
+      <p>Every night just after midnight UTC, Zoroaster reads two things, both as they stood at the end of the day
+        before: the English Wikipedia pages its first model expects to see a burst of editing, and the past week's
+        stories on Wikipedia's <a href="https://en.wikipedia.org/wiki/Portal:Current_events">Portal:Current events</a>.
+        A language model running on the prophet's own machine asks what each page or story brings next within the
+        week, and writes a prediction.</p>
+      <p>Separate checks drop any prediction that names a person, or a specific organization in a war, a disaster or a
+        crime; some are rewritten in general terms instead. They also drop predictions that restate what was already
+        known, and send back any that add a number or a name their evidence doesn't give. At most ten a day are
+        published, world events first, and sport only when it settles a title.</p>
+      <p class="more-link"><a href="how.html">How the prophet works, and the pages likeliest to see a burst of editing
+        today →</a></p>
     </section>
   </main>
 
   <footer>
-    <p>Data: <a href="https://www.mediawiki.org/wiki/API:RecentChanges">Wikipedia's recent changes</a> and
+    <p>Data: <a href="https://en.wikipedia.org/wiki/Portal:Current_events">Portal:Current events</a>,
+      <a href="https://www.mediawiki.org/wiki/API:RecentChanges">Wikipedia's recent changes</a> and
       <a href="https://dumps.wikimedia.org/other/mediawiki_history/readme.html">MediaWiki history dumps</a>,
-      courtesy of the Wikimedia Foundation. Page titles link to Wikipedia; its content is available under
+      courtesy of the Wikimedia Foundation. Wikipedia's content is available under
       <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.
       Code: <a href="https://github.com/invigoro/Zoroaster">github.com/invigoro/Zoroaster</a>.</p>
     <p>The Faravahar is by Ploxhoi and Kevin McCormick, from

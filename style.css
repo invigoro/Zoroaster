@@ -128,6 +128,47 @@ h2::after { content: ""; display: block; width: 2.5rem; height: 2px; margin-top:
 .pages .meter span { display: block; height: 100%; background: linear-gradient(90deg, var(--red-deep), var(--red)); border-radius: 2px; }
 .pages .placeholder { display: block; color: var(--muted); border: 0; }
 
+/* Version 3's prophecy: numbered sentences, each with its topic, due date and confidence. */
+main > .label { margin-top: 2.4rem; }
+.prophecy { list-style: none; padding: 0; margin: 0; counter-reset: prophecy; }
+.prophecy li {
+  position: relative;
+  padding: 0.75rem 0 0.8rem 2.6rem;
+  border-bottom: 1px solid var(--rule);
+  counter-increment: prophecy;
+}
+.prophecy li::before {
+  content: counter(prophecy);
+  position: absolute;
+  left: 0;
+  width: 1.9rem;
+  text-align: right;
+  color: var(--red);
+  font-style: italic;
+  font-variant-numeric: tabular-nums;
+}
+.prophecy .text { margin: 0; font-size: 1.08rem; }
+.prophecy .meta { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.88rem; }
+.prophecy .topic { color: var(--text); border: 1px solid var(--rule); border-radius: 4px; padding: 0 0.4rem; }
+.prophecy .placeholder { padding-left: 0; border: 0; color: var(--muted); }
+.prophecy .placeholder::before { content: none; }
+.day-pick { margin: 0.9rem 0 0; color: var(--muted); font-size: 0.92rem; }
+.day-pick select { background: var(--stone-deep); color: var(--text); border: 1px solid var(--rule);
+  border-radius: 4px; padding: 0.25rem 0.4rem; font: inherit; }
+
+/* Each day's comment thread (giscus), below its prophecy. */
+.comments .note { margin: 0 0 1rem; }
+.comments .giscus { min-height: 6rem; }
+
+/* Stage 1's list, on the "How the prophet works" page. */
+section .record { margin-top: 1.2rem; }
+.record h3 { margin: 0.9rem 0 0.4rem; color: var(--red); font-size: 0.85rem; font-weight: 400;
+  text-transform: uppercase; letter-spacing: 0.14em; }
+.list-day { margin: 1.4rem 0 0.2rem; color: var(--muted); }
+.list-day strong { color: var(--text); font-weight: 400; }
+main ul { padding-left: 1.2rem; }
+main ul li { margin: 0 0 0.45rem; }
+
 /* The second picture is a night scene on black. Crossed masks fade all four
    edges, including the bright horizon at the sides, into the stone. */
 .vision { margin: 3.5rem -1rem 0; }
@@ -158,6 +199,8 @@ footer p { margin: 0 0 0.5rem; }
 @media (max-width: 30rem) {
   .masthead { margin-top: -6%; }
   .pages li { grid-template-columns: 1.9rem 1fr auto; }
+  .prophecy li { padding-left: 2.2rem; }
+  .prophecy li::before { width: 1.6rem; }
 }
 
 /* "How the prophet works" (how.html): a smaller banner, whole rather than

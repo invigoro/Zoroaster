@@ -6,7 +6,7 @@
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#151312">
   <title>How the prophet works: Zoroaster</title>
-  <meta name="description" content="How Zoroaster foretells Wikipedia's bursts of editing, and how a second model's forecasts of what the edits will change have fared on six months of past days.">
+  <meta name="description" content="How Zoroaster's language model foretells the coming week from English Wikipedia, the checks every prediction passes, the pages likeliest to see a burst of editing today, and how a second model's forecasts of what the edits will change have fared.">
   <link rel="icon" type="image/png" href="img/favicon.png">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -20,8 +20,8 @@
       <span class="emblem" role="img" aria-label="The Faravahar, the winged symbol of Zoroastrianism"></span>
       <p class="kicker"><a href="./">Zoroaster</a></p>
       <h1>How the prophet works</h1>
-      <p class="lede">What the prophecy is made from, and how a second model, which forecasts what the edits
-        will change, has fared on six months of past days.</p>
+      <p class="lede">What the prophecy is made from, the checks every prediction passes, and the pages likeliest
+        to see a burst of editing today.</p>
     </div>
   </header>
 
@@ -30,19 +30,60 @@
 
     <section>
       <h2>The prophecy</h2>
-      <p>Every night just after midnight UTC, Zoroaster reads the day's edits to English Wikipedia and ranks
-        about one and a half million recently edited pages by how likely each is to <em>burst</em> the next day:
-        far more edits than usual for that page, from at least two editors (accounts editing dozens of pages a
-        day are left out).</p>
-      <p>The ranking comes from a gradient-boosted model trained on three years of Wikipedia's edit history.
-        It sees only each page's own recent activity and the calendar, not the news. Pages already busy are
-        likelier to stay busy, but most of tomorrow's bursts are new, so most of the prophecy won't come true:
-        in testing, about one in five of the top 100 did.</p>
+      <p>Every night just after midnight UTC, the prophet reads two kinds of evidence, both as they stood at the end
+        of the day before, so it can't know what the day itself brings:</p>
+      <ul>
+        <li><strong>The pages likeliest to burst</strong> with editing that day (below), biographies left out. Each
+          page comes as it stood the night before, with every date in it worked out relative to the day foretold:
+          "October 4 [in 4 days]".</li>
+        <li><strong>The week's stories</strong> on Wikipedia's
+          <a href="https://en.wikipedia.org/wiki/Portal:Current_events">Portal:Current events</a>: each story
+          reported in the two days before, with its reports from the week.</li>
+      </ul>
+      <p>A language model running on the prophet's own machine (Qwen2.5 with 7 billion parameters, in 4-bit) then
+        takes two steps for each page or story. First it asks what will be decided within the next seven days, and
+        when: a final, an election, or, for a story, its likeliest next development. Then it writes one prediction,
+        "I predict that …", with a due date and its confidence.</p>
+      <p>Separate questions to the same model check every prediction, and any one of them can drop it:</p>
+      <ul>
+        <li><strong>People:</strong> a prediction may name no individual, living or dead, nor point to one by a
+          title such as "the president of France".</li>
+        <li><strong>Organizations:</strong> none may do or suffer harm, or be blamed for something, and in a war, a
+          disaster or a crime none may be named at all. A country's government or armed forces, named by the country
+          ("Ukraine's armed forces"), stand for the country, which may be named. A prediction dropped only for a
+          person or an organization is rewritten in general terms ("an armed group", "a major bank"), keeping
+          where it happens, and checked again.</li>
+        <li><strong>Already known:</strong> a prediction that restates what its evidence already settled is dropped.</li>
+        <li><strong>Made-up details:</strong> a story's prediction that gives a number or a name its reports don't
+          goes back to the prophet to revise, and is checked again.</li>
+      </ul>
+      <p>At most ten predictions a day are published, world events first, and sport only when it settles a title.
+        Each is graded on its due day against what Wikipedia then reports. The grades are still checked by hand
+        while the automatic judge is being tested, so the site doesn't show them yet.</p>
+    </section>
+
+    <section>
+      <h2>The pages likeliest to burst</h2>
+      <p>The prophet's first model reads the day's edits to English Wikipedia and ranks about one and a half million
+        recently edited pages by how likely each is to <em>burst</em> the next day: far more edits than usual for
+        that page, from at least two editors (accounts editing dozens of pages a day are left out).</p>
+      <p>The ranking comes from a gradient-boosted model trained on three years of Wikipedia's edit history. It sees
+        only each page's own recent activity and the calendar, not the news. Pages already busy are likelier to stay
+        busy, but most bursts are new, so most of the list won't come true: in testing, about one in five of the top
+        100 did. A listed page is a statistical forecast of editing activity, not a claim that anything has happened
+        or will happen.</p>
+      <div id="record" class="record" hidden>
+        <h3>Yesterday's list</h3>
+        <p id="record-text"></p>
+      </div>
+      <p class="list-day">For <strong id="pages-day">…</strong> (UTC):</p>
+      <ol id="pages" class="pages"><li class="placeholder">Consulting the flames…</li></ol>
+      <p class="note" id="pages-generated"></p>
     </section>
 
     <section>
       <h2>Forecasting the edits</h2>
-      <p>A second model, still being tested and not yet part of the prophecy, forecasts what a page's edits
+      <p>A second model, still being tested and not yet part of the daily prophecy, forecasts what a page's edits
         will change: which sections they'll touch, and what kinds of change they'll make (new prose, references,
         tables, links and so on). It's a small language model, Qwen2.5 with 1.5 billion parameters, fine-tuned on
         14,500 past page-days. For each page it reads the page as it stood the night before: its opening, its
@@ -82,9 +123,10 @@
   </main>
 
   <footer>
-    <p>Data: <a href="https://www.mediawiki.org/wiki/API:RecentChanges">Wikipedia's recent changes</a> and
-      <a href="https://dumps.wikimedia.org/other/mediawiki_history/readme.html">MediaWiki history dumps</a>,
-      courtesy of the Wikimedia Foundation. Page titles link to Wikipedia; its content, including the quoted
+    <p>Data: <a href="https://www.mediawiki.org/wiki/API:RecentChanges">Wikipedia's recent changes</a>,
+      <a href="https://dumps.wikimedia.org/other/mediawiki_history/readme.html">MediaWiki history dumps</a>
+      and <a href="https://en.wikipedia.org/wiki/Portal:Current_events">Portal:Current events</a>, courtesy of the
+      Wikimedia Foundation. Page titles link to Wikipedia; its content, including the quoted
       new text, is available under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.
       Code: <a href="https://github.com/invigoro/Zoroaster">github.com/invigoro/Zoroaster</a>.</p>
     <p>The Faravahar is by Ploxhoi and Kevin McCormick, from
