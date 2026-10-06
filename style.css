@@ -152,6 +152,9 @@ main > .label { margin-top: 2.4rem; }
 .prophecy .topic { color: var(--text); border: 1px solid var(--rule); border-radius: 4px; padding: 0 0.4rem; }
 .prophecy .placeholder { padding-left: 0; border: 0; color: var(--muted); }
 .prophecy .placeholder::before { content: none; }
+.late { margin: 0 0 0.9rem; padding: 0.55rem 0.9rem; border-left: 3px solid var(--red); background: var(--panel);
+  color: var(--muted); font-size: 0.92rem; }
+.late strong { color: var(--text); }
 .day-pick { margin: 0.9rem 0 0; color: var(--muted); font-size: 0.92rem; }
 .day-pick select { background: var(--stone-deep); color: var(--text); border: 1px solid var(--rule);
   border-radius: 4px; padding: 0.25rem 0.4rem; font: inherit; }
