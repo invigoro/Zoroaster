@@ -1383,6 +1383,15 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
       published prophecies, each rewrite's and revision's original, and
       wording that may be garbled or vague, into
       `v3/daily_review.md`. For the user's reassessment of the garbles.
+37. **The 2026-10-06 prophecy failed: hidden revisions (2026-10-06)**. The
+    night's run predicted, scored, built and published, but the prophecy
+    step crashed (`KeyError: 'content'`), so the site kept 10-05's. The
+    10-05 Portal:Current events page's last 22 revisions by the cutoff
+    (19:02 to 23:01 UTC) had their text hidden (revision-deleted), and
+    `fetch_current_events.fetch` took the text as always there.
+    - `fetch` now passes over hidden revisions, paging back to the last one
+      whose text is shown, still by the cutoff: the 10-05 page as of 18:01,
+      7 stories. A page with none shown counts as missing.
 
 ## 4. Data state — important for resuming on a new machine
 

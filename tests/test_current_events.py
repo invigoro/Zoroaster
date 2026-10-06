@@ -1,6 +1,8 @@
 import unittest
-from datetime import date
+from datetime import date, datetime, timezone
+from unittest import mock
 
+from scripts.fetch_current_events import fetch
 from src.prophecy.current_events import items, page_title
 
 PAGE = """{{Current events|year=2026|month=09|day=20|top=yes}}
@@ -30,6 +32,24 @@ class CurrentEventsTest(unittest.TestCase):
             "Armed conflicts and attacks › A top-level item with no topic.",
             "Sports › 2026 Asian Games › Japan wins the men's 3x3 basketball gold.",
         ])
+
+    def test_a_revision_with_its_text_hidden_is_passed_over(self):
+        # On 2026-10-06 the 10-05 page's last revisions by the cutoff were revision-deleted, and the prophecy crashed.
+        def responses(*batches):  # the API's pages of revisions, newest first, each continuing to the next
+            return [{"query": {"pages": [{"title": page_title(date(2026, 10, 5)), "revisions": batch}]},
+                     **({"continue": {"rvcontinue": f"batch{n + 1}"}} if n < len(batches) - 1 else {})}
+                    for n, batch in enumerate(batches)]
+        hidden = [{"revid": 4, "timestamp": "2026-10-05T23:01:58Z", "slots": {"main": {"texthidden": True}}},
+                  {"revid": 3, "timestamp": "2026-10-05T23:01:33Z", "slots": {"main": {"texthidden": True}}}]
+        shown = [{"revid": 2, "timestamp": "2026-10-05T22:40:00Z", "slots": {"main": {"content": PAGE}}},
+                 {"revid": 1, "timestamp": "2026-10-05T20:00:00Z", "slots": {"main": {"content": ""}}}]
+        with mock.patch("scripts.fetch_current_events.api_get", side_effect=responses(hidden, shown)) as api:
+            page = fetch(None, date(2026, 10, 5), datetime(2026, 10, 6, tzinfo=timezone.utc))
+        self.assertEqual((page["revision_id"], page["edited"], len(page["items"])), (2, "2026-10-05T22:40:00Z", 4))
+        self.assertEqual(api.call_args.args[2]["rvstart"], "2026-10-06T00:00:00Z")  # still as of the cutoff
+        self.assertEqual(api.call_args.args[2]["rvcontinue"], "batch1")
+        with mock.patch("scripts.fetch_current_events.api_get", side_effect=responses(hidden, hidden[1:])):
+            self.assertTrue(fetch(None, date(2026, 10, 5))["missing"])  # nothing shown at all
 
 
 if __name__ == "__main__":

@@ -33,19 +33,29 @@ from src.prophecy.current_events import KNOWN_DAYS, items, known_at, page_title
 
 OUT_DIR = V3_DIR / "current_events"
 KNOWN_DIR = V3_DIR / "current_events_known"
+REVISIONS_PER_REQUEST = 5  # newest first; more are fetched only if these all have their text hidden
 
 
 def fetch(session: requests.Session, day: date, as_of: datetime | None = None) -> dict:
-    """The day's page at its latest revision, or at its last one by `as_of`."""
+    """The day's page at its latest revision, or at its last one by `as_of`.
+
+    Revisions whose text Wikipedia has hidden (revision-deleted) are passed over for the last one before them: on
+    2026-10-06 the 10-05 page's last 22 revisions by the end of the day had their text hidden."""
     title = page_title(day)
     params = {"action": "query", "prop": "revisions", "rvprop": "content|ids|timestamp", "rvslots": "main",
-              "titles": title, "format": "json", "formatversion": "2"}
+              "titles": title, "rvlimit": str(REVISIONS_PER_REQUEST), "format": "json", "formatversion": "2"}
     if as_of:
-        params |= {"rvlimit": "1", "rvdir": "older", "rvstart": as_of.strftime("%Y-%m-%dT%H:%M:%SZ")}
-    page = api_get(session, API_URL.format(lang="en"), params)["query"]["pages"][0]
-    if page.get("missing") or not page.get("revisions"):  # no page, or none yet by `as_of`
+        params |= {"rvdir": "older", "rvstart": as_of.strftime("%Y-%m-%dT%H:%M:%SZ")}
+    while True:
+        response = api_get(session, API_URL.format(lang="en"), params)
+        page = response["query"]["pages"][0]
+        shown = [r for r in page.get("revisions") or [] if "content" in r.get("slots", {}).get("main", {})]
+        if shown or "continue" not in response:
+            break
+        params |= response["continue"]  # every revision so far hidden: look further back
+    if page.get("missing") or not shown:  # no page, none yet by `as_of`, or none with its text shown
         return {"title": title, "date": day.isoformat(), "missing": True, "items": []}
-    revision = page["revisions"][0]
+    revision = shown[0]
     text = revision["slots"]["main"]["content"]
     return {"title": title, "date": day.isoformat(), "revision_id": revision["revid"], "edited": revision["timestamp"],
             "fetched": datetime.now(timezone.utc).isoformat(timespec="seconds"), "items": items(text)}
