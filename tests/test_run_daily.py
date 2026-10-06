@@ -1,9 +1,10 @@
+import json
 import tempfile
 import unittest
 from datetime import date
 from pathlib import Path
 
-from scripts.run_daily import plan, prune, run
+from scripts.run_daily import plan, prune, run, write_status
 
 DAY = date(2026, 10, 1)
 
@@ -64,6 +65,19 @@ class RunTest(unittest.TestCase):
         self.assertEqual(ran, ["a", "fail", "c"])
         self.assertTrue(log[1].startswith("== b: FAILED"))
         self.assertEqual(run([("a", lambda: None)], log.append), 0)
+
+    def test_each_step_s_outcome_is_noted_as_the_run_goes(self):
+        noted = []
+        steps = [("predict", lambda: None), ("prophesy", lambda: 1 / 0), ("build the site", lambda: None)]
+        run(steps, lambda line: None, lambda outcomes: noted.append(dict(outcomes)))
+        # The site is built with the steps before it noted, so a failed prophecy reaches the watchdog.
+        self.assertEqual(noted[1], {"predict": "ok", "prophesy": "failed"})
+        self.assertEqual(noted[-1], {"predict": "ok", "prophesy": "failed", "build the site": "ok"})
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "2026-10-06.status.json"
+            write_status(path, date(2026, 10, 6), noted[-1])
+            status = json.loads(path.read_text())
+            self.assertEqual((status["day"], status["steps"]["prophesy"]), ("2026-10-06", "failed"))
 
 
 class PruneTest(unittest.TestCase):

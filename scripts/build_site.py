@@ -11,7 +11,10 @@ Copies `web/` into OUT, and:
   as `data/latest.json`, and as `data/D.json`; the newest `D.outcomes.json`
   as `data/latest.outcomes.json`, and dated;
 - if it's been made, the public data behind that page's version 2 sections
-  (`v2_report.py --site`), as `data/forecasts.json`.
+  (`v2_report.py --site`), as `data/forecasts.json`;
+- from `data/processed/enwiki/logs/daily/` (`run_daily.py`), the newest
+  day's run so far, each step's name and outcome, as `data/status.json`,
+  for the watchdog (`check_daily.py`).
 
 The dated copies accumulate in OUT, so on the `gh-pages` branch they form
 an archive of every prophecy and how it turned out. `--serve` previews the
@@ -35,6 +38,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from scripts.daily_predictions import PREDICTIONS_DIR
+from scripts.run_daily import LOG_DIR, STATUS_SUFFIX
 
 WEB_DIR = Path("web")
 BUILD_DIR = Path("data/processed/enwiki/site")
@@ -51,8 +55,9 @@ def newest(directory: Path, suffix: str) -> Path | None:
 
 
 def build(out: Path, predictions: Path = PREDICTIONS_DIR, web: Path = WEB_DIR,
-          forecasts: Path = FORECASTS_PATH, prophecies: Path = PROPHECY_DIR) -> dict[str, str | None]:
-    """Write the site into `out`; returns which prophecy, record and forecasts data it used."""
+          forecasts: Path = FORECASTS_PATH, prophecies: Path = PROPHECY_DIR,
+          statuses: Path = LOG_DIR) -> dict[str, str | None]:
+    """Write the site into `out`; returns which prophecy, record, forecasts and status data it used."""
     out.mkdir(parents=True, exist_ok=True)
     for path in web.iterdir():
         if path.is_dir():  # e.g. web/img
@@ -81,6 +86,10 @@ def build(out: Path, predictions: Path = PREDICTIONS_DIR, web: Path = WEB_DIR,
             shutil.copy2(path, archive / path.name.replace(PUBLIC_SUFFIX, ".json"))
         recent = [json.loads(path.read_text(encoding="utf-8")) for path in reversed(days[-ARCHIVE_DAYS:])]
         (data / "prophecies.json").write_text(json.dumps(recent, ensure_ascii=False), encoding="utf-8")
+    status = newest(statuses, STATUS_SUFFIX) if statuses.exists() else None
+    used["status.json"] = status.name if status else None
+    if status:
+        shutil.copy2(status, data / "status.json")
     return used
 
 

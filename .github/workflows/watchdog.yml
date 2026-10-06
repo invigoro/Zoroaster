@@ -1,0 +1,24 @@
+# The daily run's watchdog (scripts/check_daily.py). The daily job runs on the prophet's own machine at about
+# 00:30 UTC and is done by about 00:50. This checks the published site after it: if a step failed, or the day's run
+# or prophecy never got published, the check fails and GitHub emails the repository's owner.
+name: Daily run watchdog
+
+on:
+  schedule:
+    - cron: "17 2 * * *"  # 02:17 UTC: well after the run, and off the hour, when GitHub's queue is busiest
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: scripts/check_daily.py
+          sparse-checkout-cone-mode: false
+      - name: Check today's run went through
+        run: python3 scripts/check_daily.py

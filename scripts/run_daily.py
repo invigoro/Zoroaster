@@ -20,7 +20,12 @@ windowless via pythonw (PLAN.md §6 step 9). For today's UTC date D:
 
 Steps already done are skipped, and each step runs even if an earlier one
 failed. The exit code is non-zero if any failed. Output goes to
-`data/processed/enwiki/logs/daily/D.log`.
+`data/processed/enwiki/logs/daily/D.log`, and each step's outcome, as the
+run goes, to `D.status.json` beside it. The site publishes the newest
+(`build_site.py`), and a GitHub Actions watchdog (`check_daily.py`) checks
+it every night: if a step failed, or the day's run never published, the
+watchdog fails and GitHub emails the repository's owner. A run again by hand
+after a fix notes only the steps it still had to do, the rest being done.
 
 Usage:
     python scripts/run_daily.py [--day 2026-10-01]
@@ -29,6 +34,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 import time
 import traceback
@@ -39,6 +45,7 @@ from typing import Callable
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 LOG_DIR = Path("data/processed/enwiki/logs/daily")
+STATUS_SUFFIX = ".status.json"  # each step's outcome in a day's latest run, which the site publishes
 KEEP_DAYS = 14
 
 Step = tuple[str, Callable[[], None]]  # a step raises if it fails
@@ -98,18 +105,28 @@ def prune(predictions: Path, day: date, keep_days: int = KEEP_DAYS) -> int:
     return removed
 
 
-def run(steps: list[Step], log: Callable[[str], object] = print) -> int:
-    """Run every step, logging each outcome; 1 if any failed, else 0."""
-    failed = 0
+def run(steps: list[Step], log: Callable[[str], object] = print,
+        note: Callable[[dict[str, str]], object] = lambda outcomes: None) -> int:
+    """Run every step, logging each outcome and noting them all so far after each; 1 if any failed, else 0."""
+    outcomes: dict[str, str] = {}
     for name, step in steps:
         start = time.monotonic()
         try:
             step()
+            outcomes[name] = "ok"
             log(f"== {name}: ok ({time.monotonic() - start:,.0f}s)")
         except (Exception, SystemExit):
-            failed += 1
+            outcomes[name] = "failed"
             log(f"== {name}: FAILED ({time.monotonic() - start:,.0f}s)\n{traceback.format_exc()}")
-    return 1 if failed else 0
+        note(outcomes)
+    return 1 if "failed" in outcomes.values() else 0
+
+
+def write_status(path: Path, day: date, outcomes: dict[str, str]) -> None:
+    """The day's run so far, as the site publishes it: each step's name and "ok" or "failed", nothing more."""
+    status = {"day": day.isoformat(), "updated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+              "steps": outcomes}
+    path.write_text(json.dumps(status, indent=1), encoding="utf-8")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -122,7 +139,8 @@ def main(argv: list[str] | None = None) -> int:
     log_file = open(LOG_DIR / f"{args.day.isoformat()}.log", "a", encoding="utf-8", buffering=1)
     sys.stdout = sys.stderr = log_file  # pythonw has no console; everything goes to the day's log
     print(f"=== run_daily for {args.day}, started {datetime.now(timezone.utc).isoformat(timespec='seconds')}")
-    status = run(plan(args.day, PREDICTIONS_DIR))
+    status_path = LOG_DIR / f"{args.day.isoformat()}{STATUS_SUFFIX}"
+    status = run(plan(args.day, PREDICTIONS_DIR), note=lambda outcomes: write_status(status_path, args.day, outcomes))
     print(f"=== finished {datetime.now(timezone.utc).isoformat(timespec='seconds')}, exit code {status}")
     return status
 
