@@ -14,7 +14,8 @@ Run by the daily job after Stage 1's prediction for D (`daily_predictions.py`), 
 Writes the day's whole record to `data/processed/enwiki/v3/daily/D.json`, as `prophesy.py` does for the
 development days, and the public part to `D.prophecy.json`: the published predictions alone, each with its
 due date, topic and confidence. Never what they cite (a story's or a page's title can name a person), nor a
-rewrite's or a revision's original.
+rewrite's or a revision's original. A prophecy made more than LATE_AFTER into its day, as when a crashed night is
+made again by hand, is marked late, and the site says so; its evidence is still the end of D-1's.
 
 Usage:
     python scripts/prophesy_daily.py [--day 2026-10-04] [--model Qwen/Qwen2.5-7B-Instruct]
@@ -44,6 +45,7 @@ from scripts.fetch_current_events import KNOWN_DIR, known
 from scripts.fetch_v2_examples import derive
 from src.stage2.fetch import fetch_contents
 
+LATE_AFTER = timedelta(hours=3)  # the nightly run makes the prophecy by about 00:50 UTC
 
 def day_rows(day: date, session: requests.Session) -> list[dict]:
     """Stage 1's top pages for `day`, each as the prophet reads it: as it stood at the end of the day before."""
@@ -70,7 +72,10 @@ def public(record: dict) -> dict:
     """What the site shows of a day's record: the published predictions, world events first, as chosen."""
     published = [p for p in record["predictions"] if p.get("published")]
     published.sort(key=lambda p: p.get("topic") == "sport")
+    day_began = datetime.fromisoformat(record["date"]).replace(tzinfo=timezone.utc)
+    late = datetime.fromisoformat(record["generated_at"]) > day_began + LATE_AFTER
     return {"date": record["date"], "generated_at": record["generated_at"], "model": record["model"],
+            **({"late": True} if late else {}),
             "predictions": [{"text": p["text"], "due": p.get("due") or record["date"], "topic": p.get("topic"),
                              "confidence": p.get("confidence")} for p in published]}
 

@@ -68,6 +68,16 @@ function render(prophecy) {
     if (p.confidence) meta.append(` · ${p.confidence} confidence`);
     list.append(el("li", {}, el("p", { class: "text" }, withoutDue(p.text, p.due)), meta));
   }
+  const late = document.getElementById("late");
+  late.hidden = !prophecy.late;
+  if (prophecy.late) {
+    const made = prophecy.generated_at.slice(0, 10);
+    const dayBefore = new Date(Date.parse(prophecy.date + "T00:00:00Z") - 86400000).toISOString().slice(0, 10);
+    late.replaceChildren(el("strong", {}, "Foretold late."), ` Made at ${new Date(prophecy.generated_at)
+      .toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" })} UTC on `
+      + `${formatDay(made, { month: "long", day: "numeric" })}, after its day had begun. As every night, the `
+      + `prophet read only what Wikipedia said by the end of ${formatDay(dayBefore, { weekday: "long", month: "long", day: "numeric" })}.`);
+  }
   document.getElementById("generated").textContent = prophecy.generated_at
     ? `Foretold ${new Date(prophecy.generated_at).toUTCString()} by ${prophecy.model}.` : "";
   discuss(prophecy);
@@ -75,7 +85,7 @@ function render(prophecy) {
 
 function renderDays(prophecies) {
   const select = document.getElementById("days");
-  select.replaceChildren(...prophecies.map((p, i) => el("option", { value: String(i) }, formatDay(p.date))));
+  select.replaceChildren(...prophecies.map((p, i) => el("option", { value: String(i) }, formatDay(p.date) + (p.late ? " (late)" : ""))));
   select.addEventListener("change", () => render(prophecies[Number(select.value)]));
   document.getElementById("day-pick").hidden = prophecies.length < 2;
   render(prophecies[0]);

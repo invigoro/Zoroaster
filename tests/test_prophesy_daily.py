@@ -25,6 +25,14 @@ class PublicTest(unittest.TestCase):
         for leak in ("TPLF", "Tigray", "2026 Final", "rains"):
             self.assertNotIn(leak, json.dumps(out))
         self.assertEqual((out["date"], out["model"]), ("2026-10-04", "Qwen/Qwen2.5-7B-Instruct"))
+        self.assertNotIn("late", out)
+
+    def test_a_prophecy_made_well_into_its_day_is_marked_late(self):
+        # The 2026-10-06 prophecy crashed overnight and was made by hand that afternoon.
+        record = {"date": "2026-10-06", "model": "Qwen/Qwen2.5-7B-Instruct", "predictions": []}
+        self.assertTrue(public(record | {"generated_at": "2026-10-06T17:40:00+00:00"})["late"])
+        self.assertNotIn("late", public(record | {"generated_at": "2026-10-06T00:46:20+00:00"}))
+        self.assertNotIn("late", public(record | {"generated_at": "2026-10-05T23:59:00+00:00"}))
 
 
 if __name__ == "__main__":
