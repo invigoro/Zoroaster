@@ -1402,14 +1402,15 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
     user's decisions after item 37 (§2).
     - **Late:** `prophesy_daily.public` marks a prophecy made more than
       LATE_AFTER (3 hours) into its day `late`, and the home page says so
-      above it: "Foretold late. Made at 17:2x UTC on October 6, after its
+      above it: "Foretold late. Made at 17:19 UTC on October 6, after its
       day had begun. As every night, the prophet read only what Wikipedia
       said by the end of Monday, October 5." The day selector adds
       "(late)". Its evidence is as for any night: Stage 1's pages and their
       revisions through D-1 (`page_revisions`), and the current events as
       of the end of D-1 (`known`).
-    - **2026-10-06's prophecy** was made by hand at about 17:20 UTC, then
-      `run_daily.py --day 2026-10-06` again built and published the site.
+    - **2026-10-06's prophecy** was made by hand at 17:19 UTC, then
+      `run_daily.py --day 2026-10-06` again built and published the site. The
+      watchdog, run by hand, failed before that publish and passed after.
     - **Watchdog:** `run_daily.run` notes each step's outcome as it goes
       (`logs/daily/D.status.json`: names and "ok" or "failed", nothing
       more), and `build_site.py` publishes the newest as
