@@ -180,6 +180,12 @@ Two-stage approach:
   - On the first live day's sports prediction: "it doesn't name the team,
     country, or event, all of which should be allowed to be named by the
     rules."
+- **A crashed night's prophecy is made late, and marked so (decided
+  2026-10-06, the user):** "I'd rather have the 10-6 prophecy, as long as
+  the prophet doesn't have access to what's happened since the cutoff for
+  the day. SO please run it now and mark is as late. Then add an alert when
+  the daily step fails so I don't necessarily have to check manually."
+  (§3 item 38.)
 
 Full original plan detail (data sources, storage design rationale, model
 architecture options, evaluation plan, milestones) — if you want the fuller
@@ -1392,6 +1398,30 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
     - `fetch` now passes over hidden revisions, paging back to the last one
       whose text is shown, still by the cutoff: the 10-05 page as of 18:01,
       7 stories. A page with none shown counts as missing.
+38. **Late prophecies, and a watchdog for the daily run (2026-10-06)**: the
+    user's decisions after item 37 (§2).
+    - **Late:** `prophesy_daily.public` marks a prophecy made more than
+      LATE_AFTER (3 hours) into its day `late`, and the home page says so
+      above it: "Foretold late. Made at 17:2x UTC on October 6, after its
+      day had begun. As every night, the prophet read only what Wikipedia
+      said by the end of Monday, October 5." The day selector adds
+      "(late)". Its evidence is as for any night: Stage 1's pages and their
+      revisions through D-1 (`page_revisions`), and the current events as
+      of the end of D-1 (`known`).
+    - **2026-10-06's prophecy** was made by hand at about 17:20 UTC, then
+      `run_daily.py --day 2026-10-06` again built and published the site.
+    - **Watchdog:** `run_daily.run` notes each step's outcome as it goes
+      (`logs/daily/D.status.json`: names and "ok" or "failed", nothing
+      more), and `build_site.py` publishes the newest as
+      `data/status.json`. A scheduled GitHub Actions workflow
+      (`watchdog.yml`, 02:17 UTC) runs `check_daily.py` against the
+      published site, and fails if the status isn't today's (the job
+      didn't run or didn't publish: the machine off, say), a step failed,
+      or the prophecy isn't today's. GitHub emails the owner about their
+      own scheduled workflows' failures. A run again by hand after a fix
+      notes only the steps it still had to do.
+    - GitHub turns scheduled workflows off in a public repository after 60
+      days without activity; the daily publish to `gh-pages` should count.
 
 ## 4. Data state — important for resuming on a new machine
 

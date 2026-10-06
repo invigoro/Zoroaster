@@ -262,7 +262,14 @@ Wikipedia, which is roughly 100× the test corpus.
 
   A Windows scheduled task runs `run_daily.py` every evening, shortly after
   00:00 UTC. `publish_site.py` pushes the page to the `gh-pages` branch,
-  which GitHub Pages serves.
+  which GitHub Pages serves. The site carries each step's outcome
+  (`data/status.json`), and a GitHub Actions watchdog
+  (`.github/workflows/watchdog.yml`, `scripts/check_daily.py`) checks it at
+  02:17 UTC: if a step failed, or the day's run or prophecy never got
+  published, the workflow fails and GitHub emails the repository's owner.
+  After a fix, run `run_daily.py` again: it does only the steps not yet
+  done. A prophecy made more than three hours into its day is marked late
+  on the site.
 
   A 22-day backtest (September 2026) found about one in five of each day's
   top 100 burst the next day, and one in three of the top 10. That's double
