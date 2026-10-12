@@ -34,6 +34,26 @@ function due(prophecy, prediction) {
   return n === 0 ? `due by the end of ${when}, the same day` : `due by the end of ${when}`;
 }
 
+// A prediction's grade, once its due day is over (scripts/public_grades.py, then build_site.py): the outcome, whether
+// it was already known the night before or too vague to count, and one line on why, if that line passed the checks.
+const OUTCOMES = {
+  "happened": ["Came true", "hit"], "partly": ["Partly came true", "part"], "did not happen": ["Didn't happen", "miss"],
+  "not possible": ["Couldn't happen as stated", "miss"], "unknown": ["Can't tell", "unknown"],
+};
+
+function verdict(prediction) {
+  const grade = prediction.grade;
+  if (!grade) {  // graded about once a week, so a prediction waits a few days once its day is over
+    const over = Date.now() >= Date.parse(prediction.due + "T00:00:00Z") + 86400000;
+    return over ? el("p", { class: "verdict pending" }, "Past due, not yet graded") : null;
+  }
+  const [label, kind] = OUTCOMES[grade.outcome] || [grade.outcome, "unknown"];
+  const notes = [grade.already_known && "already known the night before", grade.vague && "too vague to count"]
+    .filter(Boolean);
+  return el("p", { class: `verdict ${kind}` }, el("strong", {}, label), notes.length ? ` · ${notes.join(" · ")}` : "",
+    grade.line ? el("span", { class: "why" }, grade.line) : "");
+}
+
 // Each day's prophecy has its own comment thread in the repo's GitHub Discussions, through giscus
 // (https://giscus.app): found by its title, "Prophecy for 2026-10-05", in the Announcements category, where only
 // the maintainer and giscus may start a thread. Strict, so a day's title never matches another's.
@@ -66,7 +86,7 @@ function render(prophecy) {
   for (const p of prophecy.predictions) {
     const meta = el("p", { class: "meta" }, el("span", { class: "topic" }, p.topic || "other"), ` · ${due(prophecy, p)}`);
     if (p.confidence) meta.append(` · ${p.confidence} confidence`);
-    list.append(el("li", {}, el("p", { class: "text" }, withoutDue(p.text, p.due)), meta));
+    list.append(el("li", {}, el("p", { class: "text" }, withoutDue(p.text, p.due)), meta, verdict(p) || ""));
   }
   const late = document.getElementById("late");
   late.hidden = !prophecy.late;
