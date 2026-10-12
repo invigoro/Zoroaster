@@ -14,16 +14,20 @@ pack holds:
   examples' row; for one due later, `fetch_due_pages.py`'s;
 - its due day's Portal:Current events items (`fetch_current_events.py`).
 
-A prediction due after `fetch_due_pages.LAST_DAY` waits until its day's
-evidence exists. With --published, only the predictions the selection
-published are graded.
+A prediction due after `fetch_due_pages.LAST_DAY` (or --last-day) waits
+until its day's evidence exists. With --published, only the predictions the
+selection published are graded.
 
 It writes `data/processed/enwiki/v3/grades/packs.json`, keyed "D#n" (the
 prediction's index in that day's list). It also writes `packs.md`, the same
 evidence organized by day, for drafting the hand grades.
 
+The live site's predictions are graded the same way, about once a week, in
+`grades_live/` (README, "Grading the live predictions").
+
 Usage:
     python scripts/grading_packs.py [--prophecies data/processed/enwiki/v3/prophecies_run7 --grades data/processed/enwiki/v3/grades_run7] [--published]
+    python scripts/grading_packs.py --prophecies data/processed/enwiki/v3/daily --grades data/processed/enwiki/v3/grades_live --published --last-day 2026-10-11
 """
 
 from __future__ import annotations
@@ -73,6 +77,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--prophecies", type=Path, default=PROPHECIES_DIR, help="a run's day records")
     parser.add_argument("--grades", type=Path, default=GRADES_DIR, help="where that run's packs go")
     parser.add_argument("--published", action="store_true", help="only the predictions the selection published")
+    parser.add_argument("--last-day", type=date.fromisoformat, default=LAST_DAY,
+                        help="the last due day to grade: one whose Portal:Current events are fetched")
     args = parser.parse_args(argv)
     rows = pq.read_table(EXAMPLES_DIR, columns=COLUMNS).to_pylist()
     by_day: dict[tuple[str, str], dict[str, dict]] = {}
@@ -93,7 +99,7 @@ def main(argv: list[str] | None = None) -> int:
         markdown += [f"## {day}", ""]
         for n, prediction in to_grade:
             due = prediction.get("due") or day
-            if due > LAST_DAY.isoformat():
+            if due > args.last_day.isoformat():
                 not_due += 1  # graded once its day's evidence exists
                 continue
             for d in (date.fromisoformat(day) + timedelta(days=k) for k in range(8)):
@@ -119,7 +125,7 @@ def main(argv: list[str] | None = None) -> int:
     (args.grades / "packs.md").write_text("\n".join(markdown), encoding="utf-8")
     print(f"{len(packs)} predictions to grade ({sum(p['kept'] for p in packs.values())} kept) from "
           f"{len(list(args.prophecies.glob('????-??-??.json')))} days -> {args.grades / 'packs.json'} and packs.md; "
-          f"{not_due} not due by {LAST_DAY}")
+          f"{not_due} not due by {args.last_day}")
     return 0
 
 

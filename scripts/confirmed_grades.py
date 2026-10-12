@@ -10,8 +10,13 @@ confirmed as drafted and how many adjusted.
 A later run's documents carry its name before the date ("run7-2026-09-24-0").
 The first graded run's have none.
 
+The live site's grades (run "live", `grades_live/`) also carry `public`: the
+one line the site shows beside the prediction, as the user confirmed or
+edited it. `public_grades.py` checks it before the site shows it.
+
 Usage:
     python scripts/confirmed_grades.py [--run run7 --grades data/processed/enwiki/v3/grades_run7]
+    python scripts/confirmed_grades.py --run live --grades data/processed/enwiki/v3/grades_live
 """
 
 from __future__ import annotations
@@ -42,9 +47,10 @@ def pack_key(doc_id: str, run: str = "") -> str | None:
 
 
 def confirmed(reviews: dict[str, dict], run: str = "") -> dict[str, dict]:
-    """The grade in each of `run`'s reviews, keyed like its packs."""
+    """The grade in each of `run`'s reviews, keyed like its packs, with its public line if it has one."""
     keyed = {key: review for key, review in ((pack_key(i, run), r) for i, r in reviews.items()) if key}
-    return {key: {f: review["grade"][f] for f in FIELDS} for key, review in sorted(keyed.items())}
+    return {key: {f: review["grade"][f] for f in FIELDS} | ({"public": review["public"]} if review.get("public") else {})
+            for key, review in sorted(keyed.items())}
 
 
 def main(argv: list[str] | None = None) -> int:

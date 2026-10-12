@@ -11,12 +11,20 @@ For each (page, D, due day) of a run's predictions due after D, up to LAST_DAY
 2. fetches it, and derives its change from the page at the end of D-1
    (`src/forecast/changes.day_change`).
 
-Writes `data/processed/enwiki/v3/due_pages/<run>.parquet`, with the columns
-`grading_packs.py` reads from the examples: page_title, date (D), due,
-prompt_id, end_id, sections, section_chars, kinds, prose and blocks.
+The live days (`data/processed/enwiki/v3/daily/`, `prophesy_daily.py`) have
+no examples, so their predictions due on D itself are fetched too, and the
+page at the end of D-1 is found the same way as the due day's end. With
+--published, only the predictions the site published. Rows already fetched
+are kept, so a week's grading fetches only the newly due.
+
+Writes `data/processed/enwiki/v3/due_pages/<run>.parquet` (`daily.parquet`
+for the live days), with the columns `grading_packs.py` reads from the
+examples: page_title, date (D), due, prompt_id, end_id, sections,
+section_chars, kinds, prose and blocks.
 
 Usage:
     python scripts/fetch_due_pages.py --prophecies data/processed/enwiki/v3/prophecies_run8
+    python scripts/fetch_due_pages.py --prophecies data/processed/enwiki/v3/daily --published --last-day 2026-10-11
 """
 
 from __future__ import annotations
@@ -65,30 +73,48 @@ def revision_at(session: requests.Session, title: str, moment: datetime) -> int 
     return revisions[0]["revid"] if revisions else None
 
 
-def due_targets(prophecies: Path, last_day: date = LAST_DAY) -> list[tuple[str, date, date]]:
-    """(page title, D, due day) for each of a run's predictions due after D and no later than `last_day`.
-    A story's prediction cites no page: it's graded on Portal:Current events (`grading_packs.story_pack`)."""
+def due_targets(prophecies: Path, last_day: date = LAST_DAY, published: bool = False) -> list[tuple[str, date, date]]:
+    """(page title, D, due day) for each of a run's predictions due no later than `last_day`, those due on D
+    included; with `published`, only those the site published. A story's prediction cites no page: it's graded
+    on Portal:Current events (`grading_packs.story_pack`)."""
     found = set()
     for path in sorted(prophecies.glob("????-??-??.json")):
         record = json.loads(path.read_text(encoding="utf-8"))
         made = date.fromisoformat(record["date"])
         for p in record["predictions"]:
             due = date.fromisoformat(p.get("due") or record["date"])
-            if made < due <= last_day:
+            if made <= due <= last_day and (p.get("published") or not published):
                 found |= {(title, made, due) for title in p["evidence"] if not is_story(title)}
     return sorted(found)
+
+
+def to_fetch(targets: list[tuple[str, date, date]], examples: set[tuple[str, date]],
+             fetched: set[tuple[str, date, date]]) -> list[tuple[str, date, date]]:
+    """The targets still to fetch: not fetched before, and not due on D where the examples already hold D's
+    change (the development days'; `examples` holds their (page_title, D), with underscores)."""
+    return [t for t in targets if t not in fetched and (t[1] < t[2] or (t[0].replace(" ", "_"), t[1]) not in examples)]
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--prophecies", type=Path, required=True, help="a run's day records")
+    parser.add_argument("--published", action="store_true", help="only the predictions the site published")
+    parser.add_argument("--last-day", type=date.fromisoformat, default=LAST_DAY,
+                        help="the last due day to fetch: one whose Portal:Current events are fetched")
     args = parser.parse_args(argv)
     start = time.monotonic()
-    targets = due_targets(args.prophecies)
-    wanted = {(t.replace(" ", "_"), made) for t, made, _ in targets}
+    path = DUE_DIR / f"{args.prophecies.name}.parquet"
+    kept = pq.read_table(path).to_pylist() if path.exists() else []
     rows = pq.read_table(EXAMPLES_DIR, columns=["page_title", "date", "prompt_id"]).to_pylist()
+    targets = to_fetch(due_targets(args.prophecies, args.last_day, args.published),
+                       {(r["page_title"], r["date"]) for r in rows},
+                       {(r["page_title"], r["date"], r["due"]) for r in kept})
+    wanted = {(t.replace(" ", "_"), made) for t, made, _ in targets}
     before = {(r["page_title"], r["date"]): r["prompt_id"] for r in rows if (r["page_title"], r["date"]) in wanted}
     session = requests.Session()
+    for title, made, _ in targets:  # a live day's page at the end of D-1, which no example holds
+        if (title.replace(" ", "_"), made) not in before:
+            before[(title.replace(" ", "_"), made)] = revision_at(session, title, day_end(made - timedelta(days=1)))
     ends = {(t, due): revision_at(session, t, day_end(due)) for t, _, due in targets}
     # Both ends whole: the examples keep the page at the end of D-1 only up to 300,000 characters.
     ids = {i for i in [*ends.values(), *before.values()] if i}
@@ -104,9 +130,9 @@ def main(argv: list[str] | None = None) -> int:
                     "sections": change["sections"], "section_chars": change["section_chars"], "kinds": change["kinds"],
                     "prose": change["prose"], "blocks": _capped(change["blocks"])})
     DUE_DIR.mkdir(parents=True, exist_ok=True)
-    path = DUE_DIR / f"{args.prophecies.name}.parquet"
-    pq.write_table(pa.Table.from_pylist(out, schema=SCHEMA), path, compression="zstd")
-    print(f"{len(out)} of {len(targets)} page changes up to their due day -> {path} ({time.monotonic() - start:,.0f}s)")
+    pq.write_table(pa.Table.from_pylist(kept + out, schema=SCHEMA), path, compression="zstd")
+    print(f"{len(out)} of {len(targets)} new page changes up to their due day, {len(kept)} kept from before -> {path} "
+          f"({time.monotonic() - start:,.0f}s)")
     return 0
 
 

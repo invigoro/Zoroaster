@@ -12,6 +12,11 @@ The rubric is the same for the local judge and for the hand grades:
     on a day they played each other, isn't partly right because India won.
   - A prediction about something that comes only later, such as a final
     played after the day, counts as "did not happen".
+  - Silence (the user, 2026-10-12): when the evidence never reports what a
+    prediction said would happen, it counts as "did not happen" if it would
+    surely have been reported had it happened (Russian forces striking a
+    named bridge in Kyiv again, a capital changing hands), and "unknown" if
+    not (how much oil passed through a strait in a week).
   - One that had come true before the day counts as "happened", and
     already_known gives it no credit. The first wording said "on the day",
     which would have called Georgia's win the day before (2026-09-20) a
@@ -75,7 +80,7 @@ MAX_DAYS_SHOWN = 6
 JUDGE_SYSTEM = """You grade predictions against what actually happened. Use only the evidence given; your own knowledge ends years before these dates.
 
 Grade each prediction on four things:
-1. outcome: whether it had come true by the end of the day it was due. "happened" if it had, as stated; "partly" if part of it had; "did not happen" if it hadn't, including when what it predicts comes only later (a final played after that day); "not possible" if it couldn't have come true as stated, whatever happened: it contradicts itself or the rules (both sides of one match winning, a score or record the rules don't allow) or is about a match that wasn't on, even if part of it came true; "unknown" if the evidence doesn't say.
+1. outcome: whether it had come true by the end of the day it was due. "happened" if it had, as stated; "partly" if part of it had; "did not happen" if it hadn't, including when what it predicts comes only later (a final played after that day); "not possible" if it couldn't have come true as stated, whatever happened: it contradicts itself or the rules (both sides of one match winning, a score or record the rules don't allow) or is about a match that wasn't on, even if part of it came true; "unknown" if the evidence doesn't say. If the evidence never mentions what it predicts, that's "did not happen" when it would surely have been reported had it happened (an attack, a city's fall, an election result), and "unknown" when it wouldn't (a figure nobody reports daily).
 2. already_known: true if it was known by the end of the day before: the evidence from then already reported or settled it (a date, venue, line-up, schedule or result already known, or a match already played), false if not.
 3. specificity: 0 if vague ("news about X will continue"), 1 if it names an outcome without detail ("X will win"), 2 if it names a precise result, score or number ("X will beat Y 3-1").
 4. grounded: false if it is about something other than its cited evidence, picks a team, party or other participant the evidence never mentions, or predicts for that day something the evidence says comes later; otherwise true.

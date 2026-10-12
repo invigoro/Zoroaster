@@ -77,6 +77,9 @@ class ConfirmedGradesTest(unittest.TestCase):
                    "run7-2026-09-24-0": {"status": "adjusted", "grade": grade | {"outcome": "partly"}, "note": "x"}}
         self.assertEqual(confirmed(reviews), {"2026-09-24#0": grade})
         self.assertEqual(confirmed(reviews, "run7"), {"2026-09-24#0": grade | {"outcome": "partly"}})
+        # The live site's reviews carry the line the site shows, as the user confirmed or edited it.
+        live = {"live-2026-10-08-1": {"status": "adjusted", "grade": grade, "note": "", "public": "It splashed down."}}
+        self.assertEqual(confirmed(live, "live"), {"2026-10-08#1": grade | {"public": "It splashed down."}})
 
 
 class AgreementTest(unittest.TestCase):
