@@ -1,0 +1,46 @@
+{
+ "date": "2026-10-11",
+ "target": "a burst of edits by 2+ editors (mass editors left out)",
+ "mass_editors": 302,
+ "precision": {
+  "model": {
+   "10": 0.4,
+   "50": 0.28,
+   "100": 0.25,
+   "1000": 0.079
+  },
+  "edits yesterday": {
+   "10": 0.0,
+   "50": 0.02,
+   "100": 0.05,
+   "1000": 0.044
+  }
+ },
+ "hits": [
+  "2026 Singapore Grand Prix",
+  "The Social Reckoning",
+  "The Exorcist: Martyrs",
+  "Money in the Bank (2026)",
+  "2026 Czech Senate election",
+  "Deaths in September 2026",
+  "Below (miniseries)",
+  "Bound for Glory (2026)",
+  "2026–27 NCAA football bowl games",
+  "Bigg Boss (Hindi TV series) season 20",
+  "2026 Swiss Darts Trophy",
+  "Law & Order season 26",
+  "UFC Fight Night: Allen vs. Duncan",
+  "2026 Nobel Peace Prize",
+  "Clive Barker's Hellraiser: Revival",
+  "Animals (2026 film)",
+  "2026 Bathurst 1000",
+  "Christianity in Egypt",
+  "Public execution",
+  "2026–27 Indian Super League",
+  "Paul Seixas",
+  "Abhijeet Dipke",
+  "Yorkshire Wildlife Park",
+  "Luis Antonio Tagle",
+  "Mikey Madison"
+ ]
+}

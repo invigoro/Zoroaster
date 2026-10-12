@@ -1,66 +1,66 @@
 {
- "date": "2026-10-11",
- "generated_at": "2026-10-11T00:40:58+00:00",
+ "date": "2026-10-12",
+ "generated_at": "2026-10-12T00:40:58+00:00",
  "model": "Qwen/Qwen2.5-7B-Instruct",
  "predictions": [
   {
-   "text": "I predict that STAN will win the second round run-off elections for Senate seats, securing eleven seats with ten held by STAN and one by SLK.",
+   "text": "I predict that the airport suspensions at a major international airport will be extended.",
+   "due": "2026-10-16",
+   "topic": "other",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the second round run-off elections for Senate seats will result in a victory for the candidates from the Czech Social Democratic Party in at least two districts.",
    "due": "2026-10-16",
    "topic": "politics",
    "confidence": "medium"
   },
   {
-   "text": "I predict that Florida and Alabama will report the highest number of damages assessed and recovery funds allocated.",
+   "text": "I predict that the co-production agreement between ABS-CBN and TV5 will be finalized as planned.",
    "due": "2026-10-18",
+   "topic": "other",
+   "confidence": "high"
+  },
+  {
+   "text": "I predict that attacks on prominent airports in major cities will continue, with at least one more attack involving the firing of a missile, resulting in additional injuries.",
+   "due": "2026-10-19",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that 365,000 people in Alabama and Florida will have power restored by the end of Monday, 19 October 2026.",
+   "due": "2026-10-19",
    "topic": "disaster",
    "confidence": "medium"
   },
   {
-   "text": "I predict that Hurricane Simon makes landfall in Southern California.",
-   "due": "2026-10-18",
-   "topic": "disaster",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the Houthis will launch another missile attack on Abha International Airport in Saudi Arabia, by the end of Sunday, 18 October 2026.",
-   "due": "2026-10-18",
+   "text": "I predict that the Strait of Hormuz will see another targeted vessel, likely involving Iran and the United States.",
+   "due": "2026-10-19",
    "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that Russian forces will launch another ballistic missile attack on civilian targets in Ukraine, causing at least 28 casualties, similar to the attack in Pryluky, Chernihiv Oblast.",
-   "due": "2026-10-18",
-   "topic": "conflict",
+   "text": "I predict that no new cases of Ebola will be reported in Kenya by the end of Monday, 19 October 2026, and 293 tests will have been conducted.",
+   "due": "2026-10-19",
+   "topic": "health",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the Tigray Region will continue to experience strikes and casualties, with at least one more strike occurring in a different town or city within the region by the end of Sunday, 18 October 2026.",
-   "due": "2026-10-18",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the total casualties reported from the drone strikes in Ad-Damazin and other locations in Blue Nile State will be at least 41.",
-   "due": "2026-10-18",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the number of casualties and missing persons from the 2026 Panama earthquake will be updated, with at least several dozen people confirmed dead and hundreds still missing by the end of Sunday, 18 October 2026.",
-   "due": "2026-10-18",
-   "topic": "disaster",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the Delhi Jantar Mantar protests will continue to see mass arrests, with thousands of people detained by the end of the protests, mostly in India.",
-   "due": "2026-10-18",
+   "text": "I predict that there will be another mass stabbing at a school in Poland by the end of Monday, 19 October 2026, possibly in a different city.",
+   "due": "2026-10-19",
    "topic": "crime",
    "confidence": "medium"
   },
   {
-   "text": "I predict that there will be further clashes between protestors and police in New York City involving similar incidents with immigration agents.",
-   "due": "2026-10-18",
-   "topic": "crime",
+   "text": "I predict that Ethiopian forces will capture another major town in the Tigray Region, following the recent recapture of Adigrat.",
+   "due": "2026-10-19",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the search for survivors in the 2026 Budhi Gandaki flood will continue, with at least 10 survivors found in Nepal.",
+   "due": "2026-10-19",
+   "topic": "disaster",
    "confidence": "medium"
   }
  ]

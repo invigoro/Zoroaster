@@ -1,0 +1,67 @@
+{
+ "date": "2026-10-12",
+ "generated_at": "2026-10-12T00:40:58+00:00",
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "predictions": [
+  {
+   "text": "I predict that the airport suspensions at a major international airport will be extended.",
+   "due": "2026-10-16",
+   "topic": "other",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the second round run-off elections for Senate seats will result in a victory for the candidates from the Czech Social Democratic Party in at least two districts.",
+   "due": "2026-10-16",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the co-production agreement between ABS-CBN and TV5 will be finalized as planned.",
+   "due": "2026-10-18",
+   "topic": "other",
+   "confidence": "high"
+  },
+  {
+   "text": "I predict that attacks on prominent airports in major cities will continue, with at least one more attack involving the firing of a missile, resulting in additional injuries.",
+   "due": "2026-10-19",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that 365,000 people in Alabama and Florida will have power restored by the end of Monday, 19 October 2026.",
+   "due": "2026-10-19",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Strait of Hormuz will see another targeted vessel, likely involving Iran and the United States.",
+   "due": "2026-10-19",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that no new cases of Ebola will be reported in Kenya by the end of Monday, 19 October 2026, and 293 tests will have been conducted.",
+   "due": "2026-10-19",
+   "topic": "health",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that there will be another mass stabbing at a school in Poland by the end of Monday, 19 October 2026, possibly in a different city.",
+   "due": "2026-10-19",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Ethiopian forces will capture another major town in the Tigray Region, following the recent recapture of Adigrat.",
+   "due": "2026-10-19",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the search for survivors in the 2026 Budhi Gandaki flood will continue, with at least 10 survivors found in Nepal.",
+   "due": "2026-10-19",
+   "topic": "disaster",
+   "confidence": "medium"
+  }
+ ]
+}
