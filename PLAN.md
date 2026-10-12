@@ -186,6 +186,25 @@ Two-stage approach:
   the day. SO please run it now and mark is as late. Then add an alert when
   the daily step fails so I don't necessarily have to check manually."
   (§3 item 38.)
+- **The live predictions are graded, and the site shows the grades
+  (decided 2026-10-12, the user):** the user asked where the site assesses
+  whether past-due predictions came true; nothing did. Claude proposed, and
+  the user agreed ("Yes, please go ahead with those, and the rule makes
+  sense"):
+  - the site marks a prediction whose due day is over "past due, not yet
+    graded", and "How the prophet works" stops saying each is graded on
+    its due day;
+  - about once a week, Claude drafts the grades of the newly due
+    predictions, and the user confirms or adjusts each on the review page.
+    The site shows only confirmed grades: came true, partly, didn't happen,
+    couldn't happen as stated, or can't tell, with one line on why that
+    passes the same checks as the predictions;
+  - **silence:** a prediction nothing reports counts as "did not happen" if
+    it would surely have been reported had it happened (Russian forces
+    striking the Kyiv bridge again), and "unknown" if not (how much oil
+    went through Hormuz).
+  - The local judge keeps being checked against these grades, and may
+    take over once it agrees well enough. (§3 item 39.)
 
 Full original plan detail (data sources, storage design rationale, model
 architecture options, evaluation plan, milestones) — if you want the fuller
@@ -1271,7 +1290,7 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
         shows the pages likeliest to burst and how yesterday's list fared.
         Version 2's sections follow, unchanged.
       - No grades yet: the judge is still being checked against hand
-        grades.
+        grades. (They came with §3 item 39, confirmed by hand.)
     - **Previewed** on a private page with the first day's prophecy, at
       desktop and phone widths, and merged at the user's go-ahead (§2), from
       the `site-v3` branch.
@@ -1423,6 +1442,53 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
       notes only the steps it still had to do.
     - GitHub turns scheduled workflows off in a public repository after 60
       days without activity; the daily publish to `gh-pages` should count.
+39. **Grading the live predictions, on the site (2026-10-12)**: the user's
+    decision (§2). Until now nothing graded them: the judge never joined the
+    daily run, and the how page wrongly said each was graded on its due day.
+    - **The weekly round** (README, "Grading the live predictions"), on
+      the development runs' tools:
+      - `fetch_due_pages.py` takes the live days (`--published`,
+        `--last-day`). A prediction due on its own day has no examples
+        there, so the page at the end of D-1 comes from the API too. Rows
+        already fetched are kept.
+      - `grading_packs.py --last-day` writes `grades_live/packs.json`.
+      - Claude drafts each grade, and a one-line public reason
+        (`public`), into `grades_live/drafts.json`.
+      - The review page lists the live site's cards first ("Live site"),
+        each with an editable "On the site" line, saved with the review.
+      - `confirmed_grades.py --run live` keeps the line.
+      - `public_grades.py` asks each new line the prophet's guardrail
+        questions (`prophesy.check`) on the GPU, and writes
+        `grades_live/public.json`. A line that fails is left out, and the
+        outcome shows alone.
+    - **The site** (`build_site.py`): each graded prediction carries the
+      outcome, `already_known`, `vague` (specificity 0) and its line, and
+      nothing else of the grade. The home page shows it under the
+      prediction ("Came true · too vague to count"), or "Past due, not yet
+      graded" once the due day is over (UTC). The day selector keeps 60
+      days, not 14, so a week's grades are seen once made. "How the
+      prophet works" has a section on the grades, and says Claude drafts
+      them and the site's owner confirms them.
+    - **The silence rule** is in the rubric (`judge.py`, its prompt and the
+      review page).
+    - **The guardrails on the lines, tried:** the five first drafts passed;
+      three planted lines were dropped: one naming a team's coach, one with
+      a company charged with fraud, and "Kosovo's newly elected president".
+    - **The first round** (5 predictions due by 2026-10-11, all page
+      predictions), drafted for the user to confirm:
+      - the judo mixed team event: happened (Japan), but too vague to
+        count;
+      - Kosovo's president: partly, already settled the day before
+        (6 October), and vague;
+      - Crew-12 "landing at the station": not possible, since it was
+        leaving it; its splashdown time was already known;
+      - The Social Reckoning grossing $40–60 million on its release day:
+        did not happen ($650,000);
+      - the Czech Senate's first round: happened, ANO 2011 ahead on the vote
+        (22%), though the party came from the model's memory, not its
+        evidence.
+    - Previewed at desktop and phone widths with the drafts as if
+      confirmed, as of a pretend 15 October.
 
 ## 4. Data state — important for resuming on a new machine
 
@@ -2832,6 +2898,10 @@ old step 2 (move to English Wikipedia) is now step 5.
                 names its teams (the user, 2026-10-05).
               - **Done (§3 item 35):** comments on the home page with giscus,
                 a thread for each day's prophecy.
+              - **Done (§3 item 39): the live predictions are graded** about
+                once a week, Claude's drafts confirmed by the user, and the
+                site shows the grades. Weekly from now: the round in the
+                README, then the judge checked against the live grades too.
               - **Still to do: longer horizons** for scheduled world events,
                 such as an election a month away. This needs the update
                 scoring decided first (§7).

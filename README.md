@@ -335,10 +335,11 @@ Wikipedia, which is roughly 100× the test corpus.
     after Stage 1's list, and the home page shows the published
     predictions, labeled as machine-generated forecasts, not news. Never
     what they cite: a story's or a page's title can name a person.
-  - On its due day a judge grades each one against what the cited pages
-    gained by then and that day's Portal:Current events.
-  - The judge is being checked against hand grades, so the site shows no
-    grades yet.
+  - Once a prediction's due day is over, it's graded against what its
+    cited pages gained by then and Portal:Current events, about once a
+    week (below). The home page shows each grade under its prediction, or
+    "Past due, not yet graded". Claude drafts the grades and the user
+    confirms them; a local judge is being checked against them.
 
   ```bash
   python scripts/prophesy_daily.py --day 2026-10-04   # the day's prophecy for the site (run_daily.py runs it)
@@ -359,6 +360,29 @@ Wikipedia, which is roughly 100× the test corpus.
   nearly every prediction is about something the evidence dates. With the
   stories of Portal:Current events, world events fill the day. Details are
   in `PLAN.md` §3 items 24–28 and §6 step 11.
+
+  **Grading the live predictions**, about once a week in a Claude Code
+  session (`PLAN.md` §3 item 39). LAST is the last due day to grade,
+  normally yesterday; FIRST, the oldest day with a prediction still to
+  grade, since a story's prediction is graded on every day's events up to
+  its due day.
+
+  ```bash
+  python scripts/fetch_current_events.py --days FIRST LAST
+  python scripts/fetch_due_pages.py --prophecies data/processed/enwiki/v3/daily --published --last-day LAST
+  python scripts/grading_packs.py --prophecies data/processed/enwiki/v3/daily --grades data/processed/enwiki/v3/grades_live --published --last-day LAST
+  # Claude drafts each new pack's grade and its one-line public reason into grades_live/drafts.json
+  python scripts/grading_review_docs.py --grades data/processed/enwiki/v3/grades_live --run live --label "Live site"
+  # Claude adds the new documents to the review page; the user confirms or edits each grade and line there;
+  # Claude downloads the reviews into data/processed/enwiki/v3/grades/reviews_download/reviews/
+  python scripts/confirmed_grades.py --run live --grades data/processed/enwiki/v3/grades_live
+  python scripts/public_grades.py    # each new line through the guardrails, on the GPU: not while the daily run is on
+  python scripts/publish_site.py     # or leave it to the next daily run
+  ```
+
+  The site shows only confirmed grades: the outcome, whether it was already
+  known the night before or too vague to count, and the line, if it passed
+  the guardrails. A grade's reasoning and its checks stay on this machine.
 
 Run the tests (no network or data files needed) with:
 
