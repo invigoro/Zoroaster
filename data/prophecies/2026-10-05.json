@@ -31,7 +31,13 @@
    "text": "I predict that an important team representing a major country will win the mixed team event.",
    "due": "2026-10-11",
    "topic": "sport",
-   "confidence": "low"
+   "confidence": "low",
+   "grade": {
+    "outcome": "happened",
+    "already_known": false,
+    "vague": true,
+    "line": "Japan won the mixed team event on 11 October, beating Russia in the final. The prediction named no team, so any winner would have fit."
+   }
   }
  ]
 }

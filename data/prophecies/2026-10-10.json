@@ -7,7 +7,13 @@
    "text": "I predict that the first round of the election to the Senate, the upper house of the Parliament of the Czech Republic, results in a close race with no clear winner, but the winning party is likely to be the ANO 2011.",
    "due": "2026-10-10",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "happened",
+    "already_known": false,
+    "vague": false,
+    "line": "ANO 2011 led the first-round vote with 22%, ahead of Mayors and Independents at 19%, though it won none of the five seats settled outright."
+   }
   },
   {
    "text": "I predict that the Gaza war will continue with more airstrikes and clashes, resulting in at least 4,000 Palestinians killed in Gaza by the end of Saturday, 17 October 2026.",

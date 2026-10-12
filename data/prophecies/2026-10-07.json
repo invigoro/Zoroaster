@@ -7,7 +7,13 @@
    "text": "I predict that the presidential election in Kosovo will be won by an indirect election process, with no clear frontrunner emerging until the final days.",
    "due": "2026-10-07",
    "topic": "politics",
-   "confidence": "low"
+   "confidence": "low",
+   "grade": {
+    "outcome": "partly",
+    "already_known": true,
+    "vague": true,
+    "line": "Kosovo's Assembly settled the vote on 6 October, the day before this was foretold, after months of deadlock. The prediction named no candidate."
+   }
   },
   {
    "text": "I predict that the Houthis will launch more missile attacks against Saudi Arabian targets, specifically targeting the cities of Najran and Jizan, causing minor injuries to civilians and damaging infrastructure.",

@@ -7,7 +7,13 @@
    "text": "I predict that the film The Social Reckoning will perform moderately well in U.S. box offices, grossing between $40 million and $60 million.",
    "due": "2026-10-09",
    "topic": "other",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "By the end of its U.S. release day Wikipedia listed its gross at $650,000, and two days later at $9 million, far short of $40–60 million."
+   }
   },
   {
    "text": "I predict that the Pivdennyi Bridge in Kyiv remains operational but is under increased surveillance and protection, with at least one additional strike attempt against it by Russian forces by the end of Friday, 16 October 2026.",

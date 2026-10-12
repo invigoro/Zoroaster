@@ -7,7 +7,13 @@
    "text": "I predict that SpaceX Crew-12 will land at the International Space Station on 8 October 2026, 15:34 UTC (08:34 am PDT)",
    "due": "2026-10-08",
    "topic": "other",
-   "confidence": "high"
+   "confidence": "high",
+   "grade": {
+    "outcome": "not possible",
+    "already_known": true,
+    "vague": false,
+    "line": "Crew-12 had been at the space station since February. It splashed down in the Pacific at 15:34 UTC on its way home, as Wikipedia had it scheduled the night before."
+   }
   },
   {
    "text": "I predict that the Nairobi Hospital will confirm two additional cases of Ebola in Kenya by the end of Thursday, 15 October 2026.",
