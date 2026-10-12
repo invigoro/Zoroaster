@@ -205,6 +205,10 @@ Two-stage approach:
     went through Hormuz).
   - The local judge keeps being checked against these grades, and may
     take over once it agrees well enough. (§3 item 39.)
+  - After confirming the first five (all as drafted): "this seems like a
+    reasonable workflow. We can grade these once a week. I'd also like to
+    eventually use these grades to train the model(s) better to make
+    predictions" (§7, "learning from the grades").
 
 Full original plan detail (data sources, storage design rationale, model
 architecture options, evaluation plan, milestones) — if you want the fuller
@@ -3034,3 +3038,21 @@ old step 2 (move to English Wikipedia) is now step 5.
     a day of live predictions.
   - A frozen prophet keeps the daily scores comparable, so any retraining
     should be periodic and checked on held-out days.
+  - **The user wants it, eventually (2026-10-12)**, now that the live
+    predictions are graded weekly (§3 item 39). Claude's proposal, not yet
+    decided:
+    1. The grades accrue: about 50 live ones a week, beside the 94
+       confirmed development grades.
+    2. The judge first: checked against all confirmed grades, then
+       improved until it agrees well. A trusted judge can grade every
+       candidate prediction, not only the ten published, and backtest days
+       from the history dumps: far more examples than hand grading gives.
+    3. Then the prophet: preference pairs from the same evidence (a better
+       and a worse prediction for one page or story), tuned with QLoRA
+       (DPO). Weighted towards what a prediction controls (specific,
+       grounded, not already known) more than whether it came true, which
+       is partly luck at this size. Checked on the latest weeks, held out.
+    - Meanwhile, without training: the confidence labels calibrated against
+      outcomes, and the day's selection steered by what earns credit.
+    - The RTX 3070's 8 GB is tight for tuning a 7B model on long evidence;
+      the RTX 5090 (§2) is the fallback.
