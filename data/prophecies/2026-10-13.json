@@ -1,0 +1,67 @@
+{
+ "date": "2026-10-13",
+ "generated_at": "2026-10-13T00:40:39+00:00",
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "predictions": [
+  {
+   "text": "I predict that the show will resume its TV5 airing on October 18, 2026, becoming a co-production together with ABS-CBN Studios.",
+   "due": "2026-10-18",
+   "topic": "other",
+   "confidence": "high"
+  },
+  {
+   "text": "I predict that the Houthi–Saudi conflict will result in another attack on Saudi Arabian airports, causing at least 13 casualties.",
+   "due": "2026-10-20",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Strait of Hormuz will see another incident involving a projectile hitting a vessel, likely a tanker, by the end of Tuesday, 20 October 2026.",
+   "due": "2026-10-20",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the detention of PTI members continues in Khyber Pakhtunkhwa, with hundreds of members still detained by the end of Tuesday, 20 October 2026.",
+   "due": "2026-10-20",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the National Army of Colombia reports additional successful strikes against guerrilla camps and captures of dissidents in different departments of Colombia, including at least one strike in Norte de Santander Department by the end of Tuesday, 20 October 2026.",
+   "due": "2026-10-20",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Kenyan health ministry will report no new cases of Ebola in Nairobi, but will continue to monitor and trace contacts among travelers arriving from the Democratic Republic of the Congo.",
+   "due": "2026-10-20",
+   "topic": "health",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the airstrikes continue in Blue Nile State, Sudan, resulting in at least 41 casualties.",
+   "due": "2026-10-20",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Paris-Saclay University and the Tokyo University of Science will be mentioned in the speeches of the Nobel Prize winners in Chemistry.",
+   "due": "2026-10-20",
+   "topic": "science",
+   "confidence": "high"
+  },
+  {
+   "text": "I predict that the violence in Jacona and Zamora will continue with similar incidents in other towns of Sinaloa and Michoacán, with at least two more mass shootings occurring in different cities within the two states by the end of Tuesday, 20 October 2026.",
+   "due": "2026-10-20",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the police will interview students and teachers from the Aubagne school and nearby schools by the end of Tuesday, 20 October 2026, focusing on those who witnessed the incident or had interactions with the shooter.",
+   "due": "2026-10-20",
+   "topic": "crime",
+   "confidence": "medium"
+  }
+ ]
+}

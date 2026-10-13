@@ -1,0 +1,38 @@
+{
+ "date": "2026-10-12",
+ "target": "a burst of edits by 2+ editors (mass editors left out)",
+ "mass_editors": 313,
+ "precision": {
+  "model": {
+   "10": 0.1,
+   "50": 0.26,
+   "100": 0.17,
+   "1000": 0.062
+  },
+  "edits yesterday": {
+   "10": 0.0,
+   "50": 0.04,
+   "100": 0.03,
+   "1000": 0.043
+  }
+ },
+ "hits": [
+  "Faisal Karim Kundi",
+  "The Exorcist: Martyrs",
+  "Clive Barker's Hellraiser: Revival",
+  "Yellow Line (Chennai Metro)",
+  "King Khalid International Airport",
+  "Wilfredo Gómez",
+  "Mikey Madison",
+  "2026 Bathurst 1000",
+  "Deaths in September 2026",
+  "2026 Men's T20 World Cup Asia Sub-regional Qualifier B",
+  "Bobby Gould (ice hockey)",
+  "Ray Kolle",
+  "ASAP (TV program)",
+  "Post–Cold War era",
+  "Jiří Štěpnička",
+  "Indonesia women's national football team",
+  "Special Intensive Revision"
+ ]
+}

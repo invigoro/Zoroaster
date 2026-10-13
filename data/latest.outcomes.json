@@ -1,46 +1,38 @@
 {
- "date": "2026-10-11",
+ "date": "2026-10-12",
  "target": "a burst of edits by 2+ editors (mass editors left out)",
- "mass_editors": 302,
+ "mass_editors": 313,
  "precision": {
   "model": {
-   "10": 0.4,
-   "50": 0.28,
-   "100": 0.25,
-   "1000": 0.079
+   "10": 0.1,
+   "50": 0.26,
+   "100": 0.17,
+   "1000": 0.062
   },
   "edits yesterday": {
    "10": 0.0,
-   "50": 0.02,
-   "100": 0.05,
-   "1000": 0.044
+   "50": 0.04,
+   "100": 0.03,
+   "1000": 0.043
   }
  },
  "hits": [
-  "2026 Singapore Grand Prix",
-  "The Social Reckoning",
+  "Faisal Karim Kundi",
   "The Exorcist: Martyrs",
-  "Money in the Bank (2026)",
-  "2026 Czech Senate election",
-  "Deaths in September 2026",
-  "Below (miniseries)",
-  "Bound for Glory (2026)",
-  "2026–27 NCAA football bowl games",
-  "Bigg Boss (Hindi TV series) season 20",
-  "2026 Swiss Darts Trophy",
-  "Law & Order season 26",
-  "UFC Fight Night: Allen vs. Duncan",
-  "2026 Nobel Peace Prize",
   "Clive Barker's Hellraiser: Revival",
-  "Animals (2026 film)",
+  "Yellow Line (Chennai Metro)",
+  "King Khalid International Airport",
+  "Wilfredo Gómez",
+  "Mikey Madison",
   "2026 Bathurst 1000",
-  "Christianity in Egypt",
-  "Public execution",
-  "2026–27 Indian Super League",
-  "Paul Seixas",
-  "Abhijeet Dipke",
-  "Yorkshire Wildlife Park",
-  "Luis Antonio Tagle",
-  "Mikey Madison"
+  "Deaths in September 2026",
+  "2026 Men's T20 World Cup Asia Sub-regional Qualifier B",
+  "Bobby Gould (ice hockey)",
+  "Ray Kolle",
+  "ASAP (TV program)",
+  "Post–Cold War era",
+  "Jiří Štěpnička",
+  "Indonesia women's national football team",
+  "Special Intensive Revision"
  ]
 }
