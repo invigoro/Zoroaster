@@ -1,0 +1,37 @@
+{
+ "date": "2026-10-13",
+ "target": "a burst of edits by 2+ editors (mass editors left out)",
+ "mass_editors": 319,
+ "precision": {
+  "model": {
+   "10": 0.1,
+   "50": 0.18,
+   "100": 0.16,
+   "1000": 0.067
+  },
+  "edits yesterday": {
+   "10": 0.2,
+   "50": 0.1,
+   "100": 0.07,
+   "1000": 0.043
+  }
+ },
+ "hits": [
+  "Max Caster",
+  "Ilhan Omar",
+  "The Beach Boys",
+  "ASAP (TV program)",
+  "Houthi–Saudi conflict",
+  "Ray Kolle",
+  "Colin Friels",
+  "Bärbel Bas",
+  "RJ Mitte",
+  "Robert Hall (economist)",
+  "Expectations (Olivia Rodrigo song)",
+  "Sarah Dambanevana",
+  "Jair Bolsonaro",
+  "Ülle Madise",
+  "Tua Tagovailoa",
+  "Kimberly Guilfoyle"
+ ]
+}

@@ -1,38 +1,37 @@
 {
- "date": "2026-10-12",
+ "date": "2026-10-13",
  "target": "a burst of edits by 2+ editors (mass editors left out)",
- "mass_editors": 313,
+ "mass_editors": 319,
  "precision": {
   "model": {
    "10": 0.1,
-   "50": 0.26,
-   "100": 0.17,
-   "1000": 0.062
+   "50": 0.18,
+   "100": 0.16,
+   "1000": 0.067
   },
   "edits yesterday": {
-   "10": 0.0,
-   "50": 0.04,
-   "100": 0.03,
+   "10": 0.2,
+   "50": 0.1,
+   "100": 0.07,
    "1000": 0.043
   }
  },
  "hits": [
-  "Faisal Karim Kundi",
-  "The Exorcist: Martyrs",
-  "Clive Barker's Hellraiser: Revival",
-  "Yellow Line (Chennai Metro)",
-  "King Khalid International Airport",
-  "Wilfredo Gómez",
-  "Mikey Madison",
-  "2026 Bathurst 1000",
-  "Deaths in September 2026",
-  "2026 Men's T20 World Cup Asia Sub-regional Qualifier B",
-  "Bobby Gould (ice hockey)",
-  "Ray Kolle",
+  "Max Caster",
+  "Ilhan Omar",
+  "The Beach Boys",
   "ASAP (TV program)",
-  "Post–Cold War era",
-  "Jiří Štěpnička",
-  "Indonesia women's national football team",
-  "Special Intensive Revision"
+  "Houthi–Saudi conflict",
+  "Ray Kolle",
+  "Colin Friels",
+  "Bärbel Bas",
+  "RJ Mitte",
+  "Robert Hall (economist)",
+  "Expectations (Olivia Rodrigo song)",
+  "Sarah Dambanevana",
+  "Jair Bolsonaro",
+  "Ülle Madise",
+  "Tua Tagovailoa",
+  "Kimberly Guilfoyle"
  ]
 }

@@ -1,0 +1,67 @@
+{
+ "date": "2026-10-14",
+ "generated_at": "2026-10-14T00:41:14+00:00",
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "predictions": [
+  {
+   "text": "I predict that the 91st edition of the Paris Motor Show will feature a wide range of manufacturers including BYD, Changan Automobile, Chery, GAC, Geely, Honda, Hyundai, and others, with the show ending on October 18, 2026.",
+   "due": "2026-10-18",
+   "topic": "other",
+   "confidence": "high"
+  },
+  {
+   "text": "I predict that TV5 will resume simulcasting ASAP XP on October 18, 2026, and it will become a co-production together with ABS-CBN Studios.",
+   "due": "2026-10-18",
+   "topic": "other",
+   "confidence": "high"
+  },
+  {
+   "text": "I predict that the states of Guerrero and Baja California in Mexico will experience the most significant damage and require the most extensive recovery efforts.",
+   "due": "2026-10-21",
+   "topic": "disaster",
+   "confidence": "high"
+  },
+  {
+   "text": "I predict that the emergency rule will be extended to at least two more districts in Khyber Pakhtunkhwa, affecting a total of three districts under emergency rule.",
+   "due": "2026-10-21",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Chi Phi fraternity members face formal charges in multiple jurisdictions across the United States, and at least two members receive probation sentences.",
+   "due": "2026-10-21",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the police will interview students and teachers from the Aubagne school who witnessed the incident or were in the vicinity, and that by the end of Wednesday, 21 October 2026, they will have spoken to multiple individuals.",
+   "due": "2026-10-21",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that at least four people will be found dead and 17 injured in the train derailment near Multan, Punjab, Pakistan, with an investigation blaming the railway infrastructure maintenance.",
+   "due": "2026-10-21",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Bulgaria will announce additional naval patrols in the Black Sea to enhance security, particularly around the Bulgarian coast, by the end of Wednesday, 21 October 2026.",
+   "due": "2026-10-21",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that a major legal body will uphold the conviction of a prominent individual for a serious crime, with the decision being announced by the end of Wednesday, 21 October 2026, without any challenges from other jurisdictions.",
+   "due": "2026-10-21",
+   "topic": "crime",
+   "confidence": "high"
+  },
+  {
+   "text": "I predict that the Tampa Bay Rays will win the series and advance to the 2026 World Series, winning in 5 games.",
+   "due": "2026-10-20",
+   "topic": "sport",
+   "confidence": "medium"
+  }
+ ]
+}

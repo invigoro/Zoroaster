@@ -1,66 +1,66 @@
 {
- "date": "2026-10-13",
- "generated_at": "2026-10-13T00:40:39+00:00",
+ "date": "2026-10-14",
+ "generated_at": "2026-10-14T00:41:14+00:00",
  "model": "Qwen/Qwen2.5-7B-Instruct",
  "predictions": [
   {
-   "text": "I predict that the show will resume its TV5 airing on October 18, 2026, becoming a co-production together with ABS-CBN Studios.",
+   "text": "I predict that the 91st edition of the Paris Motor Show will feature a wide range of manufacturers including BYD, Changan Automobile, Chery, GAC, Geely, Honda, Hyundai, and others, with the show ending on October 18, 2026.",
    "due": "2026-10-18",
    "topic": "other",
    "confidence": "high"
   },
   {
-   "text": "I predict that the Houthi–Saudi conflict will result in another attack on Saudi Arabian airports, causing at least 13 casualties.",
-   "due": "2026-10-20",
-   "topic": "conflict",
-   "confidence": "medium"
+   "text": "I predict that TV5 will resume simulcasting ASAP XP on October 18, 2026, and it will become a co-production together with ABS-CBN Studios.",
+   "due": "2026-10-18",
+   "topic": "other",
+   "confidence": "high"
   },
   {
-   "text": "I predict that the Strait of Hormuz will see another incident involving a projectile hitting a vessel, likely a tanker, by the end of Tuesday, 20 October 2026.",
-   "due": "2026-10-20",
-   "topic": "conflict",
-   "confidence": "medium"
+   "text": "I predict that the states of Guerrero and Baja California in Mexico will experience the most significant damage and require the most extensive recovery efforts.",
+   "due": "2026-10-21",
+   "topic": "disaster",
+   "confidence": "high"
   },
   {
-   "text": "I predict that the detention of PTI members continues in Khyber Pakhtunkhwa, with hundreds of members still detained by the end of Tuesday, 20 October 2026.",
-   "due": "2026-10-20",
+   "text": "I predict that the emergency rule will be extended to at least two more districts in Khyber Pakhtunkhwa, affecting a total of three districts under emergency rule.",
+   "due": "2026-10-21",
    "topic": "politics",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the National Army of Colombia reports additional successful strikes against guerrilla camps and captures of dissidents in different departments of Colombia, including at least one strike in Norte de Santander Department by the end of Tuesday, 20 October 2026.",
-   "due": "2026-10-20",
+   "text": "I predict that the Chi Phi fraternity members face formal charges in multiple jurisdictions across the United States, and at least two members receive probation sentences.",
+   "due": "2026-10-21",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the police will interview students and teachers from the Aubagne school who witnessed the incident or were in the vicinity, and that by the end of Wednesday, 21 October 2026, they will have spoken to multiple individuals.",
+   "due": "2026-10-21",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that at least four people will be found dead and 17 injured in the train derailment near Multan, Punjab, Pakistan, with an investigation blaming the railway infrastructure maintenance.",
+   "due": "2026-10-21",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Bulgaria will announce additional naval patrols in the Black Sea to enhance security, particularly around the Bulgarian coast, by the end of Wednesday, 21 October 2026.",
+   "due": "2026-10-21",
    "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the Kenyan health ministry will report no new cases of Ebola in Nairobi, but will continue to monitor and trace contacts among travelers arriving from the Democratic Republic of the Congo.",
-   "due": "2026-10-20",
-   "topic": "health",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the airstrikes continue in Blue Nile State, Sudan, resulting in at least 41 casualties.",
-   "due": "2026-10-20",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the Paris-Saclay University and the Tokyo University of Science will be mentioned in the speeches of the Nobel Prize winners in Chemistry.",
-   "due": "2026-10-20",
-   "topic": "science",
+   "text": "I predict that a major legal body will uphold the conviction of a prominent individual for a serious crime, with the decision being announced by the end of Wednesday, 21 October 2026, without any challenges from other jurisdictions.",
+   "due": "2026-10-21",
+   "topic": "crime",
    "confidence": "high"
   },
   {
-   "text": "I predict that the violence in Jacona and Zamora will continue with similar incidents in other towns of Sinaloa and Michoacán, with at least two more mass shootings occurring in different cities within the two states by the end of Tuesday, 20 October 2026.",
+   "text": "I predict that the Tampa Bay Rays will win the series and advance to the 2026 World Series, winning in 5 games.",
    "due": "2026-10-20",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the police will interview students and teachers from the Aubagne school and nearby schools by the end of Tuesday, 20 October 2026, focusing on those who witnessed the incident or had interactions with the shooter.",
-   "due": "2026-10-20",
-   "topic": "crime",
+   "topic": "sport",
    "confidence": "medium"
   }
  ]
