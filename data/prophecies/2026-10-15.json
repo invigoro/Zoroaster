@@ -1,0 +1,67 @@
+{
+ "date": "2026-10-15",
+ "generated_at": "2026-10-15T00:40:41+00:00",
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "predictions": [
+  {
+   "text": "I predict that the Alfa Romeo Cuorerosso Concept V6, the Fiat Multiplay Concept, and the Peugeot E-T16 Concept will be introduced at the 91st edition of the Paris Motor Show.",
+   "due": "2026-10-18",
+   "topic": "other",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the death toll from the Houthi–Saudi conflict will exceed 13 by the end of Thursday, 22 October 2026, with another attack on an airport in Saudi Arabia involving casualties.",
+   "due": "2026-10-22",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Timor-Leste will lift the suspension of in-person classes on October 17, 2026, but only in areas where air quality has improved to below 288 micrograms per cubic metre.",
+   "due": "2026-10-17",
+   "topic": "health",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Florida, United States, sees the restoration of power and services first.",
+   "due": "2026-10-22",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that another ship will sink near the Strait of Hormuz, likely involving Iranian forces and a cargo vessel from a neutral country.",
+   "due": "2026-10-22",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Beirut region will receive the aid first.",
+   "due": "2026-10-22",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the suspension of social gatherings and events organized by prominent groups will remain in effect for the upcoming academic year, with no changes made by the end of Thursday, 22 October 2026, and that this will occur in the state of New York.",
+   "due": "2026-10-22",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the number of participating workers in the Irish public sector strikes will increase to over 300,000 by the end of Thursday, 22 October 2026.",
+   "due": "2026-10-22",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that a prominent media organization will face additional legal actions in Turkey, and will not be allowed to resume broadcasting by the end of Thursday, 22 October 2026.",
+   "due": "2026-10-22",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the World Health Organization will issue a statement on the humanitarian response efforts in Yemen, focusing on the ongoing surge in cholera cases.",
+   "due": "2026-10-22",
+   "topic": "health",
+   "confidence": "medium"
+  }
+ ]
+}

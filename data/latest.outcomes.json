@@ -1,37 +1,36 @@
 {
- "date": "2026-10-13",
+ "date": "2026-10-14",
  "target": "a burst of edits by 2+ editors (mass editors left out)",
- "mass_editors": 319,
+ "mass_editors": 308,
  "precision": {
   "model": {
-   "10": 0.1,
-   "50": 0.18,
-   "100": 0.16,
-   "1000": 0.067
+   "10": 0.4,
+   "50": 0.28,
+   "100": 0.15,
+   "1000": 0.05
   },
   "edits yesterday": {
-   "10": 0.2,
+   "10": 0.1,
    "50": 0.1,
    "100": 0.07,
-   "1000": 0.043
+   "1000": 0.038
   }
  },
  "hits": [
-  "Max Caster",
-  "Ilhan Omar",
-  "The Beach Boys",
-  "ASAP (TV program)",
-  "Houthi–Saudi conflict",
+  "2026 American League Championship Series",
   "Ray Kolle",
-  "Colin Friels",
-  "Bärbel Bas",
-  "RJ Mitte",
-  "Robert Hall (economist)",
   "Expectations (Olivia Rodrigo song)",
-  "Sarah Dambanevana",
-  "Jair Bolsonaro",
-  "Ülle Madise",
-  "Tua Tagovailoa",
-  "Kimberly Guilfoyle"
+  "Lucian Piane",
+  "Beauty Revealed",
+  "David Silbersweig",
+  "2026 Paris Motor Show",
+  "Narnia: The Magician's Nephew",
+  "Campylobacter jejuni",
+  "SpaceX CRS-35",
+  "Pat Karney",
+  "Helen Branswell",
+  "Six Flags Over Georgia",
+  "2026 Nobel Peace Prize",
+  "VisionQuest"
  ]
 }
