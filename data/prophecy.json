@@ -1,66 +1,66 @@
 {
- "date": "2026-10-15",
- "generated_at": "2026-10-15T00:40:41+00:00",
+ "date": "2026-10-16",
+ "generated_at": "2026-10-16T00:41:10+00:00",
  "model": "Qwen/Qwen2.5-7B-Instruct",
  "predictions": [
   {
-   "text": "I predict that the Alfa Romeo Cuorerosso Concept V6, the Fiat Multiplay Concept, and the Peugeot E-T16 Concept will be introduced at the 91st edition of the Paris Motor Show.",
-   "due": "2026-10-18",
+   "text": "I predict that the film Sense and Sensibility is projected to gross $5–8 million in its opening weekend in the United States and Canada.",
+   "due": "2026-10-16",
+   "topic": "other",
+   "confidence": "high"
+  },
+  {
+   "text": "I predict that the film Whalefall will gross between $10 and $12 million from its theatrical release in the United States.",
+   "due": "2026-10-16",
    "topic": "other",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the death toll from the Houthi–Saudi conflict will exceed 13 by the end of Thursday, 22 October 2026, with another attack on an airport in Saudi Arabia involving casualties.",
-   "due": "2026-10-22",
+   "text": "I predict that the Houthi–Saudi conflict will continue with more missile attacks on Saudi Arabian cities, including Riyadh and Dammam, resulting in at least 13 casualties and damaging 15 homes by the end of Friday, 23 October 2026.",
+   "due": "2026-10-23",
    "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that Timor-Leste will lift the suspension of in-person classes on October 17, 2026, but only in areas where air quality has improved to below 288 micrograms per cubic metre.",
+   "text": "I predict that the Russo-Ukrainian war will continue with another Russian strike against Ukrainian infrastructure, possibly targeting a merchant ship off Bulgaria's Black Sea coast.",
+   "due": "2026-10-23",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that in-person classes in Timor-Leste remain suspended for at least one more day, possibly until Saturday, 17 October 2026, due to poor air quality from wildfire smoke and pollutants.",
    "due": "2026-10-17",
    "topic": "health",
    "confidence": "medium"
   },
   {
-   "text": "I predict that Florida, United States, sees the restoration of power and services first.",
-   "due": "2026-10-22",
-   "topic": "disaster",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that another ship will sink near the Strait of Hormuz, likely involving Iranian forces and a cargo vessel from a neutral country.",
-   "due": "2026-10-22",
+   "text": "I predict that the Strait of Hormuz will see at least one more attack on a ship, with Omani authorities conducting search-and-rescue operations for missing crew members.",
+   "due": "2026-10-23",
    "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the Beirut region will receive the aid first.",
-   "due": "2026-10-22",
+   "text": "I predict that the Sudanese Armed Forces will launch another airstrike at the Egypt-Sudan border, targeting an artisanal gold mine in a mountainous area, killing at least 72 people.",
+   "due": "2026-10-23",
    "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the suspension of social gatherings and events organized by prominent groups will remain in effect for the upcoming academic year, with no changes made by the end of Thursday, 22 October 2026, and that this will occur in the state of New York.",
-   "due": "2026-10-22",
+   "text": "I predict that the Delhi Jantar Mantar protests will continue with more clashes between protesters and police, and at least two more remands in custody for protest leaders from different political parties.",
+   "due": "2026-10-23",
    "topic": "crime",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the number of participating workers in the Irish public sector strikes will increase to over 300,000 by the end of Thursday, 22 October 2026.",
-   "due": "2026-10-22",
-   "topic": "politics",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that a prominent media organization will face additional legal actions in Turkey, and will not be allowed to resume broadcasting by the end of Thursday, 22 October 2026.",
-   "due": "2026-10-22",
+   "text": "I predict that the investigation into the 2026 Silver Rail Elementary School shooting will involve questioning at least three people by the end of Friday, 23 October 2026.",
+   "due": "2026-10-23",
    "topic": "crime",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the World Health Organization will issue a statement on the humanitarian response efforts in Yemen, focusing on the ongoing surge in cholera cases.",
-   "due": "2026-10-22",
-   "topic": "health",
+   "text": "I predict that a prominent media organization will remain offline, with new administrators continuing to run the channel, and no significant changes in their management by the end of Friday, 23 October 2026.",
+   "due": "2026-10-23",
+   "topic": "crime",
    "confidence": "medium"
   }
  ]

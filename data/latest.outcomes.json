@@ -1,36 +1,38 @@
 {
- "date": "2026-10-14",
+ "date": "2026-10-15",
  "target": "a burst of edits by 2+ editors (mass editors left out)",
- "mass_editors": 308,
+ "mass_editors": 286,
  "precision": {
   "model": {
-   "10": 0.4,
-   "50": 0.28,
-   "100": 0.15,
-   "1000": 0.05
+   "10": 0.2,
+   "50": 0.2,
+   "100": 0.17,
+   "1000": 0.06
   },
   "edits yesterday": {
-   "10": 0.1,
-   "50": 0.1,
-   "100": 0.07,
-   "1000": 0.038
+   "10": 0.0,
+   "50": 0.08,
+   "100": 0.06,
+   "1000": 0.04
   }
  },
  "hits": [
-  "2026 American League Championship Series",
-  "Ray Kolle",
+  "Gospel of John",
+  "Helluva Boss",
+  "Geordie Greep",
+  "Riemann hypothesis",
+  "Blue Moon (Zara Larsson song)",
   "Expectations (Olivia Rodrigo song)",
-  "Lucian Piane",
-  "Beauty Revealed",
-  "David Silbersweig",
-  "2026 Paris Motor Show",
-  "Narnia: The Magician's Nephew",
-  "Campylobacter jejuni",
-  "SpaceX CRS-35",
-  "Pat Karney",
-  "Helen Branswell",
-  "Six Flags Over Georgia",
-  "2026 Nobel Peace Prize",
-  "VisionQuest"
+  "Whalefall (film)",
+  "Deaths in September 2026",
+  "2026 American League Championship Series",
+  "Mannat – Har Khushi Paane Ki",
+  "Dushyant Kumar Gautam",
+  "2026–27 AFC Champions League Two group stage",
+  "Sense and Sensibility (2026 film)",
+  "Clayface (film)",
+  "Jorge Castro (boxer)",
+  "List of highest-grossing live-action/animated films",
+  "CJ Opiaza"
  ]
 }
