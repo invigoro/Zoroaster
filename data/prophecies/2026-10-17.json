@@ -1,0 +1,61 @@
+{
+ "date": "2026-10-17",
+ "generated_at": "2026-10-17T01:08:35+00:00",
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "predictions": [
+  {
+   "text": "I predict that the Royal Saudi Air Force will strike a fuel depot near Sanaa, Yemen, causing a fire and injuring at least four people.",
+   "due": "2026-10-24",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the anti-CEC protests in New Delhi, India, will result in an average of several hundred protesters being arrested each day during the marches.",
+   "due": "2026-10-24",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the wildfires in Indonesia will continue to affect at least six more people, including two deaths and four serious injuries, by the end of Saturday, 24 October 2026.",
+   "due": "2026-10-24",
+   "topic": "health",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that local law enforcement actors and prominent major organizations will be questioned as part of the investigation.",
+   "due": "2026-10-24",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the first deployment of the Bluebottle maritime drones will occur in the waters off the coast of Fiji.",
+   "due": "2026-10-24",
+   "topic": "politics",
+   "confidence": "high"
+  },
+  {
+   "text": "I predict that the German government will express satisfaction with the severity of the sentences, but will also call for further action against those involved in such plots.",
+   "due": "2026-10-24",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Hungary fully lifts its objections to Ukraine's EU accession talks by the end of Saturday, 24 October 2026, with the agreement reached during the meeting in Brussels being upheld.",
+   "due": "2026-10-24",
+   "topic": "politics",
+   "confidence": "high"
+  },
+  {
+   "text": "I predict that the 2026 IHF Women's U16 Handball World Championship will be won by Morocco.",
+   "due": "2026-10-24",
+   "topic": "sport",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Milwaukee Brewers will win the series in six games, advancing to the championship.",
+   "due": "2026-10-23",
+   "topic": "sport",
+   "confidence": "medium"
+  }
+ ]
+}

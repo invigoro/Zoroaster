@@ -1,38 +1,44 @@
 {
- "date": "2026-10-15",
+ "date": "2026-10-16",
  "target": "a burst of edits by 2+ editors (mass editors left out)",
- "mass_editors": 286,
+ "mass_editors": 300,
  "precision": {
   "model": {
-   "10": 0.2,
-   "50": 0.2,
-   "100": 0.17,
-   "1000": 0.06
+   "10": 0.4,
+   "50": 0.3,
+   "100": 0.23,
+   "1000": 0.066
   },
   "edits yesterday": {
-   "10": 0.0,
-   "50": 0.08,
-   "100": 0.06,
-   "1000": 0.04
+   "10": 0.2,
+   "50": 0.18,
+   "100": 0.1,
+   "1000": 0.042
   }
  },
  "hits": [
-  "Gospel of John",
-  "Helluva Boss",
-  "Geordie Greep",
-  "Riemann hypothesis",
-  "Blue Moon (Zara Larsson song)",
-  "Expectations (Olivia Rodrigo song)",
-  "Whalefall (film)",
-  "Deaths in September 2026",
-  "2026 American League Championship Series",
-  "Mannat – Har Khushi Paane Ki",
-  "Dushyant Kumar Gautam",
-  "2026–27 AFC Champions League Two group stage",
+  "2026–27 South Pacific cyclone season",
+  "Rafael Câmara",
+  "Jailer 2",
+  "Street Fighter (2026 film)",
+  "Love of Your Life (film)",
+  "Justice (band)",
+  "Sally Rooney",
+  "The Diplomat (American TV series)",
   "Sense and Sensibility (2026 film)",
-  "Clayface (film)",
-  "Jorge Castro (boxer)",
-  "List of highest-grossing live-action/animated films",
-  "CJ Opiaza"
+  "Malcolm H. Wiener",
+  "Expectations (Olivia Rodrigo song)",
+  "Hollywood Arts",
+  "Avatar: Seven Havens",
+  "2026 Men's Rugby League World Cup",
+  "Whalefall (film)",
+  "The Eyes of Ghana",
+  "Jordon Steele-John",
+  "Israelites",
+  "Jack Bostock",
+  "Klara and the Sun (film)",
+  "Green Party of Aotearoa New Zealand",
+  "Kalyn Ponga",
+  "Hendrik Helmer"
  ]
 }
