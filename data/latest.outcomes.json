@@ -1,44 +1,36 @@
 {
- "date": "2026-10-16",
+ "date": "2026-10-17",
  "target": "a burst of edits by 2+ editors (mass editors left out)",
- "mass_editors": 300,
+ "mass_editors": 314,
  "precision": {
   "model": {
-   "10": 0.4,
-   "50": 0.3,
-   "100": 0.23,
-   "1000": 0.066
+   "10": 0.2,
+   "50": 0.14,
+   "100": 0.15,
+   "1000": 0.046
   },
   "edits yesterday": {
-   "10": 0.2,
-   "50": 0.18,
+   "10": 0.1,
+   "50": 0.12,
    "100": 0.1,
-   "1000": 0.042
+   "1000": 0.039
   }
  },
  "hits": [
   "2026–27 South Pacific cyclone season",
-  "Rafael Câmara",
-  "Jailer 2",
+  "2026 Dutch Darts Championship",
   "Street Fighter (2026 film)",
-  "Love of Your Life (film)",
-  "Justice (band)",
-  "Sally Rooney",
-  "The Diplomat (American TV series)",
-  "Sense and Sensibility (2026 film)",
-  "Malcolm H. Wiener",
-  "Expectations (Olivia Rodrigo song)",
-  "Hollywood Arts",
-  "Avatar: Seven Havens",
   "2026 Men's Rugby League World Cup",
-  "Whalefall (film)",
-  "The Eyes of Ghana",
-  "Jordon Steele-John",
-  "Israelites",
-  "Jack Bostock",
-  "Klara and the Sun (film)",
-  "Green Party of Aotearoa New Zealand",
-  "Kalyn Ponga",
-  "Hendrik Helmer"
+  "2026 Women's Rugby League World Cup",
+  "Heidi Levine",
+  "Broad Front (Spain)",
+  "Leap second",
+  "2026 Tour of Guangxi",
+  "Michael Forest",
+  "DeSu7",
+  "Richard E. Holmes",
+  "You Can See Everything",
+  "2026 BWF World Junior Championships",
+  "Klara and the Sun (film)"
  ]
 }

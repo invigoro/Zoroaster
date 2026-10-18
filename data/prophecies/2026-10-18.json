@@ -1,0 +1,61 @@
+{
+ "date": "2026-10-18",
+ "generated_at": "2026-10-18T00:40:18+00:00",
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "predictions": [
+  {
+   "text": "I predict that 'Easy on Me' will be released to contemporary hit radio stations on 18 October.",
+   "due": "2026-10-18",
+   "topic": "other",
+   "confidence": "high"
+  },
+  {
+   "text": "I predict that the Cockroach Janta Party will hold another protest in New Delhi, India, and an important politician will join.",
+   "due": "2026-10-25",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the next targeted area will be in South Darfur, Sudan, with a drone strike.",
+   "due": "2026-10-25",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the investigation into the 2026 Kolkata Durga Puja crowd crush will find that the incident was caused by poor crowd management and inadequate safety measures, and that the responsible officials from the local government will face administrative penalties, including fines and demotions, with the report being released by the end of Sunday, 25 October 2026, and the state of West Bengal will implement new safety protocols for future events.",
+   "due": "2026-10-25",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the first deployment of the Bluebottle maritime drones will take place in the waters off the coast of Fiji.",
+   "due": "2026-10-25",
+   "topic": "politics",
+   "confidence": "high"
+  },
+  {
+   "text": "I predict that an important politician from Egypt will visit Saudi Arabia to discuss military cooperation.",
+   "due": "2026-10-25",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the accession of Ukraine to the European Union will advance to the next stage, with Hungary lifting all remaining objections by the end of Sunday, 25 October 2026.",
+   "due": "2026-10-25",
+   "topic": "politics",
+   "confidence": "high"
+  },
+  {
+   "text": "I predict that the No Kings protests continue in multiple U.S. cities, with large crowds in each city.",
+   "due": "2026-10-25",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the 2026 Men's Rugby League World Cup will be won by Australia",
+   "due": "2026-10-18",
+   "topic": "sport",
+   "confidence": "low"
+  }
+ ]
+}

@@ -1,0 +1,36 @@
+{
+ "date": "2026-10-17",
+ "target": "a burst of edits by 2+ editors (mass editors left out)",
+ "mass_editors": 314,
+ "precision": {
+  "model": {
+   "10": 0.2,
+   "50": 0.14,
+   "100": 0.15,
+   "1000": 0.046
+  },
+  "edits yesterday": {
+   "10": 0.1,
+   "50": 0.12,
+   "100": 0.1,
+   "1000": 0.039
+  }
+ },
+ "hits": [
+  "2026–27 South Pacific cyclone season",
+  "2026 Dutch Darts Championship",
+  "Street Fighter (2026 film)",
+  "2026 Men's Rugby League World Cup",
+  "2026 Women's Rugby League World Cup",
+  "Heidi Levine",
+  "Broad Front (Spain)",
+  "Leap second",
+  "2026 Tour of Guangxi",
+  "Michael Forest",
+  "DeSu7",
+  "Richard E. Holmes",
+  "You Can See Everything",
+  "2026 BWF World Junior Championships",
+  "Klara and the Sun (film)"
+ ]
+}
