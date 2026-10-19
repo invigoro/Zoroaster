@@ -1,36 +1,42 @@
 {
- "date": "2026-10-17",
+ "date": "2026-10-18",
  "target": "a burst of edits by 2+ editors (mass editors left out)",
- "mass_editors": 314,
+ "mass_editors": 313,
  "precision": {
   "model": {
-   "10": 0.2,
-   "50": 0.14,
-   "100": 0.15,
-   "1000": 0.046
+   "10": 0.4,
+   "50": 0.26,
+   "100": 0.21,
+   "1000": 0.067
   },
   "edits yesterday": {
    "10": 0.1,
    "50": 0.12,
    "100": 0.1,
-   "1000": 0.039
+   "1000": 0.058
   }
  },
  "hits": [
-  "2026–27 South Pacific cyclone season",
-  "2026 Dutch Darts Championship",
-  "Street Fighter (2026 film)",
-  "2026 Men's Rugby League World Cup",
-  "2026 Women's Rugby League World Cup",
+  "2026 British Columbia municipal elections",
+  "WrestleDream (2026)",
+  "Call of Duty: Modern Warfare 4",
+  "Georgina Cates",
   "Heidi Levine",
-  "Broad Front (Spain)",
   "Leap second",
-  "2026 Tour of Guangxi",
-  "Michael Forest",
-  "DeSu7",
-  "Richard E. Holmes",
+  "2026 United States House of Representatives elections in Kentucky",
+  "2026 Men's Rugby League World Cup",
+  "India at the 2026 Asian Para Games",
+  "2026 FIFA U-17 Women's World Cup",
+  "Maja Chwalińska",
+  "Helen Branswell",
+  "Patrick Dele-Cole",
+  "2026 FIM Women's Circuit Racing World Championship",
   "You Can See Everything",
-  "2026 BWF World Junior Championships",
-  "Klara and the Sun (film)"
+  "UFC Fight Night: Buckley vs. Malott",
+  "Alejandro Davidovich Fokina",
+  "Hôtel de Ville, Limoges",
+  "Abdulaziz Al-Shahrani",
+  "Los Retros",
+  "List of Japanese flat horse races"
  ]
 }

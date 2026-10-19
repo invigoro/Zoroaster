@@ -1,0 +1,61 @@
+{
+ "date": "2026-10-19",
+ "generated_at": "2026-10-19T00:40:34+00:00",
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "predictions": [
+  {
+   "text": "I predict that the closure of the Santiago Metro will end on 20 October 2026.",
+   "due": "2026-10-20",
+   "topic": "other",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that widespread rioting and civil unrest will continue in at least five major French cities by the end of Monday, 26 October 2026.",
+   "due": "2026-10-26",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the opposition parties will hold 22 of the 27 seats in the Czech Senate.",
+   "due": "2026-10-26",
+   "topic": "politics",
+   "confidence": "high"
+  },
+  {
+   "text": "I predict that masked Israeli settlers will attack another group of international visitors or diplomats in the occupied West Bank, Palestine.",
+   "due": "2026-10-26",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the number of cases of Bundibugyo ebolavirus in Kenya will reach seven by the end of the week, with at least one more case confirmed among health workers treating the initial patients.",
+   "due": "2026-10-26",
+   "topic": "health",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the investigation into the 2026 Kolkata Durga Puja crowd crush will continue, with at least one more fatality reported by the end of Monday, 26 October 2026, in the city of Kolkata, West Bengal, India.",
+   "due": "2026-10-26",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that an important Canadian government official will be called to testify first regarding the cause of the explosion and wildfire at CFB Wainwright.",
+   "due": "2026-10-26",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Iceland will first ratify the agreement by the end of Monday, 26 October 2026.",
+   "due": "2026-10-26",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that India will finish ranked 18th in the 2026 Asian Para Games, with a mix of performances across various sports including badminton and table tennis.",
+   "due": "2026-10-24",
+   "topic": "sport",
+   "confidence": "medium"
+  }
+ ]
+}

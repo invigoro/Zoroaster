@@ -1,61 +1,61 @@
 {
- "date": "2026-10-18",
- "generated_at": "2026-10-18T00:40:18+00:00",
+ "date": "2026-10-19",
+ "generated_at": "2026-10-19T00:40:34+00:00",
  "model": "Qwen/Qwen2.5-7B-Instruct",
  "predictions": [
   {
-   "text": "I predict that 'Easy on Me' will be released to contemporary hit radio stations on 18 October.",
-   "due": "2026-10-18",
+   "text": "I predict that the closure of the Santiago Metro will end on 20 October 2026.",
+   "due": "2026-10-20",
    "topic": "other",
-   "confidence": "high"
+   "confidence": "medium"
   },
   {
-   "text": "I predict that the Cockroach Janta Party will hold another protest in New Delhi, India, and an important politician will join.",
-   "due": "2026-10-25",
+   "text": "I predict that widespread rioting and civil unrest will continue in at least five major French cities by the end of Monday, 26 October 2026.",
+   "due": "2026-10-26",
    "topic": "crime",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the next targeted area will be in South Darfur, Sudan, with a drone strike.",
-   "due": "2026-10-25",
+   "text": "I predict that the opposition parties will hold 22 of the 27 seats in the Czech Senate.",
+   "due": "2026-10-26",
+   "topic": "politics",
+   "confidence": "high"
+  },
+  {
+   "text": "I predict that masked Israeli settlers will attack another group of international visitors or diplomats in the occupied West Bank, Palestine.",
+   "due": "2026-10-26",
    "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the investigation into the 2026 Kolkata Durga Puja crowd crush will find that the incident was caused by poor crowd management and inadequate safety measures, and that the responsible officials from the local government will face administrative penalties, including fines and demotions, with the report being released by the end of Sunday, 25 October 2026, and the state of West Bengal will implement new safety protocols for future events.",
-   "due": "2026-10-25",
+   "text": "I predict that the number of cases of Bundibugyo ebolavirus in Kenya will reach seven by the end of the week, with at least one more case confirmed among health workers treating the initial patients.",
+   "due": "2026-10-26",
+   "topic": "health",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the investigation into the 2026 Kolkata Durga Puja crowd crush will continue, with at least one more fatality reported by the end of Monday, 26 October 2026, in the city of Kolkata, West Bengal, India.",
+   "due": "2026-10-26",
    "topic": "disaster",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the first deployment of the Bluebottle maritime drones will take place in the waters off the coast of Fiji.",
-   "due": "2026-10-25",
-   "topic": "politics",
-   "confidence": "high"
-  },
-  {
-   "text": "I predict that an important politician from Egypt will visit Saudi Arabia to discuss military cooperation.",
-   "due": "2026-10-25",
-   "topic": "conflict",
+   "text": "I predict that an important Canadian government official will be called to testify first regarding the cause of the explosion and wildfire at CFB Wainwright.",
+   "due": "2026-10-26",
+   "topic": "disaster",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the accession of Ukraine to the European Union will advance to the next stage, with Hungary lifting all remaining objections by the end of Sunday, 25 October 2026.",
-   "due": "2026-10-25",
+   "text": "I predict that Iceland will first ratify the agreement by the end of Monday, 26 October 2026.",
+   "due": "2026-10-26",
    "topic": "politics",
-   "confidence": "high"
-  },
-  {
-   "text": "I predict that the No Kings protests continue in multiple U.S. cities, with large crowds in each city.",
-   "due": "2026-10-25",
-   "topic": "crime",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the 2026 Men's Rugby League World Cup will be won by Australia",
-   "due": "2026-10-18",
+   "text": "I predict that India will finish ranked 18th in the 2026 Asian Para Games, with a mix of performances across various sports including badminton and table tennis.",
+   "due": "2026-10-24",
    "topic": "sport",
-   "confidence": "low"
+   "confidence": "medium"
   }
  ]
 }
