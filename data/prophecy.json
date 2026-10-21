@@ -1,47 +1,65 @@
 {
- "date": "2026-10-20",
- "generated_at": "2026-10-20T00:47:05+00:00",
+ "date": "2026-10-21",
+ "generated_at": "2026-10-21T01:23:54+00:00",
  "model": "Qwen/Qwen2.5-7B-Instruct",
  "predictions": [
   {
-   "text": "I predict that the Martian Moons eXploration (MMX) mission will successfully launch towards Mars.",
-   "due": "2026-10-20",
+   "text": "I predict that the Albertan government will outline plans for addressing the referendum results, including any potential steps towards further consultation or legislative actions within the province, and these plans will include a proposal for a constitutional amendment process involving at least two provinces by the end of Wednesday, 28 October 2026.",
+   "due": "2026-10-28",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Saudi Civil Defense intercepts at least one missile aimed at a major city, likely Riyadh, by the end of Wednesday, 28 October 2026.",
+   "due": "2026-10-28",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Israeli-Palestinian conflict will continue with more arrests in the occupied West Bank, involving at least 5 additional people from different countries.",
+   "due": "2026-10-28",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the defense will file an appeal, and the case will be sent to a higher court in the United States, with hearings starting by the end of Wednesday, 28 October 2026, in a different district.",
+   "due": "2026-10-28",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the conflict in the Abyei area between South Sudan and Sudan will continue, with at least two more drone strikes reported in the region.",
+   "due": "2026-10-28",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Andorra and San Marino will each hold a parliamentary session to approve the association agreements with the European Union on Monday, 26 October 2026.",
+   "due": "2026-10-28",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the World Food Programme will cut monthly food aid for about 500,000 people in the Gaza Strip, reducing the number of recipients from 1.6 million to 1.1 million, and the situation will continue to worsen with ongoing cuts affecting primarily the northern Gaza cities.",
+   "due": "2026-10-28",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Martian Moons eXploration spacecraft successfully reaches orbit around Phobos.",
+   "due": "2026-10-28",
    "topic": "science",
    "confidence": "high"
   },
   {
-   "text": "I predict that the Houthi–Saudi conflict will continue with missile attacks on Saudi Arabian cities, resulting in at least 4 people being injured and damaging 15 homes.",
-   "due": "2026-10-27",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the conflict between Israeli settlers and prominent actors from Europe will continue, with at least two more arrests in the occupied West Bank involving officials from Belgium and France.",
-   "due": "2026-10-27",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the Strait of Hormuz will see at least one more ship strike a naval mine, causing damage but not sinking or catching fire.",
-   "due": "2026-10-27",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that Andorra and San Marino will ratify the agreements first.",
-   "due": "2026-10-27",
+   "text": "I predict that the legal challenges will not succeed in overturning the approval, and the maritime boundary agreement between Libya (GNA) and Turkey will remain in effect.",
+   "due": "2026-10-28",
    "topic": "politics",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the Taiwanese coast guard will continue to drive away Chinese vessels near Taiwan and the Pratas Island, with at least 16 ships from China being driven away by the end of Tuesday, 27 October 2026.",
-   "due": "2026-10-27",
-   "topic": "politics",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the exact sentence length for a prominent individual will be announced, likely a life sentence without the possibility of parole, by the end of Tuesday, 27 October 2026, in Kenya.",
-   "due": "2026-10-27",
+   "text": "I predict that a prominent individual will receive a life sentence without the possibility of parole by a Kenyan court.",
+   "due": "2026-10-28",
    "topic": "crime",
    "confidence": "high"
   }

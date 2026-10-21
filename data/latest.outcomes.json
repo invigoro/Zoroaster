@@ -1,34 +1,40 @@
 {
- "date": "2026-10-19",
+ "date": "2026-10-20",
  "target": "a burst of edits by 2+ editors (mass editors left out)",
- "mass_editors": 316,
+ "mass_editors": 306,
  "precision": {
   "model": {
-   "10": 0.3,
-   "50": 0.18,
-   "100": 0.13,
-   "1000": 0.053
+   "10": 0.1,
+   "50": 0.26,
+   "100": 0.19,
+   "1000": 0.07
   },
   "edits yesterday": {
-   "10": 0.2,
+   "10": 0.3,
    "50": 0.08,
-   "100": 0.05,
-   "1000": 0.029
+   "100": 0.1,
+   "1000": 0.047
   }
  },
  "hits": [
-  "Jan Crawford",
-  "Lua Blanco",
-  "Leap second",
-  "You Can See Everything",
-  "India at the 2026 Asian Para Games",
-  "Channel Seven Perth Telethon",
-  "Iúri Leitão",
-  "Call of Duty: Modern Warfare 4",
-  "Georgina Cates",
   "2026 FIFA U-17 Women's World Cup",
-  "2027 U-20 Africa Cup of Nations qualification",
-  "Noah Adams",
-  "Lufthansa fleet"
+  "India at the 2026 Asian Para Games",
+  "Dushyant Kumar Gautam",
+  "Confectionery store",
+  "Richard Riehle",
+  "Martian Moons eXploration",
+  "2026–27 South-West Indian Ocean cyclone season",
+  "List of 9-1-1 episodes",
+  "2026 FIFA U-17 Women's World Cup squads",
+  "2027 FIA World Endurance Championship",
+  "Helen Haines",
+  "2026–27 FA Cup",
+  "Elizabeth Holmes",
+  "Kim Jong Un",
+  "Blake Grupe",
+  "Cyberpunk: Edgerunners 2",
+  "2026 Northern Ireland Open",
+  "Ken Sim",
+  "Ann Hornaday"
  ]
 }
