@@ -1,0 +1,40 @@
+{
+ "date": "2026-10-22",
+ "target": "a burst of edits by 2+ editors (mass editors left out)",
+ "mass_editors": 288,
+ "precision": {
+  "model": {
+   "10": 0.5,
+   "50": 0.28,
+   "100": 0.19,
+   "1000": 0.054
+  },
+  "edits yesterday": {
+   "10": 0.2,
+   "50": 0.14,
+   "100": 0.12,
+   "1000": 0.043
+  }
+ },
+ "hits": [
+  "Gen Z protests",
+  "2026 FIFA U-17 Women's World Cup",
+  "2026–27 European windstorm season",
+  "Cyberpunk: Edgerunners 2",
+  "2026 Ohio gubernatorial election",
+  "2026 Alberta referendum",
+  "BioWare",
+  "2026 Cricket World Cup Challenge League A (Kenya)",
+  "2026 Futsal Africa Cup of Nations",
+  "Sauber (automobile)",
+  "Cornell Green (defensive back)",
+  "Clayface (film)",
+  "Amy Acton",
+  "India at the 2026 Asian Para Games",
+  "Confectionery store",
+  "Helen Haines",
+  "October 21",
+  "Wildwood (film)",
+  "List of centibillionaires"
+ ]
+}

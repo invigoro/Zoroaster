@@ -1,66 +1,66 @@
 {
- "date": "2026-10-22",
- "generated_at": "2026-10-22T00:40:20+00:00",
+ "date": "2026-10-23",
+ "generated_at": "2026-10-23T01:12:50+00:00",
  "model": "Qwen/Qwen2.5-7B-Instruct",
  "predictions": [
   {
-   "text": "I predict that the death toll from drone strikes in the Abyei area and other conflict zones in Sudan will rise to at least 220 by the end of Thursday, 29 October 2026, with the Sudanese Army and the Rapid Support Forces continuing their operations in the region.",
-   "due": "2026-10-29",
+   "text": "I predict that the competition will end with the team of four prominent individuals winning the £100,000 prize, with the money split between their chosen charities.",
+   "due": "2026-10-23",
+   "topic": "other",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that an important politician from the United States will arrive in Saint Petersburg to discuss potential peace talks with Russian officials, and that this meeting will lead to the release of another American citizen from Russian custody.",
+   "due": "2026-10-30",
    "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the United States, Russia, and Ukraine will continue their peace talks, but no formal agreement will be reached by the end of Thursday, 29 October 2026.",
-   "due": "2026-10-29",
-   "topic": "politics",
+   "text": "I predict that over 500,000 people will participate in protests across France by the end of Friday, 30 October 2026, with similar protests also occurring in Greece.",
+   "due": "2026-10-30",
+   "topic": "crime",
+   "confidence": "high"
+  },
+  {
+   "text": "I predict that the sale of Electronic Arts to Saudi Arabia's Public Investment Fund will be officially announced on November 15, 2026, with the Canadian studio BioWare being closed down.",
+   "due": "2026-10-30",
+   "topic": "science",
    "confidence": "medium"
   },
   {
-   "text": "I predict that Nigeria will report two more cases of Ebola virus, both involving health workers treating the first patient.",
-   "due": "2026-10-29",
-   "topic": "health",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the investigation into the 2022 San Antonio migrant deaths will lead to the charging and arrest of at least one more suspect by the end of Thursday, 29 October 2026, bringing the total number of those charged to at least two.",
-   "due": "2026-10-29",
+   "text": "I predict that the Italian authorities will identify, report, and fine 242 additional individuals during the crackdown in southern Italy.",
+   "due": "2026-10-30",
    "topic": "crime",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the Saudi Public Investment Fund will finalize the sale of Electronic Arts and announce the new ownership structure in Canada.",
-   "due": "2026-10-29",
-   "topic": "science",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that protests and public sentiment in Iran and neighboring countries will continue to put pressure on governments to maintain lower fuel prices, with clashes between protesters and security forces occurring in at least two cities across Iran by the end of Thursday, 29 October 2026.",
-   "due": "2026-10-29",
-   "topic": "economy",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the United Kingdom will deploy RAF Typhoons to support Saudi Arabia in defending against Houthi attacks.",
-   "due": "2026-10-29",
+   "text": "I predict that the St-Pierre Plamondon ministry will outline policies focusing on economic recovery and cultural identity, with an emphasis on Quebec's distinct status within Canada.",
+   "due": "2026-10-30",
    "topic": "politics",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the Martian Moons eXploration spacecraft successfully reaches orbit around Phobos.",
-   "due": "2026-10-29",
-   "topic": "science",
-   "confidence": "high"
+   "text": "I predict that violent incidents targeting foreign nationals will continue to occur in Durban, South Africa, with at least one more incident reported by the end of Friday, 30 October 2026.",
+   "due": "2026-10-30",
+   "topic": "crime",
+   "confidence": "medium"
   },
   {
-   "text": "I predict that the legal challenges will not succeed in overturning the approval, and the maritime boundary agreement between Libya (GNA) and Turkey will remain in effect.",
-   "due": "2026-10-29",
+   "text": "I predict that Canada and Turkey will release a draft free trade agreement for public comment by the end of Friday, 30 October 2026.",
+   "due": "2026-10-30",
    "topic": "politics",
    "confidence": "medium"
   },
   {
-   "text": "I predict that South Korea will issue a statement expressing concern over the handling of the North Korean soldiers by Ukraine, but will not take any additional actions against Ukraine.",
-   "due": "2026-10-29",
-   "topic": "politics",
+   "text": "I predict that a prominent individual in politics will be found guilty of financial irregularities in campaign financing by the end of Friday, 30 October 2026, and will face a prison sentence of at least one year.",
+   "due": "2026-10-30",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the sentences of the seven former police officers in Guatemala will be upheld by the appeals court, and similar cases of police brutality against LGBTQ individuals will continue to occur in Guatemala.",
+   "due": "2026-10-30",
+   "topic": "crime",
    "confidence": "medium"
   }
  ]
