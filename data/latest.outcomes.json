@@ -1,40 +1,39 @@
 {
- "date": "2026-10-22",
+ "date": "2026-10-23",
  "target": "a burst of edits by 2+ editors (mass editors left out)",
- "mass_editors": 288,
+ "mass_editors": 294,
  "precision": {
   "model": {
-   "10": 0.5,
-   "50": 0.28,
-   "100": 0.19,
-   "1000": 0.054
+   "10": 0.3,
+   "50": 0.24,
+   "100": 0.18,
+   "1000": 0.056
   },
   "edits yesterday": {
-   "10": 0.2,
-   "50": 0.14,
-   "100": 0.12,
-   "1000": 0.043
+   "10": 0.1,
+   "50": 0.12,
+   "100": 0.1,
+   "1000": 0.03
   }
  },
  "hits": [
-  "Gen Z protests",
-  "2026 FIFA U-17 Women's World Cup",
-  "2026–27 European windstorm season",
+  "Tom Skerritt",
   "Cyberpunk: Edgerunners 2",
-  "2026 Ohio gubernatorial election",
-  "2026 Alberta referendum",
-  "BioWare",
-  "2026 Cricket World Cup Challenge League A (Kenya)",
-  "2026 Futsal Africa Cup of Nations",
-  "Sauber (automobile)",
-  "Cornell Green (defensive back)",
+  "PHP",
+  "Nintendo Switch Sports Resort",
   "Clayface (film)",
-  "Amy Acton",
+  "2026 FIFA U-17 Women's World Cup",
   "India at the 2026 Asian Para Games",
-  "Confectionery store",
-  "Helen Haines",
-  "October 21",
   "Wildwood (film)",
-  "List of centibillionaires"
+  "Durga Puja in West Bengal",
+  "Nobody Wants This",
+  "BioWare",
+  "Tesla Robotaxi",
+  "Lana Nusseibeh",
+  "Laika, LLC",
+  "Sauber (automobile)",
+  "DC Universe (franchise)",
+  "Call of Duty: Modern Warfare 4",
+  "Wicker (film)"
  ]
 }

@@ -1,0 +1,67 @@
+{
+ "date": "2026-10-24",
+ "generated_at": "2026-10-24T00:40:41+00:00",
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "predictions": [
+  {
+   "text": "I predict that the Russo-Ukrainian war will continue with no progress towards resuming trilateral peace talks with Ukraine, and that at least one more drone incident will occur in the Black Sea region involving ships or aircraft.",
+   "due": "2026-10-31",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that there will be at least three additional strikes and attacks in the occupied West Bank and Yemen by the end of Saturday, 31 October 2026, with at least one strike occurring in the occupied West Bank and two in Yemen, involving both Israeli forces and Houthi militants.",
+   "due": "2026-10-31",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Sudanese Armed Forces and Rapid Support Forces continue their operations in the Blue Nile state, with reports of further drone strikes and recaptured areas, particularly in the Ad-Damazin region.",
+   "due": "2026-10-31",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the four missing Salvadoran Air Force technicians are found dead in the area around Croix-des-Bouquets, Haiti, by the end of Saturday, 31 October 2026.",
+   "due": "2026-10-31",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Strait of Hormuz will see at least seven oil tankers affected by naval mine strikes over the next few weeks.",
+   "due": "2026-10-31",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the investigation into the 2026 Karak church shooting will lead to the arrest and charging of additional suspects by the end of Saturday, 31 October 2026, with the focus on individuals from neighboring countries.",
+   "due": "2026-10-31",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the total number of people evacuated due to Typhoon Champi will be around 2,639 by the end of Saturday, 31 October 2026, with the majority of evacuations occurring in Taiwan.",
+   "due": "2026-10-31",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the extent of aid distributed to affected areas will continue to be assessed and improved upon, with prominent authorities and international organizations working together to provide assistance to the affected regions, particularly focusing on remote areas.",
+   "due": "2026-10-31",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the investigation into the 2026 Trappes and La Verrière shootings will continue, with at least one additional suspect being arrested in France by the end of Saturday, 31 October 2026.",
+   "due": "2026-10-31",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that at least two candidates will present their detailed policy proposals by the end of Saturday, 31 October 2026, with one being an Emirati diplomat.",
+   "due": "2026-10-31",
+   "topic": "politics",
+   "confidence": "medium"
+  }
+ ]
+}
