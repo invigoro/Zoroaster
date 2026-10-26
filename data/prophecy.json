@@ -1,66 +1,66 @@
 {
- "date": "2026-10-25",
- "generated_at": "2026-10-25T00:40:30+00:00",
+ "date": "2026-10-26",
+ "generated_at": "2026-10-26T00:41:34+00:00",
  "model": "Qwen/Qwen2.5-7B-Instruct",
  "predictions": [
   {
-   "text": "I predict that the specific details and cultural influences of Halloween will be finalized for the celebration, emphasizing its Christian origins and the influence of Celtic harvest festivals, particularly Samhain.",
-   "due": "2026-10-31",
-   "topic": "culture",
-   "confidence": "medium"
+   "text": "I predict that the song 'Coming Up Roses' will be released as the fourth single from the album 'Disco, Occasionally' on 30 October 2026.",
+   "due": "2026-10-30",
+   "topic": "other",
+   "confidence": "high"
   },
   {
-   "text": "I predict that thousands of students and teachers will march through Athens, Thessaloniki, and Patras in Greece to protest against the rising cost of living, calling for affordable student housing and more state investment in education.",
-   "due": "2026-11-01",
+   "text": "I predict that at least 410,000 people participate in the protests in France.",
+   "due": "2026-11-02",
    "topic": "politics",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the Israeli military conducts additional raids and arrests in the West Bank cities previously targeted, including the city of Hebron.",
-   "due": "2026-11-01",
+   "text": "I predict that the Student List will form a coalition government with multiple smaller parties, including at least one from the liberal bloc and one from the progressive bloc.",
+   "due": "2026-11-02",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Israeli military will raid 15 additional cities in the occupied West Bank, arresting several Palestinians.",
+   "due": "2026-11-02",
    "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the investigations into the 2026 Karak church shooting will lead to the questioning of two suspects in Jordan by the end of Sunday, 1 November 2026.",
-   "due": "2026-11-01",
+   "text": "I predict that Nigeria identifies at least 44 new cases through contact tracing by the end of Monday, 2 November 2026.",
+   "due": "2026-11-02",
+   "topic": "health",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the number of arrests in Italy due to the ongoing protests will exceed 71 by the end of Monday, 2 November 2026, with at least 1,339 individuals identified by the authorities.",
+   "due": "2026-11-02",
    "topic": "crime",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the number of arrests in Italian unrest (crime) will exceed 71 by the end of Sunday, 1 November 2026, with clashes reported in at least two cities across Italy.",
-   "due": "2026-11-01",
+   "text": "I predict that the investigation into the 2026 Karak church shooting will continue, with forensic evidence linking the suspects to the crime scene, and that the Jordanian authorities will arrest three individuals by the end of Monday, 2 November 2026.",
+   "due": "2026-11-02",
    "topic": "crime",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the total number of people evacuated during Typhoon Champi will be around 2,639.",
-   "due": "2026-11-01",
+   "text": "I predict that at least 2,639 people will have been evacuated and over 527 people will have been injured by the end of Monday, 2 November 2026, as Typhoon Champi continues to affect Taiwan.",
+   "due": "2026-11-02",
    "topic": "disaster",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the suspect will be charged with additional counts of murder and attempted murder in the 2026 Trappes and La Verrière shootings, with the charges covering the deaths of two more individuals and injuries to three others.",
-   "due": "2026-11-01",
+   "text": "I predict that a prominent political party will form a government with a cabinet including an important politician from the party who will serve as the new leader, with the cabinet likely to include representatives from various sectors of the province.",
+   "due": "2026-11-02",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that unknown gunmen attack another village in Taraba State, Nigeria, resulting in at least 20 deaths by the end of Monday, 2 November 2026.",
+   "due": "2026-11-02",
    "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that Australia and at least one other country join in imposing sanctions against North Korea.",
-   "due": "2026-11-01",
-   "topic": "politics",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that an important politician from Greece will announce that the largest social media platforms, including those with over 1 billion monthly active users, will be required to comply with the new Greek law by the end of Sunday, 1 November 2026.",
-   "due": "2026-11-01",
-   "topic": "politics",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the 2026 World Artistic Gymnastics Championships will see the Russian team win the team finals in both the men's and women's categories.",
-   "due": "2026-10-25",
-   "topic": "sport",
    "confidence": "medium"
   }
  ]

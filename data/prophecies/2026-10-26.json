@@ -1,0 +1,67 @@
+{
+ "date": "2026-10-26",
+ "generated_at": "2026-10-26T00:41:34+00:00",
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "predictions": [
+  {
+   "text": "I predict that the song 'Coming Up Roses' will be released as the fourth single from the album 'Disco, Occasionally' on 30 October 2026.",
+   "due": "2026-10-30",
+   "topic": "other",
+   "confidence": "high"
+  },
+  {
+   "text": "I predict that at least 410,000 people participate in the protests in France.",
+   "due": "2026-11-02",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Student List will form a coalition government with multiple smaller parties, including at least one from the liberal bloc and one from the progressive bloc.",
+   "due": "2026-11-02",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Israeli military will raid 15 additional cities in the occupied West Bank, arresting several Palestinians.",
+   "due": "2026-11-02",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Nigeria identifies at least 44 new cases through contact tracing by the end of Monday, 2 November 2026.",
+   "due": "2026-11-02",
+   "topic": "health",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the number of arrests in Italy due to the ongoing protests will exceed 71 by the end of Monday, 2 November 2026, with at least 1,339 individuals identified by the authorities.",
+   "due": "2026-11-02",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the investigation into the 2026 Karak church shooting will continue, with forensic evidence linking the suspects to the crime scene, and that the Jordanian authorities will arrest three individuals by the end of Monday, 2 November 2026.",
+   "due": "2026-11-02",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that at least 2,639 people will have been evacuated and over 527 people will have been injured by the end of Monday, 2 November 2026, as Typhoon Champi continues to affect Taiwan.",
+   "due": "2026-11-02",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that a prominent political party will form a government with a cabinet including an important politician from the party who will serve as the new leader, with the cabinet likely to include representatives from various sectors of the province.",
+   "due": "2026-11-02",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that unknown gunmen attack another village in Taraba State, Nigeria, resulting in at least 20 deaths by the end of Monday, 2 November 2026.",
+   "due": "2026-11-02",
+   "topic": "conflict",
+   "confidence": "medium"
+  }
+ ]
+}
