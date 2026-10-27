@@ -1,37 +1,31 @@
 {
- "date": "2026-10-25",
+ "date": "2026-10-26",
  "target": "a burst of edits by 2+ editors (mass editors left out)",
- "mass_editors": 318,
+ "mass_editors": 326,
  "precision": {
   "model": {
-   "10": 0.2,
-   "50": 0.2,
-   "100": 0.16,
-   "1000": 0.062
+   "10": 0.1,
+   "50": 0.14,
+   "100": 0.1,
+   "1000": 0.051
   },
   "edits yesterday": {
    "10": 0.2,
-   "50": 0.14,
-   "100": 0.09,
-   "1000": 0.043
+   "50": 0.1,
+   "100": 0.08,
+   "1000": 0.044
   }
  },
  "hits": [
-  "Kehlsteinhaus",
-  "The Terminal List",
-  "2026 World Artistic Gymnastics Championships",
-  "Alexander Volkanovski",
-  "Wildwood (film)",
-  "Skye Blakely",
-  "2026 FIFA U-17 Women's World Cup",
-  "2026 League of Legends World Championship",
+  "2026 Bulgarian presidential election",
   "2026 United States Grand Prix",
-  "Newlyweds (2026 TV series)",
+  "List of El Clásico matches",
+  "2026 World Artistic Gymnastics Championships",
+  "2026 Serbian parliamentary election",
+  "Kikuka-shō",
+  "Jayne Mansfield",
+  "Kehlsteinhaus",
   "2026 FIFA U-15 World Cup & Festival",
-  "Alisha Palmowski",
-  "Claire Pease",
-  "Junior Eurovision Song Contest",
-  "BC United",
-  "2011 St. Louis tornado"
+  "2026 Brazilian general election"
  ]
 }
