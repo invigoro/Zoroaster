@@ -1,65 +1,65 @@
 {
- "date": "2026-10-27",
- "generated_at": "2026-10-27T00:57:44+00:00",
+ "date": "2026-10-28",
+ "generated_at": "2026-10-28T00:41:08+00:00",
  "model": "Qwen/Qwen2.5-7B-Instruct",
  "predictions": [
   {
-   "text": "I predict that a prominent individual wins the runoff election between another individual and themselves.",
-   "due": "2026-11-01",
-   "topic": "politics",
-   "confidence": "medium"
+   "text": "I predict that Mythri Movie Makers will handle the distribution of Aadarsha Kutumbam House No: 47 in the Nizam region.",
+   "due": "2026-10-30",
+   "topic": "other",
+   "confidence": "high"
   },
   {
-   "text": "I predict that a prominent politician will win the election.",
-   "due": "2026-11-03",
-   "topic": "politics",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the Houthi attacks on Saudi airports and facilities will continue, with at least one more attack causing casualties in either Dammam or Riyadh.",
-   "due": "2026-11-03",
+   "text": "I predict that the trial for the gunmen who carried out the mass shooting at a Greek Orthodox Church in Karak Governorate, Jordan, will take place in a Jordanian court and they will face multiple charges related to murder, attempted murder, and use of firearms in a public place.",
+   "due": "2026-11-04",
    "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the investigation into the Karak church shooting will continue, with the arrest of the three gunmen leading to further questioning and evidence gathering.",
-   "due": "2026-11-03",
+   "text": "I predict that Saudi-led coalition air defences will intercept a Houthi ballistic missile and two drones targeting Riyadh Province, resulting in at least 10 casualties.",
+   "due": "2026-11-04",
    "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that at least 410,000 people participate in mass demonstrations across France.",
-   "due": "2026-11-03",
+   "text": "I predict that the Israeli military will continue its operations in the West Bank and Gaza Strip, with at least one more major airstrike in the Gaza Strip targeting a residential area, resulting in 15 casualties, by the end of Wednesday, 4 November 2026.",
+   "due": "2026-11-04",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that at least 410,000 people will participate in the next major demonstration in France.",
+   "due": "2026-11-04",
    "topic": "politics",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the Israeli military raids in the occupied West Bank will continue, with at least 15 cities raided again by the end of Tuesday, 3 November 2026.",
-   "due": "2026-11-03",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that Nigeria identifies at least 44 new cases through contact tracing by the end of Tuesday, 3 November 2026.",
-   "due": "2026-11-03",
-   "topic": "health",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the 2026–27 European windstorm season will continue to affect Scotland, Northern Ireland, and England, with at least two more storms impacting these regions by the end of Tuesday, 3 November 2026, causing further power outages in Scotland.",
-   "due": "2026-11-03",
+   "text": "I predict that two additional storms will impact Europe, causing power outages for around 90,000 households in Scotland, Northern Ireland, and northern England.",
+   "due": "2026-11-04",
    "topic": "disaster",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the Colombian conflict in El Tambo, Cauca will continue with at least one more military operation resulting in casualties, possibly involving the Colombian army and the National Liberation Army.",
-   "due": "2026-11-03",
+   "text": "I predict that military operations and attacks will continue in specific regions like El Tambo and Cúcuta, resulting in at least two additional casualties in total by the end of Wednesday, 4 November 2026.",
+   "due": "2026-11-04",
    "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that prominent actors and major actors will continue supporting Somalia.",
-   "due": "2026-10-31",
+   "text": "I predict that a prominent political body will be elected, with two major parties forming the coalition government, and an important politician becoming the new leader.",
+   "due": "2026-11-04",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the very severe cyclonic storm Arnab will make landfall in the coastal regions of Andhra Pradesh and Odisha, causing significant damage to infrastructure and agriculture.",
+   "due": "2026-11-04",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the attacks will continue in Oromia, Ethiopia, particularly in areas near the Ethiopian Orthodox Tewahedo Church.",
+   "due": "2026-11-04",
    "topic": "conflict",
    "confidence": "medium"
   }

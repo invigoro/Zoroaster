@@ -1,31 +1,39 @@
 {
- "date": "2026-10-26",
+ "date": "2026-10-27",
  "target": "a burst of edits by 2+ editors (mass editors left out)",
- "mass_editors": 326,
+ "mass_editors": 295,
  "precision": {
   "model": {
-   "10": 0.1,
-   "50": 0.14,
-   "100": 0.1,
-   "1000": 0.051
+   "10": 0.4,
+   "50": 0.18,
+   "100": 0.18,
+   "1000": 0.064
   },
   "edits yesterday": {
    "10": 0.2,
-   "50": 0.1,
+   "50": 0.12,
    "100": 0.08,
-   "1000": 0.044
+   "1000": 0.049
   }
  },
  "hits": [
-  "2026 Bulgarian presidential election",
-  "2026 United States Grand Prix",
-  "List of El Clásico matches",
-  "2026 World Artistic Gymnastics Championships",
-  "2026 Serbian parliamentary election",
-  "Kikuka-shō",
-  "Jayne Mansfield",
-  "Kehlsteinhaus",
-  "2026 FIFA U-15 World Cup & Festival",
-  "2026 Brazilian general election"
+  "Vince Dizon",
+  "Jumbo Baretta",
+  "2026 North Indian Ocean cyclone season",
+  "Giovanni Z. Lopez",
+  "Aadarsha Kutumbam House No: 47 - AK47",
+  "2026 Nepal Premier League",
+  "Walter Koenig",
+  "Oxford Street",
+  "Minimum Wage (TV series)",
+  "Donnie Iris",
+  "Harry Kane",
+  "Student List",
+  "Ballon d'Or",
+  "Mechanic",
+  "Pere Romeu",
+  "Rudi Fuchs",
+  "Flávio Bolsonaro",
+  "Zhejiang-Jiangxi campaign"
  ]
 }
