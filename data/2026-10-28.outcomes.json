@@ -1,0 +1,35 @@
+{
+ "date": "2026-10-28",
+ "target": "a burst of edits by 2+ editors (mass editors left out)",
+ "mass_editors": 274,
+ "precision": {
+  "model": {
+   "10": 0.0,
+   "50": 0.14,
+   "100": 0.14,
+   "1000": 0.054
+  },
+  "edits yesterday": {
+   "10": 0.1,
+   "50": 0.06,
+   "100": 0.05,
+   "1000": 0.04
+  }
+ },
+ "hits": [
+  "Donnie Iris",
+  "Olivia Chow",
+  "Alexander brothers (sex offenders)",
+  "Pokémon Unite",
+  "IMac (Apple silicon)",
+  "Susan Saint James",
+  "Ursula von Rydingsvard",
+  "Flávio Bolsonaro",
+  "Joseph Lagu",
+  "Cyanide (gamer)",
+  "Aadarsha Kutumbam House No: 47 - AK47",
+  "Police vehicles in the United States and Canada",
+  "Newton's identities",
+  "2024–2026 Cricket World Cup Challenge League"
+ ]
+}
