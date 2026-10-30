@@ -1,66 +1,60 @@
 {
- "date": "2026-10-29",
- "generated_at": "2026-10-29T00:42:05+00:00",
+ "date": "2026-10-30",
+ "generated_at": "2026-10-30T01:07:20+00:00",
  "model": "Qwen/Qwen2.5-7B-Instruct",
  "predictions": [
   {
-   "text": "I predict that Proposition 39, the California voter ID initiative, will pass.",
-   "due": "2026-11-03",
-   "topic": "politics",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that schools in Jharkhand will remain closed and the number of shelters prepared in Odisha will be around 1,700.",
-   "due": "2026-10-29",
-   "topic": "disaster",
-   "confidence": "high"
-  },
-  {
-   "text": "I predict that a prominent political figure will win the runoff election with a margin of around 52% to 48%.",
+   "text": "I predict that the Student List wins the 2026 Serbian parliamentary election and forms the government.",
    "due": "2026-11-01",
    "topic": "politics",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that Coming Up Roses will be released as a single on 30 October 2026.",
-   "due": "2026-10-30",
-   "topic": "other",
    "confidence": "high"
   },
   {
-   "text": "I predict that the Strait of Hormuz will continue to face tensions with additional oil tankers facing incidents, and Saudi Arabia will launch another round of airstrikes in Yemen, targeting Houthi positions in Al-Jawf Governorate.",
-   "due": "2026-11-05",
+   "text": "I predict that the Celebrity Traitors series 2 will conclude with the Traitors team winning the competition, distributing the £100,000 among their chosen charities.",
+   "due": "2026-10-30",
+   "topic": "other",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Saudi Arabia launches its next round of airstrikes in Al Hazm, Al-Jawf Governorate, Yemen, killing 14 civilians and wounding 10.",
+   "due": "2026-11-06",
    "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that at least 100,000 people have been displaced and received assistance in Andhra Pradesh and Odisha by the end of this week.",
-   "due": "2026-11-05",
+   "text": "I predict that further drone strikes will occur in Nyala, Sudan, resulting in over 100 people killed and 112 more injured.",
+   "due": "2026-11-06",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that at least three people will have been killed as Cyclone Arnab makes landfall in Andhra Pradesh, India.",
+   "due": "2026-11-06",
    "topic": "disaster",
    "confidence": "medium"
   },
   {
-   "text": "I predict that further drone strikes in South Darfur, Sudan, will continue, with over 100 people killed and 112 more injured by the end of Thursday, 5 November 2026.",
-   "due": "2026-11-05",
+   "text": "I predict that there will be additional attacks on Israeli embassies in Belgrade, Serbia, by the end of Friday, 6 November 2026.",
+   "due": "2026-11-06",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the United States will impose additional sanctions on the Rwandan military, targeting specific individuals within the ministry of defence, and this action will be accompanied by a statement from the United States government.",
+   "due": "2026-11-06",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that clashes between armed groups from a prominent country and local resistance groups will continue in the capital city, with at least one skirmish involving both sides by the end of Friday, 6 November 2026.",
+   "due": "2026-11-06",
    "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the military operations in El Tambo, Cauca will continue and expand to other regions of Colombia, particularly targeting areas near the border with Venezuela.",
-   "due": "2026-11-05",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the Nigerian military will conduct a military operation in Taraba State, resulting in at least 62 bandits being killed.",
-   "due": "2026-11-05",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the Spanish railway authority will identify human error as a contributing factor in the Toledo train collision and propose a mandatory training program for all railway staff, focusing on safety protocols in the central region of Spain.",
-   "due": "2026-11-05",
-   "topic": "disaster",
+   "text": "I predict that the women's championship will be won by Team Sweden and the men's championship will be won by Team Norway, with both teams winning their respective playoffs.",
+   "due": "2026-10-30",
+   "topic": "sport",
    "confidence": "medium"
   }
  ]
