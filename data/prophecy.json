@@ -1,61 +1,67 @@
 {
- "date": "2026-10-30",
- "generated_at": "2026-10-30T01:07:20+00:00",
+ "date": "2026-10-31",
+ "generated_at": "2026-10-31T00:42:17+00:00",
  "model": "Qwen/Qwen2.5-7B-Instruct",
  "predictions": [
   {
-   "text": "I predict that the Student List wins the 2026 Serbian parliamentary election and forms the government.",
-   "due": "2026-11-01",
+   "text": "I predict that the Egyptian troops will not engage the invading forces, following a prominent military leader's order to stay put.",
+   "due": "2026-10-31",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Democrats will win a majority of the seats in the Texas House of Representatives, but the Republicans will still hold a significant number of seats.",
+   "due": "2026-11-03",
    "topic": "politics",
-   "confidence": "high"
-  },
-  {
-   "text": "I predict that the Celebrity Traitors series 2 will conclude with the Traitors team winning the competition, distributing the £100,000 among their chosen charities.",
-   "due": "2026-10-30",
-   "topic": "other",
    "confidence": "medium"
   },
   {
-   "text": "I predict that Saudi Arabia launches its next round of airstrikes in Al Hazm, Al-Jawf Governorate, Yemen, killing 14 civilians and wounding 10.",
-   "due": "2026-11-06",
+   "text": "I predict that Saudi Arabia will launch airstrikes against two residential buildings in Taiz, Yemen, by the end of Saturday, 7 November 2026.",
+   "due": "2026-11-07",
    "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that further drone strikes will occur in Nyala, Sudan, resulting in over 100 people killed and 112 more injured.",
-   "due": "2026-11-06",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that at least three people will have been killed as Cyclone Arnab makes landfall in Andhra Pradesh, India.",
-   "due": "2026-11-06",
+   "text": "I predict that the results of the investigation into the 2026 Brčko helicopter crash will be released, detailing the cause of the accident and any recommendations for preventing future incidents, with the report mentioning that the Italian Air Force will implement at least two new safety measures.",
+   "due": "2026-11-07",
    "topic": "disaster",
    "confidence": "medium"
   },
   {
-   "text": "I predict that there will be additional attacks on Israeli embassies in Belgrade, Serbia, by the end of Friday, 6 November 2026.",
-   "due": "2026-11-06",
-   "topic": "crime",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the United States will impose additional sanctions on the Rwandan military, targeting specific individuals within the ministry of defence, and this action will be accompanied by a statement from the United States government.",
-   "due": "2026-11-06",
+   "text": "I predict that the Center Party's leader, an important politician, leads the new government after the second vote, forming a coalition with the Social Democrats, Greens, Christian Democrats, and the Moderates, with the vote taking place on Saturday, 7 November 2026, in the Swedish parliament building.",
+   "due": "2026-11-07",
    "topic": "politics",
    "confidence": "medium"
   },
   {
-   "text": "I predict that clashes between armed groups from a prominent country and local resistance groups will continue in the capital city, with at least one skirmish involving both sides by the end of Friday, 6 November 2026.",
-   "due": "2026-11-06",
+   "text": "I predict that Cohere will have secured up to C$1.6 billion (US$1.1 billion) of the C$7 billion funding round by the end of this week, with the investment coming from Canada's federal government and other unspecified sources.",
+   "due": "2026-11-07",
+   "topic": "economy",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that another major cryptocurrency exchange based in the Seychelles will announce similar actions by the end of Saturday, 7 November 2026, ending services for customers in Russia and Belarus.",
+   "due": "2026-11-07",
+   "topic": "economy",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Saudi-led coalition intercepts at least two more drones allegedly launched by the Houthis towards the Mecca region.",
+   "due": "2026-11-07",
    "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the women's championship will be won by Team Sweden and the men's championship will be won by Team Norway, with both teams winning their respective playoffs.",
-   "due": "2026-10-30",
-   "topic": "sport",
+   "text": "I predict that Russian attacks on civilians in Dnipro, Ukraine will result in at least 14 more people being killed and 14 more being injured by the end of Saturday, 7 November 2026.",
+   "due": "2026-11-07",
+   "topic": "conflict",
    "confidence": "medium"
+  },
+  {
+   "text": "I predict that Azerbaijan wins the FIFA U-15 World Cup & Festival.",
+   "due": "2026-10-31",
+   "topic": "sport",
+   "confidence": "low"
   }
  ]
 }
