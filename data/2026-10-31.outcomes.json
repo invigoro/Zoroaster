@@ -1,0 +1,36 @@
+{
+ "date": "2026-10-31",
+ "target": "a burst of edits by 2+ editors (mass editors left out)",
+ "mass_editors": 291,
+ "precision": {
+  "model": {
+   "10": 0.2,
+   "50": 0.22,
+   "100": 0.15,
+   "1000": 0.053
+  },
+  "edits yesterday": {
+   "10": 0.0,
+   "50": 0.04,
+   "100": 0.04,
+   "1000": 0.043
+  }
+ },
+ "hits": [
+  "2026 Hong Kong Sixes",
+  "Aadarsha Kutumbam House No: 47 - AK47",
+  "2026 Mexico City Grand Prix",
+  "Binance",
+  "World Wrestling Championships",
+  "John Adams",
+  "Sebastian Croft",
+  "DZMV-TV",
+  "Vince Dizon",
+  "Pipo Nguyen-duy",
+  "Bogdan Święczkowski",
+  "Metro North West & Bankstown Line",
+  "2026–27 Indian Football League",
+  "Andreas Malm",
+  "Miss Earth 2026"
+ ]
+}

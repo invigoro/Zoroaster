@@ -1,0 +1,37 @@
+{
+ "date": "2026-11-01",
+ "generated_at": "2026-11-01T00:41:36+00:00",
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "predictions": [
+  {
+   "text": "I predict that the verdict and sentence will be announced for a prominent individual, finding them guilty and sentencing them to life in prison without the possibility of parole.",
+   "due": "2026-11-02",
+   "topic": "other",
+   "confidence": "high"
+  },
+  {
+   "text": "I predict that the Saudi Arabia-led coalition will launch another airstrike in Yemen, targeting a residential area in Taiz, resulting in at least 10 civilian casualties.",
+   "due": "2026-11-08",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the protests against the rising cost of living and military conscription will spread to at least two more cities in Germany.",
+   "due": "2026-11-08",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that a local government official from Uttarakhand will be called to testify first at the inquest regarding the cause of the crash.",
+   "due": "2026-11-08",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that a prominent legal body will rule on the constitutionality of a leader's suspension and the legality of resignations, but will not provide a final decision by the end of Sunday, 8 November 2026, leaving the situation unresolved.",
+   "due": "2026-11-08",
+   "topic": "politics",
+   "confidence": "medium"
+  }
+ ]
+}
