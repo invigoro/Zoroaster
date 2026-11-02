@@ -1,36 +1,39 @@
 {
- "date": "2026-10-31",
+ "date": "2026-11-01",
  "target": "a burst of edits by 2+ editors (mass editors left out)",
- "mass_editors": 291,
+ "mass_editors": 327,
  "precision": {
   "model": {
-   "10": 0.2,
-   "50": 0.22,
-   "100": 0.15,
-   "1000": 0.053
+   "10": 0.3,
+   "50": 0.18,
+   "100": 0.18,
+   "1000": 0.052
   },
   "edits yesterday": {
    "10": 0.0,
-   "50": 0.04,
-   "100": 0.04,
-   "1000": 0.043
+   "50": 0.08,
+   "100": 0.07,
+   "1000": 0.042
   }
  },
  "hits": [
-  "2026 Hong Kong Sixes",
-  "Aadarsha Kutumbam House No: 47 - AK47",
   "2026 Mexico City Grand Prix",
-  "Binance",
-  "World Wrestling Championships",
-  "John Adams",
-  "Sebastian Croft",
-  "DZMV-TV",
-  "Vince Dizon",
-  "Pipo Nguyen-duy",
-  "Bogdan Święczkowski",
-  "Metro North West & Bankstown Line",
+  "2026 Hong Kong Sixes",
+  "Mišo Kovač",
+  "Ryo Hirakawa",
+  "Constitutional Tribunal (Poland)",
+  "King (2026 film)",
+  "Harold E. Puthoff",
+  "2026 North Indian Ocean cyclone season",
+  "2026 International Championship",
+  "UFC Fight Night: Moicano vs. Nolan",
+  "Carlos Alcaraz career statistics",
+  "Isabeau Levito",
+  "All Saints' Day",
   "2026–27 Indian Football League",
-  "Andreas Malm",
-  "Miss Earth 2026"
+  "Nicole Wallace (actress)",
+  "New Zealand national rugby league team",
+  "Bogdan Święczkowski",
+  "The Mongoose (film)"
  ]
 }

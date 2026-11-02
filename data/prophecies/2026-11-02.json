@@ -1,0 +1,55 @@
+{
+ "date": "2026-11-02",
+ "generated_at": "2026-11-02T00:42:25+00:00",
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "predictions": [
+  {
+   "text": "I predict that an important politician from Bulgaria will deliver the inaugural address at the ceremony.",
+   "due": "2026-11-09",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that a prominent organization in transportation safety will release their preliminary findings on the cause of the crash, indicating pilot error as the primary factor, with no significant mechanical issues found.",
+   "due": "2026-11-09",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the anti-CEC protests in India continue, with thousands more joining in New Delhi by the end of Monday, 9 November 2026.",
+   "due": "2026-11-09",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that at least two regions in Bolivia will have declared local states of emergency due to the El Niño event by the end of Monday, 9 November 2026.",
+   "due": "2026-11-09",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Dutch authorities charge two individuals with human trafficking offenses by the end of Monday, 9 November 2026.",
+   "due": "2026-11-09",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the suspension of a prominent individual will remain unresolved, with ongoing diplomatic tensions between a major country, China, and Romania, particularly in the form of continued resignations of officials representing that major country.",
+   "due": "2026-11-09",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Chinese-run scam centers in Cambodia will be identified and shut down, involving at least 13 additional centers.",
+   "due": "2026-11-09",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Russia will finish ranked between 35th and 45th in the final standings of the 2026 Summer Youth Olympics, with no medals won.",
+   "due": "2026-11-02",
+   "topic": "sport",
+   "confidence": "medium"
+  }
+ ]
+}
