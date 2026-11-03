@@ -1,0 +1,67 @@
+{
+ "date": "2026-11-03",
+ "generated_at": "2026-11-03T00:41:51+00:00",
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "predictions": [
+  {
+   "text": "I predict that the Blue Coalition will form the new government with 61 seats in the 26th Knesset.",
+   "due": "2026-11-10",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the French bill will pass into law, with similar protests and clashes continuing in multiple European countries including France, Germany, the Netherlands, Switzerland, and Portugal.",
+   "due": "2026-11-10",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Colombian conflict will continue with another bombing in a city other than Cúcuta or Planadas, involving at least one more country providing support to the Colombian military.",
+   "due": "2026-11-10",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Russian attacks on civilians in the Russo-Ukrainian war will result in at least 24 more casualties by the end of Tuesday, 10 November 2026, with the attacks continuing in Zaporizhzhia Oblast.",
+   "due": "2026-11-10",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the inaugural speech will be delivered by an important politician from Bulgaria, emphasizing national unity and continuity in governance.",
+   "due": "2026-11-10",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that another European country experiences similar attacks on its supermarkets' refrigeration systems.",
+   "due": "2026-11-10",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that a prominent organization in transportation safety will lead the investigation and their preliminary findings will indicate pilot error as the cause of the crash, with no evidence of mechanical failure.",
+   "due": "2026-11-10",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Bolivian state of emergency will continue to be declared in multiple regions across Bolivia, with at least two departments maintaining the state of emergency by the end of Tuesday, 10 November 2026.",
+   "due": "2026-11-10",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that a prominent politician will face another attack or threat by the end of Tuesday, 10 November 2026.",
+   "due": "2026-11-10",
+   "topic": "conflict",
+   "confidence": "low"
+  },
+  {
+   "text": "I predict that India will win the championship title.",
+   "due": "2026-11-05",
+   "topic": "sport",
+   "confidence": "medium"
+  }
+ ]
+}
