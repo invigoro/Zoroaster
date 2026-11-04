@@ -1,40 +1,33 @@
 {
- "date": "2026-11-02",
+ "date": "2026-11-03",
  "target": "a burst of edits by 2+ editors (mass editors left out)",
- "mass_editors": 332,
+ "mass_editors": 331,
  "precision": {
   "model": {
-   "10": 0.3,
-   "50": 0.26,
-   "100": 0.19,
-   "1000": 0.052
+   "10": 0.1,
+   "50": 0.14,
+   "100": 0.12,
+   "1000": 0.042
   },
   "edits yesterday": {
-   "10": 0.2,
-   "50": 0.12,
-   "100": 0.09,
-   "1000": 0.036
+   "10": 0.1,
+   "50": 0.08,
+   "100": 0.08,
+   "1000": 0.037
   }
  },
  "hits": [
-  "2026 Mexico City Grand Prix",
-  "Learjet 60",
-  "John Leeson",
-  "United Nations Mission for the Referendum in Western Sahara",
-  "Rise and Fall (Indian TV series)",
-  "2026 Skate Canada International",
-  "List of Formula One World Drivers' Champions",
-  "Ryo Hirakawa",
-  "Haley Stevens",
-  "Kiah Stokes",
-  "2026 Italian F4 Championship",
-  "Kimi Antonelli",
-  "November 1",
-  "Harriet Dart",
-  "Ate Gay",
+  "Gina Hinojosa",
   "Frozen yogurt",
-  "Argentina at the 2026 Summer Youth Olympics",
+  "Sovetsky Soyuz-class battleship",
+  "Josef and Ctirad Mašín",
+  "Yaxel Lendeborg",
+  "Freddie Mwila",
+  "John Leeson",
+  "Japan at the 2026 Summer Youth Olympics",
   "2026 Summer Youth Olympics",
-  "Ved Rahi"
+  "The Gilded Age (TV series)",
+  "2026 United States Senate election in Louisiana",
+  "Ashok Kumar Mahapatra"
  ]
 }

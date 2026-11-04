@@ -1,0 +1,67 @@
+{
+ "date": "2026-11-04",
+ "generated_at": "2026-11-04T00:40:37+00:00",
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "predictions": [
+  {
+   "text": "I predict that the 2026 Commonwealth Heads of Government Meeting will see the leaders' private retreat on Jumby Bay Island resulting in agreements on climate resilience, trade, and investment, with a focus on reducing non-tariff barriers and promoting intra-Commonwealth trade.",
+   "due": "2026-11-04",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Strait of Hormuz will see at least two more naval engagements between U.S. and Iranian forces, with one occurring near the Omani coast and the other in international waters.",
+   "due": "2026-11-11",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Israeli airstrikes in the Gaza Strip will target militant positions in Gaza City and Rafah, resulting in multiple casualties over the next week.",
+   "due": "2026-11-11",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Russian forces will continue to target civilian areas in Zaporizhzhia Oblast, Ukraine, specifically in the city of Komyshuvakha, causing at least 33 casualties.",
+   "due": "2026-11-11",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Rapid Support Forces will launch drone strikes against distribution stations in Sudan's Kassala and Northern states, resulting in at least 8 casualties.",
+   "due": "2026-11-11",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that another European country experiences similar cyberattacks on its supermarkets' refrigeration systems.",
+   "due": "2026-11-11",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Reserve Bank of Australia will raise its benchmark interest rate again by 0.25 percentage points, likely due to ongoing inflation concerns.",
+   "due": "2026-11-11",
+   "topic": "economy",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the electoral votes will be certified first by a prominent official in a major government body.",
+   "due": "2026-11-11",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that there will be additional explosions near military bases in Colombia, specifically in the Tolima Department, with at least one more explosion occurring by the end of Wednesday, 11 November 2026.",
+   "due": "2026-11-11",
+   "topic": "conflict",
+   "confidence": "low"
+  },
+  {
+   "text": "I predict that communal conflicts in Zamfara State and nearby regions continue, with at least two more ambushes targeting security forces by unidentified attackers.",
+   "due": "2026-11-11",
+   "topic": "conflict",
+   "confidence": "medium"
+  }
+ ]
+}
