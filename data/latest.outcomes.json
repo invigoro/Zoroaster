@@ -1,33 +1,30 @@
 {
- "date": "2026-11-03",
+ "date": "2026-11-04",
  "target": "a burst of edits by 2+ editors (mass editors left out)",
- "mass_editors": 331,
+ "mass_editors": 285,
  "precision": {
   "model": {
-   "10": 0.1,
-   "50": 0.14,
-   "100": 0.12,
-   "1000": 0.042
+   "10": 0.0,
+   "50": 0.1,
+   "100": 0.09,
+   "1000": 0.057
   },
   "edits yesterday": {
-   "10": 0.1,
+   "10": 0.0,
    "50": 0.08,
    "100": 0.08,
-   "1000": 0.037
+   "1000": 0.047
   }
  },
  "hits": [
+  "2026 United States Senate election in Kentucky",
   "Gina Hinojosa",
-  "Frozen yogurt",
-  "Sovetsky Soyuz-class battleship",
-  "Josef and Ctirad Mašín",
-  "Yaxel Lendeborg",
-  "Freddie Mwila",
-  "John Leeson",
-  "Japan at the 2026 Summer Youth Olympics",
-  "2026 Summer Youth Olympics",
-  "The Gilded Age (TV series)",
-  "2026 United States Senate election in Louisiana",
-  "Ashok Kumar Mahapatra"
+  "2026 Idaho Official State Gun Question",
+  "The Cat in the Hat (2026 film)",
+  "David Walliams",
+  "2026–27 UEFA Youth League Domestic Champions Path",
+  "2026 Colorado gubernatorial election",
+  "2026 Illinois gubernatorial election",
+  "2026 United States elections"
  ]
 }
