@@ -1,0 +1,37 @@
+{
+ "date": "2026-11-05",
+ "target": "a burst of edits by 2+ editors (mass editors left out)",
+ "mass_editors": 297,
+ "precision": {
+  "model": {
+   "10": 0.2,
+   "50": 0.18,
+   "100": 0.16,
+   "1000": 0.086
+  },
+  "edits yesterday": {
+   "10": 0.2,
+   "50": 0.08,
+   "100": 0.11,
+   "1000": 0.057
+  }
+ },
+ "hits": [
+  "The Angry Birds Movie 3",
+  "Deb Haaland",
+  "Rena Lee",
+  "2026 United States Senate election in Mississippi",
+  "Hubert Aiwanger",
+  "Xavier Becerra",
+  "Richard Ojeda",
+  "Aaron Ford (Nevada politician)",
+  "Nithya Raman",
+  "Herbert Blomstedt",
+  "2026 United States elections",
+  "Scott Colom",
+  "Nancy Lacore",
+  "Wave elections in the United States",
+  "Nathan M. Johnson",
+  "Sam Forstag"
+ ]
+}

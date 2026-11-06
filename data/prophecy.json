@@ -1,36 +1,66 @@
 {
- "date": "2026-11-05",
- "generated_at": "2026-11-05T00:39:48+00:00",
+ "date": "2026-11-06",
+ "generated_at": "2026-11-06T00:40:36+00:00",
  "model": "Qwen/Qwen2.5-7B-Instruct",
  "predictions": [
   {
-   "text": "I predict that the Strait of Hormuz will see at least two more naval engagements involving ships from the United States and Iran.",
-   "due": "2026-11-12",
-   "topic": "conflict",
+   "text": "I predict that the African National Congress will win the majority of council seats in the 2026 South African municipal elections, with the Democratic Alliance and Congress of the People as the main opposition parties.",
+   "due": "2026-11-06",
+   "topic": "politics",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the Reserve Bank of Australia will raise interest rates again before the end of November 2026, possibly by another 0.25 percentage points, in response to ongoing inflation pressures.",
-   "due": "2026-11-12",
-   "topic": "economy",
+   "text": "I predict that the Rulers will win Season 2 of Rise and Fall.",
+   "due": "2026-11-06",
+   "topic": "other",
+   "confidence": "low"
+  },
+  {
+   "text": "I predict that the general strike across France will continue, with additional protests in France.",
+   "due": "2026-11-13",
+   "topic": "politics",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the new laws in Singapore will be enforced with arrests and fines against companies or individuals responsible for contributing to the haze, with at least one significant case involving an Indonesian company by the end of Thursday, 12 November 2026.",
-   "due": "2026-11-12",
+   "text": "I predict that an incumbent prime minister seeks a second term in office.",
+   "due": "2026-11-13",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the first witness called during the impeachment trial will be a member of the Chamber of Deputies.",
+   "due": "2026-11-13",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Singapore will enforce the new laws with at least one arrest and fines imposed on companies or individuals responsible for the haze by the end of Friday, 13 November 2026.",
+   "due": "2026-11-13",
    "topic": "health",
    "confidence": "medium"
   },
   {
-   "text": "I predict that communal conflicts in Zamfara State will continue, with at least one more attack on a security convoy involving the Nigerian military or a local protection force.",
-   "due": "2026-11-12",
-   "topic": "conflict",
+   "text": "I predict that the Federal High Court of Nigeria will rule on the validity of the African Democratic Congress's leadership on November 10, 2026.",
+   "due": "2026-11-13",
+   "topic": "politics",
    "confidence": "medium"
   },
   {
-   "text": "I predict that India will win the 2026 Men's Asian Champions Trophy.",
-   "due": "2026-11-05",
-   "topic": "sport",
+   "text": "I predict that the agricultural sector will be regulated first, allowing for the cultivation of cannabis for hemp production.",
+   "due": "2026-11-13",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the first sector to require digital payments exclusively will be the financial services sector in Mexico.",
+   "due": "2026-11-13",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Philippines and Laos will seize at least two additional shipments of methamphetamine within the next week.",
+   "due": "2026-11-13",
+   "topic": "crime",
    "confidence": "medium"
   }
  ]

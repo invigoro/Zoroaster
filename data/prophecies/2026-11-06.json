@@ -1,0 +1,67 @@
+{
+ "date": "2026-11-06",
+ "generated_at": "2026-11-06T00:40:36+00:00",
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "predictions": [
+  {
+   "text": "I predict that the African National Congress will win the majority of council seats in the 2026 South African municipal elections, with the Democratic Alliance and Congress of the People as the main opposition parties.",
+   "due": "2026-11-06",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Rulers will win Season 2 of Rise and Fall.",
+   "due": "2026-11-06",
+   "topic": "other",
+   "confidence": "low"
+  },
+  {
+   "text": "I predict that the general strike across France will continue, with additional protests in France.",
+   "due": "2026-11-13",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that an incumbent prime minister seeks a second term in office.",
+   "due": "2026-11-13",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the first witness called during the impeachment trial will be a member of the Chamber of Deputies.",
+   "due": "2026-11-13",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Singapore will enforce the new laws with at least one arrest and fines imposed on companies or individuals responsible for the haze by the end of Friday, 13 November 2026.",
+   "due": "2026-11-13",
+   "topic": "health",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Federal High Court of Nigeria will rule on the validity of the African Democratic Congress's leadership on November 10, 2026.",
+   "due": "2026-11-13",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the agricultural sector will be regulated first, allowing for the cultivation of cannabis for hemp production.",
+   "due": "2026-11-13",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the first sector to require digital payments exclusively will be the financial services sector in Mexico.",
+   "due": "2026-11-13",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Philippines and Laos will seize at least two additional shipments of methamphetamine within the next week.",
+   "due": "2026-11-13",
+   "topic": "crime",
+   "confidence": "medium"
+  }
+ ]
+}
