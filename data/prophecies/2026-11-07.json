@@ -1,0 +1,25 @@
+{
+ "date": "2026-11-07",
+ "generated_at": "2026-11-07T00:41:12+00:00",
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "predictions": [
+  {
+   "text": "I predict that the number of cities experiencing protests increases, with significant incidents in Frankfurt and Lisbon.",
+   "due": "2026-11-14",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that two additional individuals are charged with corruption related to the Koldo affair by the end of Saturday, 14 November 2026, in Spain.",
+   "due": "2026-11-14",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the United States will report more than 5,182 measles cases and at least eight measles-related deaths by the end of this week.",
+   "due": "2026-11-14",
+   "topic": "health",
+   "confidence": "medium"
+  }
+ ]
+}
