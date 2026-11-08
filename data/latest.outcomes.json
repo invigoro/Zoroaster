@@ -1,40 +1,39 @@
 {
- "date": "2026-11-06",
+ "date": "2026-11-07",
  "target": "a burst of edits by 2+ editors (mass editors left out)",
- "mass_editors": 304,
+ "mass_editors": 280,
  "precision": {
   "model": {
-   "10": 0.1,
-   "50": 0.2,
-   "100": 0.19,
-   "1000": 0.067
+   "10": 0.4,
+   "50": 0.3,
+   "100": 0.18,
+   "1000": 0.076
   },
   "edits yesterday": {
-   "10": 0.4,
-   "50": 0.16,
+   "10": 0.1,
+   "50": 0.1,
    "100": 0.12,
    "1000": 0.048
   }
  },
  "hits": [
-  "2026 United States Senate election in Mississippi",
-  "Santiago Peña",
-  "2026 United States state legislative elections",
-  "LIV Golf",
-  "Nettspend",
-  "Harmeet Dhillon",
-  "List of best-selling Nintendo Switch 2 games",
-  "Wild Horse Nine",
-  "Pedro Alliana",
-  "2026 Hawaii House of Representatives election",
-  "Nithya Raman",
-  "Russell Brand",
-  "List of heads of state of Paraguay",
-  "Fred Forest",
-  "2026 North Carolina Senate election",
-  "Genshin Impact",
-  "Sam Forstag",
-  "2026 United Nations Secretary-General selection",
-  "2026 Grenadian general election"
+  "The Cat in the Hat (2026 film)",
+  "Tesla Cybertruck",
+  "White House Chief of Staff",
+  "Michael Locke (stuntman)",
+  "Stephen Miller",
+  "2026 Nations Championship Northern Hemisphere Series",
+  "Ramayana: Part 1",
+  "Thomas Markle",
+  "Mookuthi Amman 2",
+  "Scene (2026 film)",
+  "List of most-liked Instagram posts",
+  "Godzilla Minus Zero",
+  "2026 São Paulo Grand Prix",
+  "Creed Brothers",
+  "Sebastián Lelio",
+  "Hossein Omoumi",
+  "Daffy Season",
+  "2026 World Rugby Nations Cup European-African-Asian Series"
  ]
 }

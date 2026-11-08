@@ -1,0 +1,39 @@
+{
+ "date": "2026-11-07",
+ "target": "a burst of edits by 2+ editors (mass editors left out)",
+ "mass_editors": 280,
+ "precision": {
+  "model": {
+   "10": 0.4,
+   "50": 0.3,
+   "100": 0.18,
+   "1000": 0.076
+  },
+  "edits yesterday": {
+   "10": 0.1,
+   "50": 0.1,
+   "100": 0.12,
+   "1000": 0.048
+  }
+ },
+ "hits": [
+  "The Cat in the Hat (2026 film)",
+  "Tesla Cybertruck",
+  "White House Chief of Staff",
+  "Michael Locke (stuntman)",
+  "Stephen Miller",
+  "2026 Nations Championship Northern Hemisphere Series",
+  "Ramayana: Part 1",
+  "Thomas Markle",
+  "Mookuthi Amman 2",
+  "Scene (2026 film)",
+  "List of most-liked Instagram posts",
+  "Godzilla Minus Zero",
+  "2026 São Paulo Grand Prix",
+  "Creed Brothers",
+  "Sebastián Lelio",
+  "Hossein Omoumi",
+  "Daffy Season",
+  "2026 World Rugby Nations Cup European-African-Asian Series"
+ ]
+}

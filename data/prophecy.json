@@ -1,24 +1,66 @@
 {
- "date": "2026-11-07",
- "generated_at": "2026-11-07T00:41:12+00:00",
+ "date": "2026-11-08",
+ "generated_at": "2026-11-08T00:42:17+00:00",
  "model": "Qwen/Qwen2.5-7B-Instruct",
  "predictions": [
   {
-   "text": "I predict that the number of cities experiencing protests increases, with significant incidents in Frankfurt and Lisbon.",
-   "due": "2026-11-14",
+   "text": "I predict that the official start of the 2026-27 South-West Indian Ocean cyclone season will be declared on 15 November 2026.",
+   "due": "2026-11-15",
+   "topic": "other",
+   "confidence": "high"
+  },
+  {
+   "text": "I predict that the Labour Party will win the election but will not form the government due to the National Party's overhang seats, resulting in a coalition government between the National Party and its partners.",
+   "due": "2026-11-08",
    "topic": "politics",
    "confidence": "medium"
   },
   {
-   "text": "I predict that two additional individuals are charged with corruption related to the Koldo affair by the end of Saturday, 14 November 2026, in Spain.",
-   "due": "2026-11-14",
+   "text": "I predict that the Blue Coalition will win the majority and form the next government in the 26th Knesset.",
+   "due": "2026-11-10",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Central Bank of Paraguay will provide testimony regarding the actions taken with Ueno Bank's accounts.",
+   "due": "2026-11-15",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that French student protests will continue with about 146,000 participants in a single protest event this week.",
+   "due": "2026-11-15",
    "topic": "crime",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the United States will report more than 5,182 measles cases and at least eight measles-related deaths by the end of this week.",
-   "due": "2026-11-14",
-   "topic": "health",
+   "text": "I predict that the Rapid Support Forces will launch another drone strike against a water source in North Kordofan.",
+   "due": "2026-11-15",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the court grants the delay requested by a major legal body, allowing a prominent political figure to remain in prison for another week.",
+   "due": "2026-11-15",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that another country will offer aid to Indonesia beyond Australia, with that country sending a C-130 Hercules aircraft to assist in extinguishing the wildfires.",
+   "due": "2026-11-15",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the perpetrator will be charged with mass murder rather than terrorism, and the case will be transferred to a higher court in Kraków for trial by the end of Sunday, 15 November 2026.",
+   "due": "2026-11-15",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Labour Party will have the most seats after counting all special votes.",
+   "due": "2026-11-15",
+   "topic": "politics",
    "confidence": "medium"
   }
  ]
