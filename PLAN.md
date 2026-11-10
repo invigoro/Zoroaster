@@ -1507,7 +1507,19 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
         ungrounded because its 4,000 was a count of militants killed.
       - **The drafts:** 113 did not happen, 52 unknown, 49 partly, 40
         happened, 5 not possible. 41 were already known, 31 not grounded.
-        Seeded on the review page for the user to confirm.
+      - **Confirmed in bulk:** the user agreed with all the assessments
+        ("Please mark them as confirmed", 2026-11-10). Claude wrote the
+        259 reviews as confirmed, each noting it wasn't checked card by
+        card. Worth weighing when these serve as reference grades for the
+        judge or for training (§7): the first round's and the development
+        runs' were each looked at.
+      - **On the site** the same day: the guardrail check left out 13 of
+        the 259 lines, so those show the outcome alone. Most were false
+        alarms: a hurricane's name (Isaias) and "Israeli soldiers",
+        "candidate" or "chemistry laureates" taken for a person; the RSF,
+        an armed group the user allowed (§2), and Wikipedia taken for an
+        organization doing harm. Next round's lines can avoid them ("Hurricane
+        Isaias", "Israeli forces").
       - An election on the due day counts its result, even when the count
         is finished after midnight UTC (South Dakota, 3 November), as with
         the Czech Senate's first round.
@@ -2942,8 +2954,8 @@ old step 2 (move to English Wikipedia) is now step 5.
                 once a week, Claude's drafts confirmed by the user, and the
                 site shows the grades. Weekly from now: the round in the
                 README, then the judge checked against the live grades too.
-                The second round (259, four weeks') is drafted and awaits
-                the user's review (2026-11-10).
+                The second round (259, four weeks') is confirmed and on
+                the site (2026-11-10).
               - **Next, from the second round (§3 item 39):**
                 - **Fix:** a date with no year is marked as today's only if
                   its section is about this year; four predictions forecast
