@@ -1,0 +1,32 @@
+{
+ "date": "2026-11-09",
+ "target": "a burst of edits by 2+ editors (mass editors left out)",
+ "mass_editors": 304,
+ "precision": {
+  "model": {
+   "10": 0.1,
+   "50": 0.14,
+   "100": 0.11,
+   "1000": 0.046
+  },
+  "edits yesterday": {
+   "10": 0.1,
+   "50": 0.08,
+   "100": 0.08,
+   "1000": 0.038
+  }
+ },
+ "hits": [
+  "Jason Beck (American football)",
+  "Ramayana: Part 1",
+  "List of Democratic Socialists of America public officeholders",
+  "Jensen Huang",
+  "Druski",
+  "Dževad Prekazi",
+  "2026 Season Finale 400",
+  "2026 Summer Youth Olympics",
+  "Brazil at the 2026 Summer Youth Olympics",
+  "Eileen Laubacher",
+  "Tony Butala"
+ ]
+}

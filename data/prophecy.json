@@ -1,66 +1,66 @@
 {
- "date": "2026-11-09",
- "generated_at": "2026-11-09T00:41:55+00:00",
+ "date": "2026-11-10",
+ "generated_at": "2026-11-10T01:35:59+00:00",
  "model": "Qwen/Qwen2.5-7B-Instruct",
  "predictions": [
   {
-   "text": "I predict that the Rapid Support Forces will launch another drone strike against a water source in North Kordofan.",
-   "due": "2026-11-16",
+   "text": "I predict that pro-Palestine protesters will confront pro-Israel counterprotesters in Philadelphia, Pennsylvania, United States, and at least three people will be arrested.",
+   "due": "2026-11-17",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Khor Mor gas field in Iraqi Kurdistan will face another drone attack, possibly targeting another storage facility, by the end of Tuesday, 17 November 2026.",
+   "due": "2026-11-17",
    "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the Colombian conflict will continue with another drone strike by the end of Monday, 16 November 2026, targeting a military base in Bolívar Department.",
-   "due": "2026-11-16",
+   "text": "I predict that a prominent individual in Paraguay will be found guilty of the alleged conflicts of interest involving a major financial institution, and the trial concludes with a verdict by the end of Tuesday, 17 November 2026, with Paraguay being the country involved.",
+   "due": "2026-11-17",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Saudi airstrikes will hit homes near Sanaa, Yemen, resulting in at least 27 casualties.",
+   "due": "2026-11-17",
    "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the Houthi–Saudi conflict will continue with Saudi airstrikes hitting residential areas in Yemen, resulting in at least 30 casualties by the end of Monday, 16 November 2026.",
-   "due": "2026-11-16",
+   "text": "I predict that another shootout will occur in Sinaloa, involving Mexican authorities and members of the Jalisco New Generation Cartel.",
+   "due": "2026-11-17",
    "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the investigation into the El Ayyat train collision will find that signaling systems and track maintenance standards are inadequate and require immediate attention, with similar accidents occurring in at least one other country by the end of November 16, 2026, including one in Egypt.",
-   "due": "2026-11-16",
+   "text": "I predict that the Strait of Hormuz will see at least one more incident involving a ship being hit or an explosion occurring, likely near Qeshm Island.",
+   "due": "2026-11-17",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the court hearing for the shooter will be scheduled for the city of Kraków, Poland, by the end of Tuesday, 17 November 2026.",
+   "due": "2026-11-17",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that prominent actors and a prominent organization will question the safety standards of facilities operated by local groups, particularly those in industrial zones near a major city, leading to the formation of a joint inquiry team involving representatives from both entities.",
+   "due": "2026-11-17",
    "topic": "disaster",
    "confidence": "medium"
   },
   {
-   "text": "I predict that student protesters across France will continue their demonstrations with about 146,000 participants.",
-   "due": "2026-11-16",
-   "topic": "politics",
+   "text": "I predict that a prominent government agency and a major regulatory body in Egypt will present their findings on the cause of the incident at the public hearing scheduled for this week.",
+   "due": "2026-11-17",
+   "topic": "disaster",
    "confidence": "medium"
   },
   {
-   "text": "I predict that a prominent political figure secures sufficient support from a major political group to form a coalition government, but fails to reach the necessary number of seats by the end of Monday, 16 November 2026, leaving Israel without a clear majority government.",
-   "due": "2026-11-16",
-   "topic": "politics",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the first court hearing for the shooter will be held in Kraków, Poland, by the end of Monday, 16 November 2026.",
-   "due": "2026-11-16",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the National Party will have the most seats in the House of Representatives by the end of Monday, 16 November 2026, with more than the Labour Party.",
-   "due": "2026-11-16",
-   "topic": "politics",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that Canada wins the 2026 IIHF Women's World Championship against Denmark in the final on 16 November 2026.",
-   "due": "2026-11-16",
-   "topic": "sport",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the final match of the 2026 ACC Under-19 Asia Cup will be between Afghanistan and Sri Lanka, with Afghanistan winning by 6 wickets.",
-   "due": "2026-11-14",
-   "topic": "sport",
+   "text": "I predict that the investigation team will identify mechanical failure as the cause of the helicopter crash in South Kalimantan.",
+   "due": "2026-11-17",
+   "topic": "disaster",
    "confidence": "medium"
   }
  ]
