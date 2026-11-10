@@ -7,55 +7,109 @@
    "text": "I predict that the Student List wins the 2026 Serbian parliamentary election and forms the government.",
    "due": "2026-11-01",
    "topic": "politics",
-   "confidence": "high"
+   "confidence": "high",
+   "grade": {
+    "outcome": "partly",
+    "already_known": true,
+    "vague": false,
+    "line": "The Student List had won the 25 October election with 53% of the vote, but no new government was reported formed by 1 November."
+   }
   },
   {
    "text": "I predict that the Celebrity Traitors series 2 will conclude with the Traitors team winning the competition, distributing the £100,000 among their chosen charities.",
    "due": "2026-10-30",
    "topic": "other",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "The Faithfuls won the final on 30 October, sharing the prize money for their chosen charities; the last Traitor was banished."
+   }
   },
   {
    "text": "I predict that Saudi Arabia launches its next round of airstrikes in Al Hazm, Al-Jawf Governorate, Yemen, killing 14 civilians and wounding 10.",
    "due": "2026-11-06",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "The next reported Saudi strike hit a market in Taiz Governorate on 6 November, killing 30. None was reported in Al Hazm."
+   }
   },
   {
    "text": "I predict that further drone strikes will occur in Nyala, Sudan, resulting in over 100 people killed and 112 more injured.",
    "due": "2026-11-06",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No new strikes on Nyala were reported by 6 November; the over-100 toll was from the 26 October market strike. Later strikes hit Kassala, Northern state and North Kordofan."
+   }
   },
   {
    "text": "I predict that at least three people will have been killed as Cyclone Arnab makes landfall in Andhra Pradesh, India.",
    "due": "2026-11-06",
    "topic": "disaster",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "happened",
+    "already_known": true,
+    "vague": false,
+    "line": "Reported on 28 October, two days before this was foretold: at least three people were killed as the cyclone made landfall in Andhra Pradesh."
+   }
   },
   {
    "text": "I predict that there will be additional attacks on Israeli embassies in Belgrade, Serbia, by the end of Friday, 6 November 2026.",
    "due": "2026-11-06",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No further attack on the Israeli embassy in Belgrade, or on any Israeli embassy, was reported by 6 November."
+   }
   },
   {
    "text": "I predict that the United States will impose additional sanctions on the Rwandan military, targeting specific individuals within the ministry of defence, and this action will be accompanied by a statement from the United States government.",
    "due": "2026-11-06",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No new US sanctions on Rwanda's military were reported by 6 November. On 2 November the US suspended Rwanda's duty-free trade benefits from 2027."
+   }
   },
   {
    "text": "I predict that clashes between armed groups from a prominent country and local resistance groups will continue in the capital city, with at least one skirmish involving both sides by the end of Friday, 6 November 2026.",
    "due": "2026-11-06",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "Salvadoran, Haitian and Gang Suppression Force troops attacked gangs in the Cul-de-Sac plain on 2 November, killing at least a dozen; no fighting in the capital itself was reported."
+   }
   },
   {
    "text": "I predict that the women's championship will be won by Team Sweden and the men's championship will be won by Team Norway, with both teams winning their respective playoffs.",
    "due": "2026-10-30",
    "topic": "sport",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "Only the round robin finished on 30 October; the playoffs and finals came after that day, with the championships ending on 1 November."
+   }
   }
  ]
 }

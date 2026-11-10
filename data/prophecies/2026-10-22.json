@@ -7,61 +7,121 @@
    "text": "I predict that the death toll from drone strikes in the Abyei area and other conflict zones in Sudan will rise to at least 220 by the end of Thursday, 29 October 2026, with the Sudanese Army and the Rapid Support Forces continuing their operations in the region.",
    "due": "2026-10-29",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "happened",
+    "already_known": true,
+    "vague": false,
+    "line": "The Abyei toll had already reached 220 on 20 October, before this forecast; a drone strike in Nyala on 26 October killed over 100 more."
+   }
   },
   {
    "text": "I predict that the United States, Russia, and Ukraine will continue their peace talks, but no formal agreement will be reached by the end of Thursday, 29 October 2026.",
    "due": "2026-10-29",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "No peace deal was reached by 29 October, but Russia and Ukraine agreed a U.S.-brokered local ceasefire for Oleshky on 23 October; talks were set for November."
+   }
   },
   {
    "text": "I predict that Nigeria will report two more cases of Ebola virus, both involving health workers treating the first patient.",
    "due": "2026-10-29",
    "topic": "health",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "Nigeria still had a single confirmed case on 29 October; it traced at least 44 contacts, but no new cases were reported."
+   }
   },
   {
    "text": "I predict that the investigation into the 2022 San Antonio migrant deaths will lead to the charging and arrest of at least one more suspect by the end of Thursday, 29 October 2026, bringing the total number of those charged to at least two.",
    "due": "2026-10-29",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "The reports up to 29 October gave no new arrests or charges in the case."
+   }
   },
   {
    "text": "I predict that the Saudi Public Investment Fund will finalize the sale of Electronic Arts and announce the new ownership structure in Canada.",
    "due": "2026-10-29",
    "topic": "science",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": true,
+    "vague": false,
+    "line": "The buyout had already been reported as complete before this forecast; no announcement of a new ownership structure was reported by 29 October."
+   }
   },
   {
    "text": "I predict that protests and public sentiment in Iran and neighboring countries will continue to put pressure on governments to maintain lower fuel prices, with clashes between protesters and security forces occurring in at least two cities across Iran by the end of Thursday, 29 October 2026.",
    "due": "2026-10-29",
    "topic": "economy",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No clashes between protesters and security forces in Iran were reported by 29 October."
+   }
   },
   {
    "text": "I predict that the United Kingdom will deploy RAF Typhoons to support Saudi Arabia in defending against Houthi attacks.",
    "due": "2026-10-29",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": true,
+    "vague": false,
+    "line": "The UK announced the deployment on 20 October, before this forecast; no report up to 29 October said the jets had arrived."
+   }
   },
   {
    "text": "I predict that the Martian Moons eXploration spacecraft successfully reaches orbit around Phobos.",
    "due": "2026-10-29",
    "topic": "science",
-   "confidence": "high"
+   "confidence": "high",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "The spacecraft launched toward Phobos on 20 October on a mission returning samples in 2031; no arrival there was reported by 29 October."
+   }
   },
   {
    "text": "I predict that the legal challenges will not succeed in overturning the approval, and the maritime boundary agreement between Libya (GNA) and Turkey will remain in effect.",
    "due": "2026-10-29",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "happened",
+    "already_known": false,
+    "vague": true,
+    "line": "The deal stayed in place: no court challenge to it, or reversal of it, was reported by 29 October."
+   }
   },
   {
    "text": "I predict that South Korea will issue a statement expressing concern over the handling of the North Korean soldiers by Ukraine, but will not take any additional actions against Ukraine.",
    "due": "2026-10-29",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "The reports up to 29 October gave no further statement or action by South Korea on the dispute."
+   }
   }
  ]
 }

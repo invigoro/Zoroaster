@@ -7,61 +7,121 @@
    "text": "I predict that the song 'Coming Up Roses' will be released as the fourth single from the album 'Disco, Occasionally' on 30 October 2026.",
    "due": "2026-10-30",
    "topic": "other",
-   "confidence": "high"
+   "confidence": "high",
+   "grade": {
+    "outcome": "happened",
+    "already_known": true,
+    "vague": false,
+    "line": "It came out as the album's fourth single on 30 October, the date Wikipedia had already given four days before."
+   }
   },
   {
    "text": "I predict that at least 410,000 people participate in the protests in France.",
    "due": "2026-11-02",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "The biggest protest day in France in the span, 31 October, drew about 320,000 people nationwide, short of 410,000."
+   }
   },
   {
    "text": "I predict that the Student List will form a coalition government with multiple smaller parties, including at least one from the liberal bloc and one from the progressive bloc.",
    "due": "2026-11-02",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No new Serbian government had been formed by 2 November, and no coalition talks were reported after the Student List won the election with 53% of the vote."
+   }
   },
   {
    "text": "I predict that the Israeli military will raid 15 additional cities in the occupied West Bank, arresting several Palestinians.",
    "due": "2026-11-02",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No new raids on 15 more West Bank cities were reported by 2 November; Israeli forces instead withdrew from around Hebron that day after a multi-day operation."
+   }
   },
   {
    "text": "I predict that Nigeria identifies at least 44 new cases through contact tracing by the end of Monday, 2 November 2026.",
    "due": "2026-11-02",
    "topic": "health",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No new Ebola cases in Nigeria were reported by 2 November; the 44 people traced on 25 October were contacts, not confirmed cases."
+   }
   },
   {
    "text": "I predict that the number of arrests in Italy due to the ongoing protests will exceed 71 by the end of Monday, 2 November 2026, with at least 1,339 individuals identified by the authorities.",
    "due": "2026-11-02",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "No arrest figures were reported for Italy's protests by 2 November, though clashes broke out in several cities on 30 October."
+   }
   },
   {
    "text": "I predict that the investigation into the 2026 Karak church shooting will continue, with forensic evidence linking the suspects to the crime scene, and that the Jordanian authorities will arrest three individuals by the end of Monday, 2 November 2026.",
    "due": "2026-11-02",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "happened",
+    "already_known": false,
+    "vague": false,
+    "line": "Jordanian security forces arrested the three gunmen on 26 October after a shootout at an abandoned building."
+   }
   },
   {
    "text": "I predict that at least 2,639 people will have been evacuated and over 527 people will have been injured by the end of Monday, 2 November 2026, as Typhoon Champi continues to affect Taiwan.",
    "due": "2026-11-02",
    "topic": "disaster",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "No updated figures for Typhoon Champi came out by 2 November; the last reports, on 23 and 24 October, gave 2,639 evacuated and 527 injured."
+   }
   },
   {
    "text": "I predict that a prominent political party will form a government with a cabinet including an important politician from the party who will serve as the new leader, with the cabinet likely to include representatives from various sectors of the province.",
    "due": "2026-11-02",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": true,
+    "line": "The Conservatives had won British Columbia's election on 24 October; no report by 2 November said whether a new cabinet had been sworn in. The prediction named no party or leader."
+   }
   },
   {
    "text": "I predict that unknown gunmen attack another village in Taraba State, Nigeria, resulting in at least 20 deaths by the end of Monday, 2 November 2026.",
    "due": "2026-11-02",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No new attack in Taraba State was reported by 2 November; the toll from the earlier attack on a village there rose to 62 dead on 27 October."
+   }
   }
  ]
 }

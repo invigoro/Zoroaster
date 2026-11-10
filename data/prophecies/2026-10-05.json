@@ -7,25 +7,49 @@
    "text": "I predict that a prominent armed group retains control of Mekelle, the capital of the Tigray Region, by the end of Monday, 12 October 2026.",
    "due": "2026-10-12",
    "topic": "conflict",
-   "confidence": "low"
+   "confidence": "low",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "Ethiopian federal forces had taken Mekelle from the TPLF on 4 October, the day before this was foretold, and no report through 12 October had the city change hands again."
+   }
   },
   {
    "text": "I predict that the Strait of Hormuz will see at least 2 million barrels of oil transported in the next week, possibly more.",
    "due": "2026-10-12",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "The reports from 5 to 12 October gave no figure for oil shipped through the Strait of Hormuz; they noted a drone strike on a tanker off Oman on 11 October."
+   }
   },
   {
    "text": "I predict that the Pivnichnyi Bridge in Kyiv, Ukraine, will be struck again by Russian forces.",
    "due": "2026-10-12",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No strike on Kyiv's Pivnichnyi Bridge was reported from 5 to 12 October; that week's reports covered Russian strikes on Pryluky, Kramatorsk and Zaporizhzhia."
+   }
   },
   {
    "text": "I predict that the Bab al-Mandeb Strait will be under Houthi control by the end of Monday, 12 October 2026.",
    "due": "2026-10-12",
    "topic": "conflict",
-   "confidence": "low"
+   "confidence": "low",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "A Yemeni government offensive pushed the Houthis back from the Bab al-Mandab Strait on 5 October, and no report through 12 October had them regaining it."
+   }
   },
   {
    "text": "I predict that an important team representing a major country will win the mixed team event.",

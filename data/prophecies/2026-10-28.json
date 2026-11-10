@@ -7,61 +7,121 @@
    "text": "I predict that Mythri Movie Makers will handle the distribution of Aadarsha Kutumbam House No: 47 in the Nizam region.",
    "due": "2026-10-30",
    "topic": "other",
-   "confidence": "high"
+   "confidence": "high",
+   "grade": {
+    "outcome": "happened",
+    "already_known": true,
+    "vague": false,
+    "line": "The film opened on 30 October with Mythri Movie Makers distributing it in the Nizam region, as Wikipedia already said two days before."
+   }
   },
   {
    "text": "I predict that the trial for the gunmen who carried out the mass shooting at a Greek Orthodox Church in Karak Governorate, Jordan, will take place in a Jordanian court and they will face multiple charges related to murder, attempted murder, and use of firearms in a public place.",
    "due": "2026-11-04",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No trial or charges for the Karak church shooting were reported by 4 November; the three gunmen had been arrested on 26 October."
+   }
   },
   {
    "text": "I predict that Saudi-led coalition air defences will intercept a Houthi ballistic missile and two drones targeting Riyadh Province, resulting in at least 10 casualties.",
    "due": "2026-11-04",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No Houthi attack on Riyadh Province with casualties was reported by 4 November; the coalition said it downed one drone headed for the Mecca region on 30 October."
+   }
   },
   {
    "text": "I predict that the Israeli military will continue its operations in the West Bank and Gaza Strip, with at least one more major airstrike in the Gaza Strip targeting a residential area, resulting in 15 casualties, by the end of Wednesday, 4 November 2026.",
    "due": "2026-11-04",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "Israeli airstrikes in Gaza on 1 November killed five police officers in Rafah and three people in a Gaza City building; no strike was reported with 15 casualties."
+   }
   },
   {
    "text": "I predict that at least 410,000 people will participate in the next major demonstration in France.",
    "due": "2026-11-04",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "The next big protest day in France, 31 October, drew about 320,000 people nationwide, short of 410,000."
+   }
   },
   {
    "text": "I predict that two additional storms will impact Europe, causing power outages for around 90,000 households in Scotland, Northern Ireland, and northern England.",
    "due": "2026-11-04",
    "topic": "disaster",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "Only one new storm was named by 4 November, and it struck Italy and Greece; no new storms or outages were reported in Scotland, Northern Ireland or northern England."
+   }
   },
   {
    "text": "I predict that military operations and attacks will continue in specific regions like El Tambo and Cúcuta, resulting in at least two additional casualties in total by the end of Wednesday, 4 November 2026.",
    "due": "2026-11-04",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "A truck bomb near a military base in Tolima killed four people on 2 November, but no attacks were reported in El Tambo or Cúcuta by 4 November."
+   }
   },
   {
    "text": "I predict that a prominent political body will be elected, with two major parties forming the coalition government, and an important politician becoming the new leader.",
    "due": "2026-11-04",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": true,
+    "line": "The Knesset was elected, but no alliance won a majority, and no coalition government had been formed by 4 November."
+   }
   },
   {
    "text": "I predict that the very severe cyclonic storm Arnab will make landfall in the coastal regions of Andhra Pradesh and Odisha, causing significant damage to infrastructure and agriculture.",
    "due": "2026-11-04",
    "topic": "disaster",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "Arnab came ashore in Andhra Pradesh on 28 October as a very severe cyclonic storm, damaging crops and homes; it did not make landfall in Odisha."
+   }
   },
   {
    "text": "I predict that the attacks will continue in Oromia, Ethiopia, particularly in areas near the Ethiopian Orthodox Tewahedo Church.",
    "due": "2026-11-04",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": true,
+    "line": "No further attacks in Oromia were reported by 4 November, so whether they went on isn't known from the reports."
+   }
   }
  ]
 }

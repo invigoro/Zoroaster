@@ -7,61 +7,120 @@
    "text": "I predict that the Russo-Ukrainian war will continue with no progress towards resuming trilateral peace talks with Ukraine, and that at least one more drone incident will occur in the Black Sea region involving ships or aircraft.",
    "due": "2026-10-31",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "No drone incident at sea in the Black Sea was reported between 24 and 31 October; the only talks news was evacuations under the Oleshky ceasefire."
+   }
   },
   {
    "text": "I predict that there will be at least three additional strikes and attacks in the occupied West Bank and Yemen by the end of Saturday, 31 October 2026, with at least one strike occurring in the occupied West Bank and two in Yemen, involving both Israeli forces and Houthi militants.",
    "due": "2026-10-31",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "happened",
+    "already_known": false,
+    "vague": false,
+    "line": "Israeli forces raided 15 West Bank cities on 24 October, and Saudi airstrikes hit Yemen on 24, 28 and 29 October."
+   }
   },
   {
    "text": "I predict that the Sudanese Armed Forces and Rapid Support Forces continue their operations in the Blue Nile state, with reports of further drone strikes and recaptured areas, particularly in the Ad-Damazin region.",
    "due": "2026-10-31",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false
+   }
   },
   {
    "text": "I predict that the four missing Salvadoran Air Force technicians are found dead in the area around Croix-des-Bouquets, Haiti, by the end of Saturday, 31 October 2026.",
    "due": "2026-10-31",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "The four missing Salvadoran service members had not been reported found by 31 October; El Salvador sent 2,000 troops to Haiti on 29 October."
+   }
   },
   {
    "text": "I predict that the Strait of Hormuz will see at least seven oil tankers affected by naval mine strikes over the next few weeks.",
    "due": "2026-10-31",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "Only one tanker, found burning on 30 October, was reported hit in the strait between 24 and 31 October, far short of seven."
+   }
   },
   {
    "text": "I predict that the investigation into the 2026 Karak church shooting will lead to the arrest and charging of additional suspects by the end of Saturday, 31 October 2026, with the focus on individuals from neighboring countries.",
    "due": "2026-10-31",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "Three suspects were arrested on 26 October after a shootout; no charges or further suspects were reported by 31 October."
+   }
   },
   {
    "text": "I predict that the total number of people evacuated due to Typhoon Champi will be around 2,639 by the end of Saturday, 31 October 2026, with the majority of evacuations occurring in Taiwan.",
    "due": "2026-10-31",
    "topic": "disaster",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": true,
+    "vague": false,
+    "line": "Taiwan's 2,639 evacuations were reported on 23 October, before this forecast; no later total was reported by 31 October."
+   }
   },
   {
    "text": "I predict that the extent of aid distributed to affected areas will continue to be assessed and improved upon, with prominent authorities and international organizations working together to provide assistance to the affected regions, particularly focusing on remote areas.",
    "due": "2026-10-31",
    "topic": "disaster",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": true,
+    "line": "The reports up to 31 October said nothing more about the earthquake's relief effort."
+   }
   },
   {
    "text": "I predict that the investigation into the 2026 Trappes and La Verrière shootings will continue, with at least one additional suspect being arrested in France by the end of Saturday, 31 October 2026.",
    "due": "2026-10-31",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "The reports carried nothing more on the Trappes and La Verrière shootings after 23 October, when one arrest was made, so any further arrest isn't known."
+   }
   },
   {
    "text": "I predict that at least two candidates will present their detailed policy proposals by the end of Saturday, 31 October 2026, with one being an Emirati diplomat.",
    "due": "2026-10-31",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "The reports from 24 to 31 October said nothing more about the race for UN Secretary-General, so whether any candidates set out their programmes isn't known."
+   }
   }
  ]
 }

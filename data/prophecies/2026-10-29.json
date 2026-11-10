@@ -7,61 +7,121 @@
    "text": "I predict that Proposition 39, the California voter ID initiative, will pass.",
    "due": "2026-11-03",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "California voters rejected the voter ID measure, about 60% to 40% in the count by 8 November."
+   }
   },
   {
    "text": "I predict that schools in Jharkhand will remain closed and the number of shelters prepared in Odisha will be around 1,700.",
    "due": "2026-10-29",
    "topic": "disaster",
-   "confidence": "high"
+   "confidence": "high",
+   "grade": {
+    "outcome": "happened",
+    "already_known": true,
+    "vague": false,
+    "line": "Both were already reported: Odisha had readied over 1,700 shelters, and Jharkhand had closed schools in four districts until 29 October."
+   }
   },
   {
    "text": "I predict that a prominent political figure will win the runoff election with a margin of around 52% to 48%.",
    "due": "2026-11-01",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "The 1 November runoff ended about 58% to 39%, a far wider margin than 52–48. The prediction named no candidate."
+   }
   },
   {
    "text": "I predict that Coming Up Roses will be released as a single on 30 October 2026.",
    "due": "2026-10-30",
    "topic": "other",
-   "confidence": "high"
+   "confidence": "high",
+   "grade": {
+    "outcome": "happened",
+    "already_known": true,
+    "vague": false,
+    "line": "The song was released as the album's fourth single on 30 October, the date Wikipedia had already given the day before."
+   }
   },
   {
    "text": "I predict that the Strait of Hormuz will continue to face tensions with additional oil tankers facing incidents, and Saudi Arabia will launch another round of airstrikes in Yemen, targeting Houthi positions in Al-Jawf Governorate.",
    "due": "2026-11-05",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "An oil tanker burned in the Strait of Hormuz on 30 October and a vessel was hit off Oman on 3 November. Saudi strikes hit Taiz on 29 October, but none was reported in Al-Jawf."
+   }
   },
   {
    "text": "I predict that at least 100,000 people have been displaced and received assistance in Andhra Pradesh and Odisha by the end of this week.",
    "due": "2026-11-05",
    "topic": "disaster",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "No further reports on the cyclone came by 5 November. The last, on 27 October, said nearly 100,000 had been ordered to evacuate; no count of people displaced or helped was given."
+   }
   },
   {
    "text": "I predict that further drone strikes in South Darfur, Sudan, will continue, with over 100 people killed and 112 more injured by the end of Thursday, 5 November 2026.",
    "due": "2026-11-05",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No new strikes in South Darfur were reported by 5 November; the over-100 toll was from the 26 October strike on Nyala. Later drone strikes hit stations in Kassala and Northern states."
+   }
   },
   {
    "text": "I predict that the military operations in El Tambo, Cauca will continue and expand to other regions of Colombia, particularly targeting areas near the border with Venezuela.",
    "due": "2026-11-05",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No further Colombian operations in El Tambo or near the Venezuelan border were reported by 5 November. Venezuelan and US forces struck an alleged ELN hideout inside Venezuela on 30 October."
+   }
   },
   {
    "text": "I predict that the Nigerian military will conduct a military operation in Taraba State, resulting in at least 62 bandits being killed.",
    "due": "2026-11-05",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No military operation in Taraba State was reported by 5 November. The figure of 62 was the death toll of the late-October attack on a village there."
+   }
   },
   {
    "text": "I predict that the Spanish railway authority will identify human error as a contributing factor in the Toledo train collision and propose a mandatory training program for all railway staff, focusing on safety protocols in the central region of Spain.",
    "due": "2026-11-05",
    "topic": "disaster",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No findings on the crash's cause, and no new safety measures, were reported by 5 November."
+   }
   }
  ]
 }

@@ -7,61 +7,121 @@
    "text": "I predict that STAN will win the second round run-off elections for Senate seats, securing eleven seats with ten held by STAN and one by SLK.",
    "due": "2026-10-16",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "The run-off began on 16 October and its results came the next day, after the due date. The eleven seats were those STAN and SLK were defending, not seats won."
+   }
   },
   {
    "text": "I predict that Florida and Alabama will report the highest number of damages assessed and recovery funds allocated.",
    "due": "2026-10-18",
    "topic": "disaster",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "Florida counties reported the largest damage estimates by 18 October, but the first federal aid went to Georgia; Florida's came on 30 October, and none was listed for Alabama."
+   }
   },
   {
    "text": "I predict that Hurricane Simon makes landfall in Southern California.",
    "due": "2026-10-18",
    "topic": "disaster",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "Hurricane Simon made landfall on Mexico's coast, with two deaths from it and Hurricane Rachel reported on 12 October. No landfall in Southern California was reported."
+   }
   },
   {
    "text": "I predict that the Houthis will launch another missile attack on Abha International Airport in Saudi Arabia, by the end of Sunday, 18 October 2026.",
    "due": "2026-10-18",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "The Houthis struck airports in Riyadh and Dammam and fired at other Saudi cities that week, but no attack on Abha's airport was reported by 18 October."
+   }
   },
   {
    "text": "I predict that Russian forces will launch another ballistic missile attack on civilian targets in Ukraine, causing at least 28 casualties, similar to the attack in Pryluky, Chernihiv Oblast.",
    "due": "2026-10-18",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "A Russian ballistic missile hit a power station in Kyiv on 14 October, cutting heating to over 1,000 buildings, but no casualties were reported, let alone 28."
+   }
   },
   {
    "text": "I predict that the Tigray Region will continue to experience strikes and casualties, with at least one more strike occurring in a different town or city within the region by the end of Sunday, 18 October 2026.",
    "due": "2026-10-18",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No strikes in Tigray were reported from 11 to 18 October; the last report, on 10 October, was of Ethiopian forces retaking Adigrat after Eritrea's withdrawal."
+   }
   },
   {
    "text": "I predict that the total casualties reported from the drone strikes in Ad-Damazin and other locations in Blue Nile State will be at least 41.",
    "due": "2026-10-18",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "happened",
+    "already_known": true,
+    "vague": false,
+    "line": "Reports before this was foretold already counted 45 dead from drone strikes in Blue Nile State: four in Ad-Damazin and 41 displaced people. No new strikes there followed by 18 October."
+   }
   },
   {
    "text": "I predict that the number of casualties and missing persons from the 2026 Panama earthquake will be updated, with at least several dozen people confirmed dead and hundreds still missing by the end of Sunday, 18 October 2026.",
    "due": "2026-10-18",
    "topic": "disaster",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "The earthquake's toll stood at three dead and 27 injured, with no one reported missing, far below several dozen dead and hundreds missing."
+   }
   },
   {
    "text": "I predict that the Delhi Jantar Mantar protests will continue to see mass arrests, with thousands of people detained by the end of the protests, mostly in India.",
    "due": "2026-10-18",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": true,
+    "vague": false,
+    "line": "Thousands had been detained before this was foretold. In the week after, only a few protest leaders were reported detained, not further mass arrests."
+   }
   },
   {
    "text": "I predict that there will be further clashes between protestors and police in New York City involving similar incidents with immigration agents.",
    "due": "2026-10-18",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No further clashes in New York City over immigration agents were reported by 18 October."
+   }
   }
  ]
 }

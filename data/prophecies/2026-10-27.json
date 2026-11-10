@@ -7,61 +7,120 @@
    "text": "I predict that a prominent individual wins the runoff election between another individual and themselves.",
    "due": "2026-11-01",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "happened",
+    "already_known": false,
+    "vague": true
+   }
   },
   {
    "text": "I predict that a prominent politician will win the election.",
    "due": "2026-11-03",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "happened",
+    "already_known": false,
+    "vague": true,
+    "line": "The Republicans held South Dakota's Senate seat with about 60% of the vote. The prediction named no candidate, so any winner would have fit."
+   }
   },
   {
    "text": "I predict that the Houthi attacks on Saudi airports and facilities will continue, with at least one more attack causing casualties in either Dammam or Riyadh.",
    "due": "2026-11-03",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No Houthi attack causing casualties in Riyadh or Dammam was reported by 3 November; the coalition said it downed a drone headed for the Mecca region on 30 October."
+   }
   },
   {
    "text": "I predict that the investigation into the Karak church shooting will continue, with the arrest of the three gunmen leading to further questioning and evidence gathering.",
    "due": "2026-11-03",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": true,
+    "line": "The three gunmen had been arrested on 26 October, before this was foretold; nothing further on the investigation was reported by 3 November."
+   }
   },
   {
    "text": "I predict that at least 410,000 people participate in mass demonstrations across France.",
    "due": "2026-11-03",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "The biggest protest day in France in the span, 31 October, drew about 320,000 people nationwide, short of 410,000."
+   }
   },
   {
    "text": "I predict that the Israeli military raids in the occupied West Bank will continue, with at least 15 cities raided again by the end of Tuesday, 3 November 2026.",
    "due": "2026-11-03",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "Israeli forces kept up their operation around Hebron until withdrawing on 2 November, but no new raids on 15 West Bank cities were reported by 3 November."
+   }
   },
   {
    "text": "I predict that Nigeria identifies at least 44 new cases through contact tracing by the end of Tuesday, 3 November 2026.",
    "due": "2026-11-03",
    "topic": "health",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No new Ebola cases in Nigeria were reported by 3 November; the 44 people traced on 25 October were contacts, not confirmed cases."
+   }
   },
   {
    "text": "I predict that the 2026–27 European windstorm season will continue to affect Scotland, Northern Ireland, and England, with at least two more storms impacting these regions by the end of Tuesday, 3 November 2026, causing further power outages in Scotland.",
    "due": "2026-11-03",
    "topic": "disaster",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No further storms hit Scotland, Northern Ireland or England by 3 November; the only newly named storm, on 2–3 November, struck Italy and Greece."
+   }
   },
   {
    "text": "I predict that the Colombian conflict in El Tambo, Cauca will continue with at least one more military operation resulting in casualties, possibly involving the Colombian army and the National Liberation Army.",
    "due": "2026-11-03",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No further fighting in El Tambo, Cauca, was reported by 3 November; the attacks reported in Colombia in that span were in Cúcuta and in Tolima."
+   }
   },
   {
    "text": "I predict that prominent actors and major actors will continue supporting Somalia.",
    "due": "2026-10-31",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": true,
+    "vague": true,
+    "line": "The UN had said on 26 October it would keep supporting Somalia through smaller agencies; nothing more was reported by 31 October. The prediction named no one."
+   }
   }
  ]
 }

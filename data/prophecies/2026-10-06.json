@@ -8,37 +8,72 @@
    "text": "I predict that more towns and areas in Tigray will be recaptured by Ethiopian federal forces, with Mekelle being fully secured and stabilized by the end of Tuesday, 13 October 2026.",
    "due": "2026-10-13",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "Ethiopian forces regained Adigrat on 10 October after Eritrean forces withdrew; no other town was reported retaken, and nothing was reported on Mekelle's security."
+   }
   },
   {
    "text": "I predict that the conflict in South Kordofan and North Kordofan will continue with at least one more airstrike reported, likely involving Sudan's armed forces and the Rapid Support Forces, resulting in civilian casualties.",
    "due": "2026-10-13",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "Deadly strikes in Sudan from 6 to 13 October were reported in Blue Nile State and at a gold mine near the Egyptian border, but none in North or South Kordofan."
+   }
   },
   {
    "text": "I predict that the 25-year-old suspect will be charged with terrorism offenses by the end of Tuesday, 13 October 2026, and the charges will include preparation for terrorist acts.",
    "due": "2026-10-13",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false
+   }
   },
   {
    "text": "I predict that the Bab al-Mandab Strait and surrounding areas will remain under Houthi control, with Saudi Arabia continuing its offensives to regain control.",
    "due": "2026-10-13",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "A Yemeni government offensive had pushed the Houthis back from the Bab al-Mandab Strait on 5 October, and no report through 13 October had them regaining it."
+   }
   },
   {
    "text": "I predict that the investigation into the 2026 Vienna, Georgia, shooting will continue, with law enforcement interviewing witnesses and reviewing surveillance footage in Vienna, Georgia.",
    "due": "2026-10-13",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": true,
+    "line": "No reports on the Vienna, Georgia, shooting investigation appeared from 6 to 13 October, so whether it went on as described isn't known."
+   }
   },
   {
    "text": "I predict that the United States will conduct at least one additional airstrike and make several more arrests in the Caribbean Sea region by the end of Tuesday, 13 October 2026.",
    "due": "2026-10-13",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No U.S. strike or arrests in the Caribbean were reported from 6 to 13 October."
+   }
   }
  ]
 }

@@ -7,43 +7,84 @@
    "text": "I predict that the Martian Moons eXploration (MMX) mission will successfully launch towards Mars.",
    "due": "2026-10-20",
    "topic": "science",
-   "confidence": "high"
+   "confidence": "high",
+   "grade": {
+    "outcome": "happened",
+    "already_known": true,
+    "vague": false,
+    "line": "The probe launched toward Mars on 19 October at 19:41 UTC (20 October in Japan), as Wikipedia already reported the night before."
+   }
   },
   {
    "text": "I predict that the Houthi–Saudi conflict will continue with missile attacks on Saudi Arabian cities, resulting in at least 4 people being injured and damaging 15 homes.",
    "due": "2026-10-27",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "A Houthi attack on Dammam's airport on 21 October killed two and injured eight, and a missile aimed at Riyadh Province was intercepted on 25 October. No damaged homes were reported."
+   }
   },
   {
    "text": "I predict that the conflict between Israeli settlers and prominent actors from Europe will continue, with at least two more arrests in the occupied West Bank involving officials from Belgium and France.",
    "due": "2026-10-27",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false
+   }
   },
   {
    "text": "I predict that the Strait of Hormuz will see at least one more ship strike a naval mine, causing damage but not sinking or catching fire.",
    "due": "2026-10-27",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "Iran's Revolutionary Guard said seven oil tankers were hit in the strait on 22 October, but the reports didn't say by what, or whether any burned or sank."
+   }
   },
   {
    "text": "I predict that Andorra and San Marino will ratify the agreements first.",
    "due": "2026-10-27",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "Neither country had ratified the agreement by 27 October; it still needed every EU member's approval and, in Andorra, a referendum."
+   }
   },
   {
    "text": "I predict that the Taiwanese coast guard will continue to drive away Chinese vessels near Taiwan and the Pratas Island, with at least 16 ships from China being driven away by the end of Tuesday, 27 October 2026.",
    "due": "2026-10-27",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "The reports up to 27 October gave no new count of Chinese vessels driven away by Taiwan's coast guard."
+   }
   },
   {
    "text": "I predict that the exact sentence length for a prominent individual will be announced, likely a life sentence without the possibility of parole, by the end of Tuesday, 27 October 2026, in Kenya.",
    "due": "2026-10-27",
    "topic": "crime",
-   "confidence": "high"
+   "confidence": "high",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No sentence had been passed by 27 October; it came on 6 November, after the due date."
+   }
   }
  ]
 }

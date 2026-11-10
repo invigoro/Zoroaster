@@ -19,55 +19,108 @@
    "text": "I predict that the Pivdennyi Bridge in Kyiv remains operational but is under increased surveillance and protection, with at least one additional strike attempt against it by Russian forces by the end of Friday, 16 October 2026.",
    "due": "2026-10-16",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No strike on Kyiv's Pivdennyi Bridge was reported from 9 to 16 October; a Russian missile hit a power station in Kyiv on 14 October."
+   }
   },
   {
    "text": "I predict that coastal regions of Georgia, particularly those near the coast, will experience the most significant impact from Hurricane Isaias, with widespread power outages affecting at least one county by the end of Friday, 16 October 2026.",
    "due": "2026-10-16",
    "topic": "disaster",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "Isaias made landfall near Destin, Florida, on 9 October; the power cuts and deaths reported were in Florida and Alabama, not coastal Georgia."
+   }
   },
   {
    "text": "I predict that there will be another school attack in Poland, possibly in a different county, by a 15-year-old student.",
    "due": "2026-10-16",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "Another school stabbing was reported in Poland on 10 October, at an adult school in Warsaw, injuring three."
+   }
   },
   {
    "text": "I predict that the extent of Houthi-controlled territories will expand further into Yemen, particularly in the areas around Al-Turbah and the Bab al-Mandab Strait.",
    "due": "2026-10-16",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No Houthi territorial gains were reported from 9 to 16 October; the Houthi actions reported were missile attacks on Saudi Arabia and on Aden."
+   }
   },
   {
    "text": "I predict that Eritrean forces will capture another town near Mekelle, such as Sheraro, by the end of Friday, 16 October 2026.",
    "due": "2026-10-16",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No town was reported taken by Eritrean forces from 9 to 16 October; on 10 October they withdrew from Adigrat, and Ethiopian forces regained it."
+   }
   },
   {
    "text": "I predict that the Gaza war will continue with more Israeli airstrikes, resulting in at least one more Palestinian being killed and several more being injured by the end of Friday, 16 October 2026.",
    "due": "2026-10-16",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No Israeli airstrike in Gaza was reported from 9 to 16 October."
+   }
   },
   {
    "text": "I predict that the Rapid Support Forces will conduct another drone strike in South Kordofan, resulting in at least one fatality.",
    "due": "2026-10-16",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false
+   }
   },
   {
    "text": "I predict that the occupied West Bank will see another attack by Israeli settlers, resulting in at least 16 people wounded.",
    "due": "2026-10-16",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "Israeli settlers attacked and beat a group of Palestinians in the West Bank on 16 October, but no number of wounded was reported."
+   }
   },
   {
    "text": "I predict that the semiconductor industry in Taiwan will see no new regulations or policies announced by the finance ministry in response to the record trade surplus.",
    "due": "2026-10-16",
    "topic": "economy",
-   "confidence": "high"
+   "confidence": "high",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": true,
+    "line": "The reports from 9 to 16 October carried nothing on new rules or policies for Taiwan's chip industry, so whether any came isn't known."
+   }
   }
  ]
 }

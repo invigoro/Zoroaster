@@ -49,7 +49,13 @@
    "text": "I predict that Russia will finish ranked between 35th and 45th in the final standings of the 2026 Summer Youth Olympics, with no medals won.",
    "due": "2026-11-02",
    "topic": "sport",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "Russia had won two gold medals by the end of 2 November, one of them in swimming that day; the final standings come after the Games end on 13 November."
+   }
   }
  ]
 }

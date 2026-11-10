@@ -19,55 +19,108 @@
    "text": "I predict that the Nairobi Hospital will confirm two additional cases of Ebola in Kenya by the end of Thursday, 15 October 2026.",
    "due": "2026-10-15",
    "topic": "health",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "Kenya announced its second Ebola case on 14 October, one more rather than two by the 15th; further cases were confirmed only from 16 October."
+   }
   },
   {
    "text": "I predict that the situation in Liège, Belgium, will continue with more riots and damages, particularly in the city center, prompting authorities to close at least two more railway stations by the end of Thursday, 15 October 2026.",
    "due": "2026-10-15",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No further riots in Liège or station closures were reported from 8 to 15 October."
+   }
   },
   {
    "text": "I predict that Eritrean forces will capture another town in Tigray Region, such as Mekelle, by the end of Thursday, 15 October 2026.",
    "due": "2026-10-15",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No town was reported taken by Eritrean forces from 8 to 15 October; on 10 October they withdrew from Adigrat, and Ethiopian forces regained it."
+   }
   },
   {
    "text": "I predict that the Bab al-Mandab Strait remains under Houthi control, with Saudi Arabia and their allies making limited gains in surrounding areas.",
    "due": "2026-10-15",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "A Yemeni government offensive had pushed the Houthis back from the Bab al-Mandab Strait on 5 October; no report through 15 October had them regaining it."
+   }
   },
   {
    "text": "I predict that the Gaza war will continue with more airstrikes and civilian casualties, and by the end of Thursday, 15 October 2026, at least five people will have been killed in an Israeli airstrike against a residential building in Gaza City.",
    "due": "2026-10-15",
    "topic": "conflict",
-   "confidence": "low"
+   "confidence": "low",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "The Israeli military reported killing a Hamas militant in a Gaza City airstrike on 8 October, but no strike killing five or more there was reported through 15 October."
+   }
   },
   {
    "text": "I predict that the Pivdennyi Bridge in Kyiv, Ukraine, will sustain further damage from Russian strikes by the end of Thursday, 15 October 2026.",
    "due": "2026-10-15",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No strike on Kyiv's Pivdennyi Bridge was reported from 8 to 15 October; a Russian missile hit a power station in Kyiv on 14 October."
+   }
   },
   {
    "text": "I predict that Haiti's Provisional Electoral Council announces another delay for the elections, possibly by the end of October 2026, citing ongoing security concerns and logistical challenges.",
    "due": "2026-10-15",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No further delay was announced from 8 to 15 October; on 29 October Haiti's electoral council set the first round for August 2027."
+   }
   },
   {
    "text": "I predict that the major stock indices will remain stable, with no significant changes in response to the merger announcement.",
    "due": "2026-10-15",
    "topic": "economy",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": true,
+    "line": "The reports from 8 to 15 October gave no stock index figures and no market reaction to the merger, which had taken effect on 6 October."
+   }
   },
   {
    "text": "I predict that the elections in Mexico will see a tight race between the leading candidates, with neither gaining an outright majority, and the final count will show a close second-place finisher from the center-left coalition.",
    "due": "2026-10-15",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "not possible",
+    "already_known": false,
+    "vague": false
+   }
   }
  ]
 }

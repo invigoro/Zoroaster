@@ -7,61 +7,121 @@
    "text": "I predict that the film Sense and Sensibility is projected to gross $5–8 million in its opening weekend in the United States and Canada.",
    "due": "2026-10-16",
    "topic": "other",
-   "confidence": "high"
+   "confidence": "high",
+   "grade": {
+    "outcome": "happened",
+    "already_known": true,
+    "vague": false,
+    "line": "Wikipedia already gave the $5–8 million opening-weekend projection the night before. The film went on to open to $7.3 million."
+   }
   },
   {
    "text": "I predict that the film Whalefall will gross between $10 and $12 million from its theatrical release in the United States.",
    "due": "2026-10-16",
    "topic": "other",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "By the end of its release day Wikipedia listed $900,000 from previews. The film went on to open to $8 million, below the $10–12 million projected."
+   }
   },
   {
    "text": "I predict that the Houthi–Saudi conflict will continue with more missile attacks on Saudi Arabian cities, including Riyadh and Dammam, resulting in at least 13 casualties and damaging 15 homes by the end of Friday, 23 October 2026.",
    "due": "2026-10-23",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "Houthi attacks killed four and injured ten in Saudi Arabia on 21 October, at Dammam's airport and near an oil field. No attack on Riyadh or damage to homes was reported by 23 October."
+   }
   },
   {
    "text": "I predict that the Russo-Ukrainian war will continue with another Russian strike against Ukrainian infrastructure, possibly targeting a merchant ship off Bulgaria's Black Sea coast.",
    "due": "2026-10-23",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No Russian strike on Ukrainian infrastructure was reported from 16 to 23 October. On 23 October drones of unknown origin hit a merchant ship off Romania, not Bulgaria."
+   }
   },
   {
    "text": "I predict that in-person classes in Timor-Leste remain suspended for at least one more day, possibly until Saturday, 17 October 2026, due to poor air quality from wildfire smoke and pollutants.",
    "due": "2026-10-17",
    "topic": "health",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "happened",
+    "already_known": true,
+    "vague": false,
+    "line": "Timor-Leste had already suspended in-person classes from 15 to 17 October; no report said they resumed early."
+   }
   },
   {
    "text": "I predict that the Strait of Hormuz will see at least one more attack on a ship, with Omani authorities conducting search-and-rescue operations for missing crew members.",
    "due": "2026-10-23",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "Attacks on ships continued: a tanker hit a mine on 18 October and seven tankers were reported hit on 22 October. No Omani search for missing crew was reported."
+   }
   },
   {
    "text": "I predict that the Sudanese Armed Forces will launch another airstrike at the Egypt-Sudan border, targeting an artisanal gold mine in a mountainous area, killing at least 72 people.",
    "due": "2026-10-23",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No strike at the Egypt–Sudan border was reported by 23 October. The deadliest that week was a drone strike on a market in Abyei, on the South Sudan border, on 19 October."
+   }
   },
   {
    "text": "I predict that the Delhi Jantar Mantar protests will continue with more clashes between protesters and police, and at least two more remands in custody for protest leaders from different political parties.",
    "due": "2026-10-23",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "Protesters jailed since 13 October were kept in custody until 21 October, but no clashes with police and no new remands of leaders from other parties were reported."
+   }
   },
   {
    "text": "I predict that the investigation into the 2026 Silver Rail Elementary School shooting will involve questioning at least three people by the end of Friday, 23 October 2026.",
    "due": "2026-10-23",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "The reports up to 23 October said nothing about the investigation or who was questioned."
+   }
   },
   {
    "text": "I predict that a prominent media organization will remain offline, with new administrators continuing to run the channel, and no significant changes in their management by the end of Friday, 23 October 2026.",
    "due": "2026-10-23",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "State-appointed administrators stayed in charge with no change reported by 23 October, but the channel wasn't off air: it showed religious programmes while its reporters went online."
+   }
   }
  ]
 }

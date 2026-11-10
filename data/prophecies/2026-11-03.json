@@ -61,7 +61,13 @@
    "text": "I predict that India will win the championship title.",
    "due": "2026-11-05",
    "topic": "sport",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "happened",
+    "already_known": false,
+    "vague": false,
+    "line": "India beat Japan 4–1 in the final on 5 November to win their third title in a row."
+   }
   }
  ]
 }

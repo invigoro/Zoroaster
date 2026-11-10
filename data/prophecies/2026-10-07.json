@@ -19,49 +19,95 @@
    "text": "I predict that the Houthis will launch more missile attacks against Saudi Arabian targets, specifically targeting the cities of Najran and Jizan, causing minor injuries to civilians and damaging infrastructure.",
    "due": "2026-10-14",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "Houthi missile attacks on Saudi Arabia continued from 7 to 14 October, with deaths and injuries in Riyadh, Abha, Dammam and Dhahran, but none was reported on Najran or Jizan."
+   }
   },
   {
    "text": "I predict that the Bundibugyo strain of Ebolavirus will be identified in two additional suspected cases in Nairobi by the end of Wednesday, 14 October 2026.",
    "due": "2026-10-14",
    "topic": "health",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "Kenya announced its second Ebola case on 14 October, one more rather than two; further cases were confirmed only from 16 October."
+   }
   },
   {
    "text": "I predict that the Parti Québécois will form a coalition with another party to gain a majority government by the end of Wednesday, 14 October 2026, involving Canada.",
    "due": "2026-10-14",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No coalition involving the Parti Québécois was reported from 7 to 14 October; the party had won a minority on 5 October."
+   }
   },
   {
    "text": "I predict that the Gaza war will continue with more airstrikes and casualties in Gaza, particularly in Gaza City, involving both Israeli and Palestinian forces.",
    "due": "2026-10-14",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "happened",
+    "already_known": false,
+    "vague": false
+   }
   },
   {
    "text": "I predict that a prominent individual in his mid-twenties with dual nationality will be charged with terrorism-related offenses by the end of Wednesday, October 14, 2026, and the charges will involve connections to a major investigation.",
    "due": "2026-10-14",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false
+   }
   },
   {
    "text": "I predict that the presidential election in Kosovo will result in a victory for an important politician from the acting presidency, with the final tally being close but not decisive, requiring a run-off election between the top two candidates.",
    "due": "2026-10-14",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": true,
+    "vague": false,
+    "line": "Kosovo's Assembly settled the presidential vote on 6 October, the day before this was foretold, by a wide margin and with no run-off."
+   }
   },
   {
    "text": "I predict that the final report on the cause of the 2026 Nigerian Air Force aircraft crash will be released, indicating a mechanical failure in the landing gear system.",
    "due": "2026-10-14",
    "topic": "disaster",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No report on the cause of the Nigerian Air Force crash was released or reported from 7 to 14 October."
+   }
   },
   {
    "text": "I predict that the merger between Paramount Skydance and Warner Bros. Discovery into Skydance will be approved by the relevant regulatory authorities, with the approval process taking effect in multiple countries.",
    "due": "2026-10-14",
    "topic": "economy",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "happened",
+    "already_known": true,
+    "vague": false,
+    "line": "The merger had already taken effect on 6 October, the day before this was foretold, so its approvals came earlier; no new approval was reported that week."
+   }
   }
  ]
 }

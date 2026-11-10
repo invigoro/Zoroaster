@@ -7,61 +7,121 @@
    "text": "I predict that the airport suspensions at a major international airport will be extended.",
    "due": "2026-10-16",
    "topic": "other",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "happened",
+    "already_known": false,
+    "vague": true,
+    "line": "By 16 October an airline had extended its suspension of Riyadh flights from 16 October to 18 November. The prediction named no airport or airline, so any extension would have fit."
+   }
   },
   {
    "text": "I predict that the second round run-off elections for Senate seats will result in a victory for the candidates from the Czech Social Democratic Party in at least two districts.",
    "due": "2026-10-16",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "The run-off began on 16 October and its results came the next day, after the due date. Opposition parties won 22 of the 27 contested seats."
+   }
   },
   {
    "text": "I predict that the co-production agreement between ABS-CBN and TV5 will be finalized as planned.",
    "due": "2026-10-18",
    "topic": "other",
-   "confidence": "high"
+   "confidence": "high",
+   "grade": {
+    "outcome": "happened",
+    "already_known": true,
+    "vague": false,
+    "line": "The co-production deal was signed on 11 October, the day before this was foretold, and the show returned to TV5 on 18 October."
+   }
   },
   {
    "text": "I predict that attacks on prominent airports in major cities will continue, with at least one more attack involving the firing of a missile, resulting in additional injuries.",
    "due": "2026-10-19",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "The Houthis claimed another missile strike on Riyadh's airport on 12 October, with no injuries reported. Missile debris hurt four people in Riyadh on 14 October; no airport was named."
+   }
   },
   {
    "text": "I predict that 365,000 people in Alabama and Florida will have power restored by the end of Monday, 19 October 2026.",
    "due": "2026-10-19",
    "topic": "disaster",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "Reports gave the number of customers who lost power but no figures for how many had it back by 19 October."
+   }
   },
   {
    "text": "I predict that the Strait of Hormuz will see another targeted vessel, likely involving Iran and the United States.",
    "due": "2026-10-19",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "happened",
+    "already_known": false,
+    "vague": false,
+    "line": "Two cargo ships sank after being hit by projectiles near the Strait of Hormuz on 14 October, and a tanker struck a mine there on 18 October."
+   }
   },
   {
    "text": "I predict that no new cases of Ebola will be reported in Kenya by the end of Monday, 19 October 2026, and 293 tests will have been conducted.",
    "due": "2026-10-19",
    "topic": "health",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "Kenya confirmed four new Ebola cases on 17 October, raising its total to seven."
+   }
   },
   {
    "text": "I predict that there will be another mass stabbing at a school in Poland by the end of Monday, 19 October 2026, possibly in a different city.",
    "due": "2026-10-19",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No further school stabbing in Poland was reported by 19 October; a school stabbing that day was in Romania."
+   }
   },
   {
    "text": "I predict that Ethiopian forces will capture another major town in the Tigray Region, following the recent recapture of Adigrat.",
    "due": "2026-10-19",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No capture of another Tigray town by Ethiopian forces was reported by 19 October; the last report was the retaking of Adigrat on 10 October."
+   }
   },
   {
    "text": "I predict that the search for survivors in the 2026 Budhi Gandaki flood will continue, with at least 10 survivors found in Nepal.",
    "due": "2026-10-19",
    "topic": "disaster",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "The missing were revised to five or six on 11 October, and none were reported found by 19 October."
+   }
   }
  ]
 }

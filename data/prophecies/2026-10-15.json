@@ -7,61 +7,121 @@
    "text": "I predict that the Alfa Romeo Cuorerosso Concept V6, the Fiat Multiplay Concept, and the Peugeot E-T16 Concept will be introduced at the 91st edition of the Paris Motor Show.",
    "due": "2026-10-18",
    "topic": "other",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "happened",
+    "already_known": true,
+    "vague": false,
+    "line": "Wikipedia's page on the show already listed all three concepts among its concept cars on 14 October, the day before this was foretold."
+   }
   },
   {
    "text": "I predict that the death toll from the Houthi–Saudi conflict will exceed 13 by the end of Thursday, 22 October 2026, with another attack on an airport in Saudi Arabia involving casualties.",
    "due": "2026-10-22",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "happened",
+    "already_known": false,
+    "vague": false,
+    "line": "On 21 October a Houthi attack on Dammam's airport killed two people and injured eight, and two more died near an oil field, taking the toll well past 13."
+   }
   },
   {
    "text": "I predict that Timor-Leste will lift the suspension of in-person classes on October 17, 2026, but only in areas where air quality has improved to below 288 micrograms per cubic metre.",
    "due": "2026-10-17",
    "topic": "health",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "No reports on Timor-Leste's schools came from 15 to 17 October. The 288 figure was Singapore's pollution reading, not a level set by Timor-Leste."
+   }
   },
   {
    "text": "I predict that Florida, United States, sees the restoration of power and services first.",
    "due": "2026-10-22",
    "topic": "disaster",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "Reports gave outage counts by state but didn't say where power or services came back first."
+   }
   },
   {
    "text": "I predict that another ship will sink near the Strait of Hormuz, likely involving Iranian forces and a cargo vessel from a neutral country.",
    "due": "2026-10-22",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "Ships were hit near the Strait of Hormuz that week, including a tanker that exploded after striking a mine on 18 October, but no sinking was reported by 22 October."
+   }
   },
   {
    "text": "I predict that the Beirut region will receive the aid first.",
    "due": "2026-10-22",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "The reports up to 22 October said nothing more about the aid payments, so which areas were paid first isn't known."
+   }
   },
   {
    "text": "I predict that the suspension of social gatherings and events organized by prominent groups will remain in effect for the upcoming academic year, with no changes made by the end of Thursday, 22 October 2026, and that this will occur in the state of New York.",
    "due": "2026-10-22",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "happened",
+    "already_known": true,
+    "vague": false,
+    "line": "The university had already suspended fraternity parties and social events for the whole 2026–27 academic year on 13 October. No change was reported by 22 October."
+   }
   },
   {
    "text": "I predict that the number of participating workers in the Irish public sector strikes will increase to over 300,000 by the end of Thursday, 22 October 2026.",
    "due": "2026-10-22",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "After talks with the government began on 17 October, the unions called off the strike planned for 21 October, so participation didn't grow beyond the 14 October strike."
+   }
   },
   {
    "text": "I predict that a prominent media organization will face additional legal actions in Turkey, and will not be allowed to resume broadcasting by the end of Thursday, 22 October 2026.",
    "due": "2026-10-22",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "The channel stayed under state-appointed administrators, airing religious programmes while its reporters broadcast online. No further legal action against it was reported by 22 October."
+   }
   },
   {
    "text": "I predict that the World Health Organization will issue a statement on the humanitarian response efforts in Yemen, focusing on the ongoing surge in cholera cases.",
    "due": "2026-10-22",
    "topic": "health",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "The reports up to 22 October carried no new statement on cholera in Yemen, so this can't be told either way."
+   }
   }
  ]
 }

@@ -7,61 +7,121 @@
    "text": "I predict that the 91st edition of the Paris Motor Show will feature a wide range of manufacturers including BYD, Changan Automobile, Chery, GAC, Geely, Honda, Hyundai, and others, with the show ending on October 18, 2026.",
    "due": "2026-10-18",
    "topic": "other",
-   "confidence": "high"
+   "confidence": "high",
+   "grade": {
+    "outcome": "happened",
+    "already_known": true,
+    "vague": false,
+    "line": "Wikipedia's page listed these makers among the exhibitors when the show opened on 13 October, with the close set for 18 October, before this was foretold."
+   }
   },
   {
    "text": "I predict that TV5 will resume simulcasting ASAP XP on October 18, 2026, and it will become a co-production together with ABS-CBN Studios.",
    "due": "2026-10-18",
    "topic": "other",
-   "confidence": "high"
+   "confidence": "high",
+   "grade": {
+    "outcome": "happened",
+    "already_known": true,
+    "vague": false,
+    "line": "TV5 resumed airing the show on 18 October, now co-produced with ABS-CBN Studios, as announced on 11 October, before this was foretold."
+   }
   },
   {
    "text": "I predict that the states of Guerrero and Baja California in Mexico will experience the most significant damage and require the most extensive recovery efforts.",
    "due": "2026-10-21",
    "topic": "disaster",
-   "confidence": "high"
+   "confidence": "high",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "After two deaths were reported in Mexico on 12 October, the reports carried nothing on the storms' damage or recovery by 21 October."
+   }
   },
   {
    "text": "I predict that the emergency rule will be extended to at least two more districts in Khyber Pakhtunkhwa, affecting a total of three districts under emergency rule.",
    "due": "2026-10-21",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "not possible",
+    "already_known": false,
+    "vague": false,
+    "line": "The emergency covered the whole province from 11 October, and Parliament endorsed it on 14–15 October; it was never limited to a few districts."
+   }
   },
   {
    "text": "I predict that the Chi Phi fraternity members face formal charges in multiple jurisdictions across the United States, and at least two members receive probation sentences.",
    "due": "2026-10-21",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No charges or sentences against the fraternity members were reported by 21 October."
+   }
   },
   {
    "text": "I predict that the police will interview students and teachers from the Aubagne school who witnessed the incident or were in the vicinity, and that by the end of Wednesday, 21 October 2026, they will have spoken to multiple individuals.",
    "due": "2026-10-21",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": true,
+    "line": "No further reports on the school shooting's investigation appeared by 21 October, so whether police had interviewed pupils and staff isn't known."
+   }
   },
   {
    "text": "I predict that at least four people will be found dead and 17 injured in the train derailment near Multan, Punjab, Pakistan, with an investigation blaming the railway infrastructure maintenance.",
    "due": "2026-10-21",
    "topic": "disaster",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": true,
+    "vague": false,
+    "line": "The toll rose to seven dead and dozens injured. An initial report blamed a fault in a passenger coach, not the line's upkeep, and a formal inquiry was ordered."
+   }
   },
   {
    "text": "I predict that Bulgaria will announce additional naval patrols in the Black Sea to enhance security, particularly around the Bulgarian coast, by the end of Wednesday, 21 October 2026.",
    "due": "2026-10-21",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "The week's reports carried nothing on Bulgarian naval patrols in the Black Sea, so whether any were announced isn't known."
+   }
   },
   {
    "text": "I predict that a major legal body will uphold the conviction of a prominent individual for a serious crime, with the decision being announced by the end of Wednesday, 21 October 2026, without any challenges from other jurisdictions.",
    "due": "2026-10-21",
    "topic": "crime",
-   "confidence": "high"
+   "confidence": "high",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": true,
+    "line": "No court upholding a conviction on appeal was reported by 21 October. The prediction named no court or case, so many rulings would have fit."
+   }
   },
   {
    "text": "I predict that the Tampa Bay Rays will win the series and advance to the 2026 World Series, winning in 5 games.",
    "due": "2026-10-20",
    "topic": "sport",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "The Rays beat Cleveland four games to two, clinching in Game 6 on 19 October to reach the World Series: six games, not five."
+   }
   }
  ]
 }

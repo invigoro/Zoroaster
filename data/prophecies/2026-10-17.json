@@ -7,55 +7,109 @@
    "text": "I predict that the Royal Saudi Air Force will strike a fuel depot near Sanaa, Yemen, causing a fire and injuring at least four people.",
    "due": "2026-10-24",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "Saudi airstrikes on 24 October hit a residential building and a cement factory in Yemen's Hamdan district, killing ten. No strike on a fuel depot or fire was reported."
+   }
   },
   {
    "text": "I predict that the anti-CEC protests in New Delhi, India, will result in an average of several hundred protesters being arrested each day during the marches.",
    "due": "2026-10-24",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No marches with mass arrests were reported in Delhi from 17 to 24 October; the last large round of detentions was on 10 October."
+   }
   },
   {
    "text": "I predict that the wildfires in Indonesia will continue to affect at least six more people, including two deaths and four serious injuries, by the end of Saturday, 24 October 2026.",
    "due": "2026-10-24",
    "topic": "health",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "The reports from 17 to 24 October said nothing more about casualties from Indonesia's wildfires."
+   }
   },
   {
    "text": "I predict that local law enforcement actors and prominent major organizations will be questioned as part of the investigation.",
    "due": "2026-10-24",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": true,
+    "line": "The reports up to 24 October said nothing about the investigation or who was questioned."
+   }
   },
   {
    "text": "I predict that the first deployment of the Bluebottle maritime drones will occur in the waters off the coast of Fiji.",
    "due": "2026-10-24",
    "topic": "politics",
-   "confidence": "high"
+   "confidence": "high",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "Under the agreement the drones' deployment was expected in 2027, and none was reported by 24 October."
+   }
   },
   {
    "text": "I predict that the German government will express satisfaction with the severity of the sentences, but will also call for further action against those involved in such plots.",
    "due": "2026-10-24",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "The reports up to 24 October gave no German government reaction to the sentences handed down on 15 October."
+   }
   },
   {
    "text": "I predict that Hungary fully lifts its objections to Ukraine's EU accession talks by the end of Saturday, 24 October 2026, with the agreement reached during the meeting in Brussels being upheld.",
    "due": "2026-10-24",
    "topic": "politics",
-   "confidence": "high"
+   "confidence": "high",
+   "grade": {
+    "outcome": "happened",
+    "already_known": true,
+    "vague": false,
+    "line": "Hungary had lifted its objections on 16 October, the day before; no reversal was reported by 24 October."
+   }
   },
   {
    "text": "I predict that the 2026 IHF Women's U16 Handball World Championship will be won by Morocco.",
    "due": "2026-10-24",
    "topic": "sport",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "Germany won, beating Hungary 37–32 in the final on 24 October. Morocco, the host, finished 12th."
+   }
   },
   {
    "text": "I predict that the Milwaukee Brewers will win the series in six games, advancing to the championship.",
    "due": "2026-10-23",
    "topic": "sport",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "The series only began on 23 October. The Brewers went on to beat the Rays in five games, clinching on 28 October."
+   }
   }
  ]
 }

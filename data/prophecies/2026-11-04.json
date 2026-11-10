@@ -7,7 +7,13 @@
    "text": "I predict that the 2026 Commonwealth Heads of Government Meeting will see the leaders' private retreat on Jumby Bay Island resulting in agreements on climate resilience, trade, and investment, with a focus on reducing non-tariff barriers and promoting intra-Commonwealth trade.",
    "due": "2026-11-04",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": true,
+    "vague": false,
+    "line": "The summit's communiqué covered climate resilience and trade, including cutting non-tariff barriers, but its trade points came before the retreat; nothing was reported of the retreat itself."
+   }
   },
   {
    "text": "I predict that the Strait of Hormuz will see at least two more naval engagements between U.S. and Iranian forces, with one occurring near the Omani coast and the other in international waters.",

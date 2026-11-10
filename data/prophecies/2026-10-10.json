@@ -19,49 +19,96 @@
    "text": "I predict that the Gaza war will continue with more airstrikes and clashes, resulting in at least 4,000 Palestinians killed in Gaza by the end of Saturday, 17 October 2026.",
    "due": "2026-10-17",
    "topic": "conflict",
-   "confidence": "low"
+   "confidence": "low",
+   "grade": {
+    "outcome": "happened",
+    "already_known": true,
+    "vague": false,
+    "line": "Gaza's death toll since October 2023 had passed 4,000 long before this was foretold; no new total was reported from 10 to 17 October."
+   }
   },
   {
    "text": "I predict that Georgia reports the highest number of damages and multiple counties are declared disaster areas in total across affected states.",
    "due": "2026-10-17",
    "topic": "disaster",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false
+   }
   },
   {
    "text": "I predict that Russian forces will launch another ballistic missile and drone attack on civilian targets in Ukraine, killing at least 28 people and wounding hundreds, with the attacks targeting areas in the eastern regions of Ukraine.",
    "due": "2026-10-17",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "A Russian glide-bomb strike on a residential building in Zaporizhzhia on 10 October killed at least 20 and injured 32, short of 28 dead and hundreds wounded."
+   }
   },
   {
    "text": "I predict that the identity of the suspect in the 15-year-old student who carried out the mass stabbing at a primary school in Leszczydół-Nowiny, Wyszków County, Poland will be revealed by the end of Saturday, 17 October 2026.",
    "due": "2026-10-17",
    "topic": "crime",
-   "confidence": "high"
+   "confidence": "high",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "The reports from 10 to 17 October carried no further news of the Leszczydół-Nowiny school stabbing case."
+   }
   },
   {
    "text": "I predict that there will be another prison riot in Sinaloa state prisons, resulting in more injuries than the previous incident.",
    "due": "2026-10-17",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No new prison riot in Sinaloa was reported from 10 to 17 October."
+   }
   },
   {
    "text": "I predict that the Government of Guinea-Bissau will announce the new election date as December 11, 2026, and that this decision will be met with mixed reactions from various political parties.",
    "due": "2026-10-17",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No new election date for Guinea-Bissau was announced from 10 to 17 October."
+   }
   },
   {
    "text": "I predict that the number of protests in major cities increases, particularly in New York City, United States, involving clashes between protestors and police.",
    "due": "2026-10-17",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "Nationwide protests against the U.S. administration were held on 17 October, but the reports mentioned neither New York in particular nor clashes with police."
+   }
   },
   {
    "text": "I predict that South Korea will issue another statement expressing dissatisfaction with Ukraine's handling of the North Korean soldiers' case, likely focusing on the breach of the non-disclosure agreement.",
    "due": "2026-10-17",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "No further South Korean statement on the dispute was reported from 10 to 17 October; South Korea withdrew more embassy staff from Ukraine on 20 October."
+   }
   }
  ]
 }

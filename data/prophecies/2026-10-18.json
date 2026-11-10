@@ -7,55 +7,109 @@
    "text": "I predict that 'Easy on Me' will be released to contemporary hit radio stations on 18 October.",
    "due": "2026-10-18",
    "topic": "other",
-   "confidence": "high"
+   "confidence": "high",
+   "grade": {
+    "outcome": "not possible",
+    "already_known": true,
+    "vague": false,
+    "line": "The song was released to U.S. radio in October 2021. The 18 October date on its Wikipedia page was from that year, not 2026."
+   }
   },
   {
    "text": "I predict that the Cockroach Janta Party will hold another protest in New Delhi, India, and an important politician will join.",
    "due": "2026-10-25",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No new protest by the party in New Delhi was reported by 25 October. The next large protest in the city was reported on 1 November."
+   }
   },
   {
    "text": "I predict that the next targeted area will be in South Darfur, Sudan, with a drone strike.",
    "due": "2026-10-25",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "The next strikes reported hit a market in Abyei and Khartoum on 19 October. A drone strike on Nyala, in South Darfur, came on 26 October, a day after the due date."
+   }
   },
   {
    "text": "I predict that the investigation into the 2026 Kolkata Durga Puja crowd crush will find that the incident was caused by poor crowd management and inadequate safety measures, and that the responsible officials from the local government will face administrative penalties, including fines and demotions, with the report being released by the end of Sunday, 25 October 2026, and the state of West Bengal will implement new safety protocols for future events.",
    "due": "2026-10-25",
    "topic": "disaster",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "By 25 October the crush was still under investigation: no report, penalties for officials or new safety rules were reported."
+   }
   },
   {
    "text": "I predict that the first deployment of the Bluebottle maritime drones will take place in the waters off the coast of Fiji.",
    "due": "2026-10-25",
    "topic": "politics",
-   "confidence": "high"
+   "confidence": "high",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "Under the agreement the drones' deployment was expected in 2027, and none was reported by 25 October."
+   }
   },
   {
    "text": "I predict that an important politician from Egypt will visit Saudi Arabia to discuss military cooperation.",
    "due": "2026-10-25",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "No visit by an Egyptian leader to Saudi Arabia was reported by 25 October. On 26 October Egypt's parliament approved military support for Saudi Arabia if requested."
+   }
   },
   {
    "text": "I predict that the accession of Ukraine to the European Union will advance to the next stage, with Hungary lifting all remaining objections by the end of Sunday, 25 October 2026.",
    "due": "2026-10-25",
    "topic": "politics",
-   "confidence": "high"
+   "confidence": "high",
+   "grade": {
+    "outcome": "partly",
+    "already_known": true,
+    "vague": false,
+    "line": "Hungary had already lifted its objections on 16 October. No further step in Ukraine's EU accession talks was reported by 25 October."
+   }
   },
   {
    "text": "I predict that the No Kings protests continue in multiple U.S. cities, with large crowds in each city.",
    "due": "2026-10-25",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "The fourth round of No Kings protests was held on 17 October, the day before. No further protests in U.S. cities were reported by 25 October."
+   }
   },
   {
    "text": "I predict that the 2026 Men's Rugby League World Cup will be won by Australia",
    "due": "2026-10-18",
    "topic": "sport",
-   "confidence": "low"
+   "confidence": "low",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "On 18 October the tournament was still in its pool stage, so no winner was decided. That day Fiji beat the Cook Islands 40–12."
+   }
   }
  ]
 }

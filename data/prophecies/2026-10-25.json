@@ -7,61 +7,121 @@
    "text": "I predict that the specific details and cultural influences of Halloween will be finalized for the celebration, emphasizing its Christian origins and the influence of Celtic harvest festivals, particularly Samhain.",
    "due": "2026-10-31",
    "topic": "culture",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": true,
+    "line": "Halloween fell on 31 October with nothing about its origins settled: Wikipedia's article was still being rewritten that day and gave Celtic influence as one contested theory."
+   }
   },
   {
    "text": "I predict that thousands of students and teachers will march through Athens, Thessaloniki, and Patras in Greece to protest against the rising cost of living, calling for affordable student housing and more state investment in education.",
    "due": "2026-11-01",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No new student and teacher marches in Greece were reported between 25 October and 1 November; that week's reported protests were in Spain, Italy, France, Germany and elsewhere."
+   }
   },
   {
    "text": "I predict that the Israeli military conducts additional raids and arrests in the West Bank cities previously targeted, including the city of Hebron.",
    "due": "2026-11-01",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "Israeli forces kept up their operation around Hebron until withdrawing on 2 November, but no new raids on the other West Bank cities or new arrests were reported by 1 November."
+   }
   },
   {
    "text": "I predict that the investigations into the 2026 Karak church shooting will lead to the questioning of two suspects in Jordan by the end of Sunday, 1 November 2026.",
    "due": "2026-11-01",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "Jordanian security forces arrested the three gunmen after a shootout on 26 October: three suspects, not two, and no questioning was reported."
+   }
   },
   {
    "text": "I predict that the number of arrests in Italian unrest (crime) will exceed 71 by the end of Sunday, 1 November 2026, with clashes reported in at least two cities across Italy.",
    "due": "2026-11-01",
    "topic": "crime",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": false,
+    "vague": false,
+    "line": "Clashes broke out in several Italian cities during a general strike on 30 October, but no arrest figures were reported by 1 November."
+   }
   },
   {
    "text": "I predict that the total number of people evacuated during Typhoon Champi will be around 2,639.",
    "due": "2026-11-01",
    "topic": "disaster",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "happened",
+    "already_known": true,
+    "vague": false,
+    "line": "The only evacuation figure reported was 2,639 people moved from mountainous areas of Taiwan on 23 October, before this was foretold."
+   }
   },
   {
    "text": "I predict that the suspect will be charged with additional counts of murder and attempted murder in the 2026 Trappes and La Verrière shootings, with the charges covering the deaths of two more individuals and injuries to three others.",
    "due": "2026-11-01",
    "topic": "conflict",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "No further deaths or new charges in the Trappes and La Verrière shootings were reported by 1 November; one person had been killed and five injured."
+   }
   },
   {
    "text": "I predict that Australia and at least one other country join in imposing sanctions against North Korea.",
    "due": "2026-11-01",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "Australia's sanctions came on 23 October, before this was foretold; no other country's new sanctions on North Korea were reported by 1 November."
+   }
   },
   {
    "text": "I predict that an important politician from Greece will announce that the largest social media platforms, including those with over 1 billion monthly active users, will be required to comply with the new Greek law by the end of Sunday, 1 November 2026.",
    "due": "2026-11-01",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "Nothing more on Greece's social media law for under-15s was reported by 1 November, so no such announcement is known. The law takes effect on 1 January 2027."
+   }
   },
   {
    "text": "I predict that the 2026 World Artistic Gymnastics Championships will see the Russian team win the team finals in both the men's and women's categories.",
    "due": "2026-10-25",
    "topic": "sport",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": true,
+    "vague": false,
+    "line": "Both team finals had already been held: Japan won the men's on 20 October, with Russia second, and China won the women's on 21 October, with Russia sixth."
+   }
   }
  ]
 }

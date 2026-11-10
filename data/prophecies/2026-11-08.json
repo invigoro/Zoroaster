@@ -13,7 +13,13 @@
    "text": "I predict that the Labour Party will win the election but will not form the government due to the National Party's overhang seats, resulting in a coalition government between the National Party and its partners.",
    "due": "2026-11-08",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "partly",
+    "already_known": true,
+    "vague": false,
+    "line": "Labour narrowly led the party vote and the governing coalition held 67 of 131 seats on preliminary results, but it was called too close to call; no government was settled by 8 November."
+   }
   },
   {
    "text": "I predict that the Blue Coalition will win the majority and form the next government in the 26th Knesset.",

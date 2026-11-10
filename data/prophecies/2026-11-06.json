@@ -7,13 +7,25 @@
    "text": "I predict that the African National Congress will win the majority of council seats in the 2026 South African municipal elections, with the Democratic Alliance and Congress of the People as the main opposition parties.",
    "due": "2026-11-06",
    "topic": "politics",
-   "confidence": "medium"
+   "confidence": "medium",
+   "grade": {
+    "outcome": "did not happen",
+    "already_known": false,
+    "vague": false,
+    "line": "With 95% counted on 6 November, the ANC led with 31% of the vote, far short of a majority; the DA was second with 24% and uMkhonto weSizwe third."
+   }
   },
   {
    "text": "I predict that the Rulers will win Season 2 of Rise and Fall.",
    "due": "2026-11-06",
    "topic": "other",
-   "confidence": "low"
+   "confidence": "low",
+   "grade": {
+    "outcome": "unknown",
+    "already_known": false,
+    "vague": false,
+    "line": "The season ended on 6 November with a winner named, but the reports didn't say whether the winner finished as a Ruler or a Worker."
+   }
   },
   {
    "text": "I predict that the general strike across France will continue, with additional protests in France.",
