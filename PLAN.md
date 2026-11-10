@@ -1493,6 +1493,42 @@ Items 1–3 above are the **v1 run (2026-07-08)**. Its outputs were moved to
         evidence.
     - Previewed at desktop and phone widths with the drafts as if
       confirmed, as of a pretend 15 October.
+    - **The second round (2026-11-10)**, four weeks' worth: 259 predictions
+      due 12 October to 8 November (216 from stories, 43 from pages). 9
+      November waits a week, since its Current events were still filling.
+      - **Drafting:** a pack repeats every day's events up to its due day,
+        so the packs came to 8.3 MB. For drafting, the events went into one
+        file by day and the packs into six chunks without them. Six Claude
+        subagents drafted a chunk each, from one brief (the rubric, the
+        silence rule and the line's guardrails), with up to eight Wikipedia
+        lookups each. Claude then read all 259 lines and fixed eight: lines
+        that singled out a person ("elected the president", a sentence's
+        length, suspects' nationality), and one grade, Gaza's toll,
+        ungrounded because its 4,000 was a count of militants killed.
+      - **The drafts:** 113 did not happen, 52 unknown, 49 partly, 40
+        happened, 5 not possible. 41 were already known, 31 not grounded.
+        Seeded on the review page for the user to confirm.
+      - An election on the due day counts its result, even when the count
+        is finished after midnight UTC (South Dakota, 3 November), as with
+        the Czech Senate's first round.
+      - **Found on the way** (§6, after item 39):
+        - Old dates with no year are marked as today's: the 1956 Suez
+          Crisis, a 2021 single's radio date, Santiago's metro closing in
+          2019, and an arrest in 2023 (as "tomorrow"). Four predictions
+          forecast those days again, for 2026.
+        - The prophet read its own burst rank ("ranked 18 for bursting
+          today") as a medal-table place.
+        - Two predictions rested on the 2026 Paris Motor Show page, which was
+          deleted on 26 October as presumed LLM-generated.
+        - The 2026 New Zealand general election page was moved to a vandal
+          title naming a user just as the day was read. The prediction was
+          fine, and the site never shows cited titles.
+        - "A prominent individual will be sentenced to life" passed the
+          person check three times (two Kenyan cases, one Australian): each
+          is one person's criminal case with the name taken out.
+        - Some due days fall before the event ends (a curling championship,
+          the Youth Olympics' standings), and some stories' predictions
+          restate a report from days before as a new event.
 
 ## 4. Data state — important for resuming on a new machine
 
@@ -2906,6 +2942,18 @@ old step 2 (move to English Wikipedia) is now step 5.
                 once a week, Claude's drafts confirmed by the user, and the
                 site shows the grades. Weekly from now: the round in the
                 README, then the judge checked against the live grades too.
+                The second round (259, four weeks') is drafted and awaits
+                the user's review (2026-11-10).
+              - **Next, from the second round (§3 item 39):**
+                - **Fix:** a date with no year is marked as today's only if
+                  its section is about this year; four predictions forecast
+                  a past year's event again.
+                - **Fix:** keep the burst rank out of what the prophet reads
+                  as content, or word it so it can't be taken for a place.
+                - **Open, the user's call:** "a prominent individual" with
+                  the name taken out is still one person (three life-sentence
+                  predictions). Ties in with the open check for unnamed
+                  individuals ("the 25-year-old suspect").
               - **Still to do: longer horizons** for scheduled world events,
                 such as an election a month away. This needs the update
                 scoring decided first (§7).
