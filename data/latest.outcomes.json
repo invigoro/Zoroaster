@@ -1,32 +1,40 @@
 {
- "date": "2026-11-09",
+ "date": "2026-11-10",
  "target": "a burst of edits by 2+ editors (mass editors left out)",
- "mass_editors": 304,
+ "mass_editors": 317,
  "precision": {
   "model": {
-   "10": 0.1,
-   "50": 0.14,
-   "100": 0.11,
-   "1000": 0.046
+   "10": 0.4,
+   "50": 0.24,
+   "100": 0.19,
+   "1000": 0.058
   },
   "edits yesterday": {
    "10": 0.1,
    "50": 0.08,
-   "100": 0.08,
-   "1000": 0.038
+   "100": 0.06,
+   "1000": 0.039
   }
  },
  "hits": [
-  "Jason Beck (American football)",
+  "Spinning top",
+  "James Gunn",
   "Ramayana: Part 1",
-  "List of Democratic Socialists of America public officeholders",
+  "Donnie Dunagan",
+  "2026 California State Assembly election",
+  "The End of Everything (Harrison novel)",
   "Jensen Huang",
-  "Druski",
-  "Dževad Prekazi",
-  "2026 Season Finale 400",
-  "2026 Summer Youth Olympics",
-  "Brazil at the 2026 Summer Youth Olympics",
-  "Eileen Laubacher",
-  "Tony Butala"
+  "Tommy Walsh (builder)",
+  "Russell Brand",
+  "2026 ACC Under-19 Asia Cup",
+  "List of highest domestic net collection of Hindi films",
+  "Jessie Bates",
+  "Rita Asfour",
+  "Ahmed Moor",
+  "M. John Harrison",
+  "Bug Hall",
+  "College Football Playoff",
+  "Hubert Ausbie",
+  "2026 Champion of Champions"
  ]
 }
