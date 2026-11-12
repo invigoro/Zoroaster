@@ -1,66 +1,66 @@
 {
- "date": "2026-11-11",
- "generated_at": "2026-11-11T00:41:35+00:00",
+ "date": "2026-11-12",
+ "generated_at": "2026-11-12T00:41:32+00:00",
  "model": "Qwen/Qwen2.5-7B-Instruct",
  "predictions": [
   {
-   "text": "I predict that the song Thriller will reach a new peak at number 2 on the Hot 100 chart.",
-   "due": "2026-11-14",
-   "topic": "culture",
-   "confidence": "high"
-  },
-  {
-   "text": "I predict that the 2026 ASEAN Inclusive Growth Summit hosted by Mastercard and ASEAN Business Advisory Council Philippines will be held on November 11 with speakers from various business sectors and governments, leading to agreements on inclusive economic growth strategies within ASEAN.",
-   "due": "2026-11-16",
+   "text": "I predict that the Ninth European Political Community Summit will see the participation of multiple European nations and organizations, with an agenda focused on security and cooperation, but the exact outcomes of discussions will not be determined by this page.",
+   "due": "2026-11-12",
    "topic": "politics",
    "confidence": "low"
   },
   {
-   "text": "I predict that a prominent individual in Paraguay will be found guilty of the charges of conflict of interest involving a major financial institution, and the trial concludes with a verdict by the end of Wednesday, 18 November 2026, with Paraguay being the country involved.",
-   "due": "2026-11-18",
-   "topic": "politics",
+   "text": "I predict that the Indonesian police will arrest 154 people and hospitalize 2 people in total during the protests in Yogyakarta.",
+   "due": "2026-11-19",
+   "topic": "crime",
+   "confidence": "low"
+  },
+  {
+   "text": "I predict that more than 6,000 schools across Italy will be evacuated following bomb threats.",
+   "due": "2026-11-19",
+   "topic": "crime",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the Strait of Hormuz will experience at least two more reports of explosions or military movements by the end of Wednesday, 18 November 2026, involving Iran and the United States.",
-   "due": "2026-11-18",
-   "topic": "conflict",
+   "text": "I predict that Germany manages to store approximately 10% of its national storage capacity in the new reserve by the end of the week.",
+   "due": "2026-11-19",
+   "topic": "economy",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the trial of the shooter will take place in Kraków, Poland, and he will face multiple charges related to the killings and injuries.",
-   "due": "2026-11-18",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that prominent actors and a major organization will question the safety standards of factories, particularly those in industrial zones near a large city, by the end of Wednesday, 18 November 2026.",
-   "due": "2026-11-18",
+   "text": "I predict that the northern regions of Portugal remain closed longer than the southern regions.",
+   "due": "2026-11-19",
    "topic": "disaster",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the regulations on artificial intelligence will pass, with Australia and several other countries supporting them, but facing opposition from tech companies and some nations concerned about data privacy.",
-   "due": "2026-11-18",
+   "text": "I predict that the regulations will pass with a majority in the Australian parliament, with the governing party supporting and the opposition parties opposing.",
+   "due": "2026-11-19",
    "topic": "science",
    "confidence": "medium"
   },
   {
-   "text": "I predict that independent newspapers in Russia face similar closures or restrictions in at least two cities by the end of Wednesday, 18 November 2026.",
-   "due": "2026-11-18",
+   "text": "I predict that the German defence ministry will announce the replacement of Chinese-made drones with German-made models for military training and exercises.",
+   "due": "2026-11-19",
    "topic": "politics",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the executions will take place in Goma, North Kivu, Democratic Republic of the Congo, by the end of Wednesday, 18 November 2026.",
-   "due": "2026-11-18",
+   "text": "I predict that the sentenced soldiers in the Democratic Republic of the Congo will be executed in Goma, North Kivu.",
+   "due": "2026-11-19",
    "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the Indonesian parliament approves the resignation of an important politician and appoints a successor, with the new leader being from a different political party than the previous one.",
-   "due": "2026-11-18",
-   "topic": "politics",
+   "text": "I predict that the Independence March in Warsaw, Poland will be attended by at least 500,000 people by the end of Thursday, 19 November 2026.",
+   "due": "2026-11-19",
+   "topic": "other",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that there will be at least one more clash involving insurgents and police in Khyber Pakhtunkhwa, Pakistan, by the end of Thursday, 19 November 2026.",
+   "due": "2026-11-19",
+   "topic": "conflict",
    "confidence": "medium"
   }
  ]
