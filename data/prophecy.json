@@ -1,66 +1,66 @@
 {
- "date": "2026-11-12",
- "generated_at": "2026-11-12T00:41:32+00:00",
+ "date": "2026-11-13",
+ "generated_at": "2026-11-13T00:43:03+00:00",
  "model": "Qwen/Qwen2.5-7B-Instruct",
  "predictions": [
   {
-   "text": "I predict that the Ninth European Political Community Summit will see the participation of multiple European nations and organizations, with an agenda focused on security and cooperation, but the exact outcomes of discussions will not be determined by this page.",
-   "due": "2026-11-12",
-   "topic": "politics",
-   "confidence": "low"
-  },
-  {
-   "text": "I predict that the Indonesian police will arrest 154 people and hospitalize 2 people in total during the protests in Yogyakarta.",
-   "due": "2026-11-19",
-   "topic": "crime",
-   "confidence": "low"
-  },
-  {
-   "text": "I predict that more than 6,000 schools across Italy will be evacuated following bomb threats.",
-   "due": "2026-11-19",
-   "topic": "crime",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that Germany manages to store approximately 10% of its national storage capacity in the new reserve by the end of the week.",
-   "due": "2026-11-19",
-   "topic": "economy",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the northern regions of Portugal remain closed longer than the southern regions.",
-   "due": "2026-11-19",
-   "topic": "disaster",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the regulations will pass with a majority in the Australian parliament, with the governing party supporting and the opposition parties opposing.",
-   "due": "2026-11-19",
-   "topic": "science",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the German defence ministry will announce the replacement of Chinese-made drones with German-made models for military training and exercises.",
-   "due": "2026-11-19",
-   "topic": "politics",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the sentenced soldiers in the Democratic Republic of the Congo will be executed in Goma, North Kivu.",
-   "due": "2026-11-19",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the Independence March in Warsaw, Poland will be attended by at least 500,000 people by the end of Thursday, 19 November 2026.",
-   "due": "2026-11-19",
+   "text": "I predict that the soundtrack album for The Lord of the Rings: The Rings of Power season 3 will be released sometime in December 2026.",
+   "due": "2026-11-13",
    "topic": "other",
    "confidence": "medium"
   },
   {
-   "text": "I predict that there will be at least one more clash involving insurgents and police in Khyber Pakhtunkhwa, Pakistan, by the end of Thursday, 19 November 2026.",
-   "due": "2026-11-19",
+   "text": "I predict that a prominent individual will retain their position as interim leader by the end of Friday, 20 November 2026, as the board evaluates the situation and decides against further changes in leadership.",
+   "due": "2026-11-20",
+   "topic": "economy",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Strait of Hormuz will see at least one more patrol by Iranian ships by the end of Friday, 20 November 2026.",
+   "due": "2026-11-20",
    "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Gaza war will continue with airstrikes and strikes, resulting in at least 20 total casualties by the end of Friday, 20 November 2026, involving both Israeli and Palestinian forces.",
+   "due": "2026-11-20",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Colombian conflict will continue with at least one more attack on a military target in the departments of Bolívar or Valle del Cauca by the end of Friday, 20 November 2026.",
+   "due": "2026-11-20",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that more than 6,000 schools across Italy will be evacuated due to bomb threats.",
+   "due": "2026-11-20",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Germany will aim to store 24 terawatt-hours of natural gas in the new reserve by the end of December 2026, equivalent to approximately 10% of national storage capacity.",
+   "due": "2026-11-20",
+   "topic": "economy",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the investigation into the 2026 New York City building collapse will find negligence by at least two construction firms and one regulatory body, with the findings released by the end of Friday, 20 November 2026, highlighting lax oversight in the construction industry in the United States.",
+   "due": "2026-11-20",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that millions of workers across Spain will launch a general strike to demand government intervention over the housing crisis, with clashes between protesters and police occurring in several major cities by the end of Friday, 20 November 2026.",
+   "due": "2026-11-20",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the second day of the Web Summit in Lisbon will resume, but with reduced attendance and additional security measures in place.",
+   "due": "2026-11-20",
+   "topic": "disaster",
    "confidence": "medium"
   }
  ]

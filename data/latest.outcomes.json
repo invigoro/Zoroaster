@@ -1,34 +1,44 @@
 {
- "date": "2026-11-11",
+ "date": "2026-11-12",
  "target": "a burst of edits by 2+ editors (mass editors left out)",
- "mass_editors": 290,
+ "mass_editors": 278,
  "precision": {
   "model": {
-   "10": 0.0,
-   "50": 0.16,
-   "100": 0.13,
-   "1000": 0.061
+   "10": 0.5,
+   "50": 0.24,
+   "100": 0.23,
+   "1000": 0.064
   },
   "edits yesterday": {
-   "10": 0.1,
+   "10": 0.0,
    "50": 0.08,
-   "100": 0.07,
-   "1000": 0.047
+   "100": 0.08,
+   "1000": 0.044
   }
  },
  "hits": [
-  "Kirk Cousins",
-  "Donnie Dunagan",
-  "Spinning top",
-  "2026 Champion of Champions",
-  "Jim Jordan",
-  "Daihatsu Hijet",
-  "List of highest-grossing films in India",
-  "Josh Downs",
-  "Oleh Bilorus",
-  "List of highest-grossing Indian films",
+  "Tom O'Brien (jockey)",
+  "Yella Beezy",
+  "Alexander Darchiev",
+  "Gibran Rakabuming Raka",
+  "Irma P. Hall",
+  "Scott Colom",
+  "Cindy Hyde-Smith",
+  "9th European Political Community Summit",
+  "Dummymandering",
+  "The Lord of the Rings: The Rings of Power",
+  "Mauricio Pochettino",
+  "Sa'idi people",
+  "Jensen Huang",
+  "M. John Harrison",
   "SS United States",
-  "Héctor Aguer",
-  "2026 ASEAN Summits"
+  "2026 World Championship Qualifier Men",
+  "How to Rob a Bank (2026 film)",
+  "List of highest domestic net collection of Hindi films",
+  "Ian McNabb",
+  "Dick Hoak",
+  "Wooden Boy Island",
+  "Production of Avengers: Doomsday and Avengers: Secret Wars",
+  "Lake sturgeon"
  ]
 }
