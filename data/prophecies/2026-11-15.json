@@ -1,0 +1,67 @@
+{
+ "date": "2026-11-15",
+ "generated_at": "2026-11-15T00:40:07+00:00",
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "predictions": [
+  {
+   "text": "I predict that the Strait of Hormuz will be targeted again, with Iran attacking another naval facility there.",
+   "due": "2026-11-22",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that over 200 additional garment factories will shut down in Bangladesh due to worker protests by the end of Sunday, 22 November 2026.",
+   "due": "2026-11-22",
+   "topic": "economy",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that student protesters, unions, and the yellow vests will hold another nationwide protest in France, with over 100,000 participants.",
+   "due": "2026-11-22",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Free trade agreements of Canada will not be debated in the Canadian parliament this week.",
+   "due": "2026-11-22",
+   "topic": "economy",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the recovered funds will be used to fund social programs in Hungary, with the majority allocated to education and healthcare.",
+   "due": "2026-11-22",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the investigation into the explosives seizure in Kanaighat Upazila, Sylhet District, Bangladesh, will lead to the arrest of additional suspects and the seizure of more explosive materials in a related operation involving Bangladeshi and Indian security forces.",
+   "due": "2026-11-22",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the first stop of the winners' tour for the Eurovision Song Contest Asia will be in Thailand.",
+   "due": "2026-11-22",
+   "topic": "culture",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the United States will arrest and charge individuals from the designated Guatemalan criminal groups, and these groups will face additional sanctions such as asset freezes and travel bans.",
+   "due": "2026-11-22",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the parliaments of both Qatar and Turkey will approve the defense pact by the end of Sunday, 22 November 2026.",
+   "due": "2026-11-22",
+   "topic": "politics",
+   "confidence": "high"
+  },
+  {
+   "text": "I predict that the Nations Championship final will be won by Australia, defeating Scotland at Murrayfield Stadium, Edinburgh.",
+   "due": "2026-11-15",
+   "topic": "sport",
+   "confidence": "medium"
+  }
+ ]
+}

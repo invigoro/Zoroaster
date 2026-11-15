@@ -1,66 +1,66 @@
 {
- "date": "2026-11-13",
- "generated_at": "2026-11-13T00:43:03+00:00",
+ "date": "2026-11-15",
+ "generated_at": "2026-11-15T00:40:07+00:00",
  "model": "Qwen/Qwen2.5-7B-Instruct",
  "predictions": [
   {
-   "text": "I predict that the soundtrack album for The Lord of the Rings: The Rings of Power season 3 will be released sometime in December 2026.",
-   "due": "2026-11-13",
-   "topic": "other",
+   "text": "I predict that the Strait of Hormuz will be targeted again, with Iran attacking another naval facility there.",
+   "due": "2026-11-22",
+   "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that a prominent individual will retain their position as interim leader by the end of Friday, 20 November 2026, as the board evaluates the situation and decides against further changes in leadership.",
-   "due": "2026-11-20",
+   "text": "I predict that over 200 additional garment factories will shut down in Bangladesh due to worker protests by the end of Sunday, 22 November 2026.",
+   "due": "2026-11-22",
    "topic": "economy",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the Strait of Hormuz will see at least one more patrol by Iranian ships by the end of Friday, 20 November 2026.",
-   "due": "2026-11-20",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the Gaza war will continue with airstrikes and strikes, resulting in at least 20 total casualties by the end of Friday, 20 November 2026, involving both Israeli and Palestinian forces.",
-   "due": "2026-11-20",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the Colombian conflict will continue with at least one more attack on a military target in the departments of Bolívar or Valle del Cauca by the end of Friday, 20 November 2026.",
-   "due": "2026-11-20",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that more than 6,000 schools across Italy will be evacuated due to bomb threats.",
-   "due": "2026-11-20",
-   "topic": "crime",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that Germany will aim to store 24 terawatt-hours of natural gas in the new reserve by the end of December 2026, equivalent to approximately 10% of national storage capacity.",
-   "due": "2026-11-20",
-   "topic": "economy",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the investigation into the 2026 New York City building collapse will find negligence by at least two construction firms and one regulatory body, with the findings released by the end of Friday, 20 November 2026, highlighting lax oversight in the construction industry in the United States.",
-   "due": "2026-11-20",
-   "topic": "disaster",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that millions of workers across Spain will launch a general strike to demand government intervention over the housing crisis, with clashes between protesters and police occurring in several major cities by the end of Friday, 20 November 2026.",
-   "due": "2026-11-20",
+   "text": "I predict that student protesters, unions, and the yellow vests will hold another nationwide protest in France, with over 100,000 participants.",
+   "due": "2026-11-22",
    "topic": "politics",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the second day of the Web Summit in Lisbon will resume, but with reduced attendance and additional security measures in place.",
-   "due": "2026-11-20",
-   "topic": "disaster",
+   "text": "I predict that the Free trade agreements of Canada will not be debated in the Canadian parliament this week.",
+   "due": "2026-11-22",
+   "topic": "economy",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the recovered funds will be used to fund social programs in Hungary, with the majority allocated to education and healthcare.",
+   "due": "2026-11-22",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the investigation into the explosives seizure in Kanaighat Upazila, Sylhet District, Bangladesh, will lead to the arrest of additional suspects and the seizure of more explosive materials in a related operation involving Bangladeshi and Indian security forces.",
+   "due": "2026-11-22",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the first stop of the winners' tour for the Eurovision Song Contest Asia will be in Thailand.",
+   "due": "2026-11-22",
+   "topic": "culture",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the United States will arrest and charge individuals from the designated Guatemalan criminal groups, and these groups will face additional sanctions such as asset freezes and travel bans.",
+   "due": "2026-11-22",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the parliaments of both Qatar and Turkey will approve the defense pact by the end of Sunday, 22 November 2026.",
+   "due": "2026-11-22",
+   "topic": "politics",
+   "confidence": "high"
+  },
+  {
+   "text": "I predict that the Nations Championship final will be won by Australia, defeating Scotland at Murrayfield Stadium, Edinburgh.",
+   "due": "2026-11-15",
+   "topic": "sport",
    "confidence": "medium"
   }
  ]
