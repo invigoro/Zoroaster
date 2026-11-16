@@ -1,67 +1,67 @@
 {
- "date": "2026-11-15",
- "generated_at": "2026-11-15T00:40:07+00:00",
+ "date": "2026-11-16",
+ "generated_at": "2026-11-16T00:41:52+00:00",
  "model": "Qwen/Qwen2.5-7B-Instruct",
  "predictions": [
   {
-   "text": "I predict that the Strait of Hormuz will be targeted again, with Iran attacking another naval facility there.",
-   "due": "2026-11-22",
+   "text": "I predict that the Iranian military attacks will continue targeting an American military facility in Bahrain, in one of the largest attacks on the country in months, by the end of Monday, 23 November 2026.",
+   "due": "2026-11-23",
    "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that over 200 additional garment factories will shut down in Bangladesh due to worker protests by the end of Sunday, 22 November 2026.",
-   "due": "2026-11-22",
-   "topic": "economy",
+   "text": "I predict that herder–farmer conflicts in Nigeria will continue, with three people killed and several others abducted in new cattle raids and conflicts.",
+   "due": "2026-11-23",
+   "topic": "conflict",
    "confidence": "medium"
   },
   {
    "text": "I predict that student protesters, unions, and the yellow vests will hold another nationwide protest in France, with over 100,000 participants.",
-   "due": "2026-11-22",
+   "due": "2026-11-23",
    "topic": "politics",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the Free trade agreements of Canada will not be debated in the Canadian parliament this week.",
-   "due": "2026-11-22",
-   "topic": "economy",
+   "text": "I predict that a community in Moldova will continue to participate in voting, and by the end of Monday, 23 November 2026, a candidate from a political party will win the election for a prominent official, and their party will gain several seats in the legislature.",
+   "due": "2026-11-23",
+   "topic": "politics",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the recovered funds will be used to fund social programs in Hungary, with the majority allocated to education and healthcare.",
-   "due": "2026-11-22",
+   "text": "I predict that the Jordanian State Security Court will review the case, with three judges participating, and the defense will argue for commutation of sentences while the prosecution will emphasize the need for capital punishment to deter future attacks.",
+   "due": "2026-11-23",
    "topic": "crime",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the investigation into the explosives seizure in Kanaighat Upazila, Sylhet District, Bangladesh, will lead to the arrest of additional suspects and the seizure of more explosive materials in a related operation involving Bangladeshi and Indian security forces.",
-   "due": "2026-11-22",
+   "text": "I predict that the South Sudanese election commission will issue a statement clarifying the status of the elections, indicating they will proceed as planned on February 11, 2027, but with additional security measures in place.",
+   "due": "2026-11-23",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the first joint military exercise takes place in the waters near the Philippine archipelago, involving Australian and Philippine naval forces.",
+   "due": "2026-11-23",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Border Guard Bangladesh will seize at least 48 more explosive devices in another operation along the Bangladesh-India border in Sylhet District by the end of Monday, 23 November 2026.",
+   "due": "2026-11-23",
    "topic": "crime",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the first stop of the winners' tour for the Eurovision Song Contest Asia will be in Thailand.",
-   "due": "2026-11-22",
+   "text": "I predict that two additional battalions will be deployed to Zacapa, Izabal, and Chiquimula by the end of Monday, 23 November 2026.",
+   "due": "2026-11-23",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the first leg of the winners' tour will be held in Bangkok, Thailand.",
+   "due": "2026-11-23",
    "topic": "culture",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the United States will arrest and charge individuals from the designated Guatemalan criminal groups, and these groups will face additional sanctions such as asset freezes and travel bans.",
-   "due": "2026-11-22",
-   "topic": "politics",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the parliaments of both Qatar and Turkey will approve the defense pact by the end of Sunday, 22 November 2026.",
-   "due": "2026-11-22",
-   "topic": "politics",
    "confidence": "high"
-  },
-  {
-   "text": "I predict that the Nations Championship final will be won by Australia, defeating Scotland at Murrayfield Stadium, Edinburgh.",
-   "due": "2026-11-15",
-   "topic": "sport",
-   "confidence": "medium"
   }
  ]
 }

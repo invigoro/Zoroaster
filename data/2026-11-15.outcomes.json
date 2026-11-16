@@ -1,0 +1,37 @@
+{
+ "date": "2026-11-15",
+ "target": "a burst of edits by 2+ editors (mass editors left out)",
+ "mass_editors": 314,
+ "precision": {
+  "model": {
+   "10": 0.1,
+   "50": 0.12,
+   "100": 0.16,
+   "1000": 0.064
+  },
+  "edits yesterday": {
+   "10": 0.1,
+   "50": 0.08,
+   "100": 0.07,
+   "1000": 0.048
+  }
+ },
+ "hits": [
+  "Ebenezer (2026 film)",
+  "1000 Crore Club",
+  "List of highest-grossing films in India",
+  "12 12 12",
+  "The Body (TV series)",
+  "2024 CrowdStrike-related IT outages",
+  "Skip Hinnant",
+  "Viva La Lisa",
+  "Melon Music Awards",
+  "2026–27 FIS Alpine Ski World Cup",
+  "L3Harris",
+  "2026 League of Legends World Championship final",
+  "Richard Sterban",
+  "2026 U-23 Baseball World Cup",
+  "2026 Champion of Champions",
+  "2023 FAA system outage"
+ ]
+}
