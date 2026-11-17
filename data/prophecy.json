@@ -1,67 +1,67 @@
 {
- "date": "2026-11-16",
- "generated_at": "2026-11-16T00:41:52+00:00",
+ "date": "2026-11-17",
+ "generated_at": "2026-11-17T00:41:58+00:00",
  "model": "Qwen/Qwen2.5-7B-Instruct",
  "predictions": [
   {
-   "text": "I predict that the Iranian military attacks will continue targeting an American military facility in Bahrain, in one of the largest attacks on the country in months, by the end of Monday, 23 November 2026.",
-   "due": "2026-11-23",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that herder–farmer conflicts in Nigeria will continue, with three people killed and several others abducted in new cattle raids and conflicts.",
-   "due": "2026-11-23",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that student protesters, unions, and the yellow vests will hold another nationwide protest in France, with over 100,000 participants.",
-   "due": "2026-11-23",
-   "topic": "politics",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that a community in Moldova will continue to participate in voting, and by the end of Monday, 23 November 2026, a candidate from a political party will win the election for a prominent official, and their party will gain several seats in the legislature.",
-   "due": "2026-11-23",
-   "topic": "politics",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the Jordanian State Security Court will review the case, with three judges participating, and the defense will argue for commutation of sentences while the prosecution will emphasize the need for capital punishment to deter future attacks.",
-   "due": "2026-11-23",
-   "topic": "crime",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the South Sudanese election commission will issue a statement clarifying the status of the elections, indicating they will proceed as planned on February 11, 2027, but with additional security measures in place.",
-   "due": "2026-11-23",
-   "topic": "politics",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the first joint military exercise takes place in the waters near the Philippine archipelago, involving Australian and Philippine naval forces.",
-   "due": "2026-11-23",
-   "topic": "politics",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that Border Guard Bangladesh will seize at least 48 more explosive devices in another operation along the Bangladesh-India border in Sylhet District by the end of Monday, 23 November 2026.",
-   "due": "2026-11-23",
-   "topic": "crime",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that two additional battalions will be deployed to Zacapa, Izabal, and Chiquimula by the end of Monday, 23 November 2026.",
-   "due": "2026-11-23",
-   "topic": "crime",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the first leg of the winners' tour will be held in Bangkok, Thailand.",
-   "due": "2026-11-23",
+   "text": "I predict that the new text and changes for the Chhath Puja page will be finalized and accepted, detailing its deep roots in the cultural traditions of the Indo-Nepalese region.",
+   "due": "2026-11-20",
    "topic": "culture",
    "confidence": "high"
+  },
+  {
+   "text": "I predict that herder–farmer conflicts in Nigeria will continue, with at least three people killed and several others abducted in new cattle raids and conflicts by the end of Tuesday, 24 November 2026.",
+   "due": "2026-11-24",
+   "topic": "conflict",
+   "confidence": "low"
+  },
+  {
+   "text": "I predict that over 50 additional garment factories will close due to worker protests and unrest in Bangladesh.",
+   "due": "2026-11-24",
+   "topic": "economy",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Strait of Hormuz will see at least one more supertanker targeted, possibly struck by a mine or other weapon, involving Iranian forces.",
+   "due": "2026-11-24",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that at least 8 more children will be vaccinated in the next week in Bangladesh.",
+   "due": "2026-11-24",
+   "topic": "health",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that three more Palestinians will be killed and over 20 more will be wounded in shelling and shooting attacks by Israeli troops in Khan Younis and other areas of the Gaza Strip.",
+   "due": "2026-11-24",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Philippines will sign the Pax Silica deal with the United States, and protests will continue in Metro Manila, with at least 287 people arrested in total by the end of Tuesday, 24 November 2026.",
+   "due": "2026-11-24",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the executions will take place in Jordan by the end of Tuesday, 24 November 2026.",
+   "due": "2026-11-24",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the investigation into the Patong fire will reveal that the building's fire safety systems were inadequate, allowing the fire to spread quickly and contributing to the high casualty rate.",
+   "due": "2026-11-24",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the first joint military exercise takes place in the waters near the Philippine archipelago, involving Australian and Filipino naval forces.",
+   "due": "2026-11-24",
+   "topic": "politics",
+   "confidence": "medium"
   }
  ]
 }

@@ -1,0 +1,39 @@
+{
+ "date": "2026-11-16",
+ "target": "a burst of edits by 2+ editors (mass editors left out)",
+ "mass_editors": 325,
+ "precision": {
+  "model": {
+   "10": 0.2,
+   "50": 0.14,
+   "100": 0.18,
+   "1000": 0.066
+  },
+  "edits yesterday": {
+   "10": 0.1,
+   "50": 0.04,
+   "100": 0.07,
+   "1000": 0.035
+  }
+ },
+ "hits": [
+  "Destination X (2026)",
+  "2026 Champion of Champions",
+  "List of highest-grossing Indian films in overseas markets",
+  "The Body (TV series)",
+  "Unitary executive theory",
+  "Chris Van Hollen",
+  "Bill Watters",
+  "Mirra Andreeva career statistics",
+  "2026 Cape Verdean presidential election",
+  "The Lord of the Rings: The Rings of Power season 3",
+  "List of assets owned by Skydance",
+  "Malaysia Airlines Flight 370",
+  "2026 Gagauz general election",
+  "Tim Holden",
+  "Chhath",
+  "2026–27 South Pacific cyclone season",
+  "Ilia Malinin",
+  "Bangladeshi cricket team in South Africa in 2026–27"
+ ]
+}
