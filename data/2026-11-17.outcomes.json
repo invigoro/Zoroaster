@@ -1,0 +1,35 @@
+{
+ "date": "2026-11-17",
+ "target": "a burst of edits by 2+ editors (mass editors left out)",
+ "mass_editors": 289,
+ "precision": {
+  "model": {
+   "10": 0.2,
+   "50": 0.16,
+   "100": 0.14,
+   "1000": 0.065
+  },
+  "edits yesterday": {
+   "10": 0.1,
+   "50": 0.12,
+   "100": 0.08,
+   "1000": 0.038
+  }
+ },
+ "hits": [
+  "The Lord of the Rings: The Rings of Power season 3",
+  "113th Grey Cup",
+  "I'm a Celebrity...Get Me Out of Here! (British TV series) series 26",
+  "Yukio Yamagata",
+  "Miguel Ángel Félix Gallardo",
+  "Rawan bin Hussain",
+  "Timeline of World War I",
+  "Crimean Bridge",
+  "APEC China 2026",
+  "Robert Pattinson",
+  "2026–27 South Pacific cyclone season",
+  "2028–29 UEFA Nations League",
+  "2026 Las Vegas Grand Prix",
+  "List of highest-grossing Indian films in overseas markets"
+ ]
+}

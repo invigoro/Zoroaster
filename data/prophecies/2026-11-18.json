@@ -1,0 +1,67 @@
+{
+ "date": "2026-11-18",
+ "generated_at": "2026-11-18T00:41:43+00:00",
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "predictions": [
+  {
+   "text": "I predict that the outcomes of the APEC China 2026 summit will include significant progress in digital technology cooperation among participating nations, with China playing a central role in facilitating advanced logistics and reception services.",
+   "due": "2026-11-19",
+   "topic": "economy",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the next two episodes will be released on November 25, 2026.",
+   "due": "2026-11-18",
+   "topic": "other",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Treaty of Brest-Litovsk is signed, ending Russia's participation in World War I for a period, with Russia ceding significant territories to Germany.",
+   "due": "2026-11-18",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that over 100 garment factories in Bangladesh will be shut down due to the ongoing protests.",
+   "due": "2026-11-25",
+   "topic": "economy",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Strait of Hormuz will experience another wave of drone attacks, with at least five more drones being intercepted by Bahrain's military.",
+   "due": "2026-11-25",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that there will be at least two additional mass shootings reported in South Africa by the end of Wednesday, 25 November 2026, with one of them occurring near Pretoria.",
+   "due": "2026-11-25",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Crimean Bridge will be struck by Ukrainian drones for the third time this week.",
+   "due": "2026-11-25",
+   "topic": "other",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the investigation into the Patong fire will reveal that the building's fire safety systems were inadequate, allowing the fire to spread quickly and contributing to the high casualty rate.",
+   "due": "2026-11-25",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the results of the investigation into the 2026 Russian Air Force Antonov An-12 crash near Kemerovo, Russia, will be released, detailing the cause of the crash and any recommendations for safety improvements, by the end of Wednesday, 25 November 2026, with the report mentioning that the crash was caused by mechanical failure and suggesting the replacement of some critical components.",
+   "due": "2026-11-25",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Canada and China will agree to further tariff reductions during the APEC summit in Shenzhen, with Canada extending relief for Chinese steel and aluminum exports.",
+   "due": "2026-11-25",
+   "topic": "economy",
+   "confidence": "medium"
+  }
+ ]
+}
