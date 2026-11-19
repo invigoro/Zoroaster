@@ -1,0 +1,67 @@
+{
+ "date": "2026-11-19",
+ "generated_at": "2026-11-19T01:08:47+00:00",
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "predictions": [
+  {
+   "text": "I predict that garment workers in Bangladesh will continue to protest for a higher minimum wage, with clashes between protesters and police occurring in Gazipur, Savar, and Ashulia, and at least 300 arrests made by the end of Thursday, 26 November 2026.",
+   "due": "2026-11-26",
+   "topic": "economy",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Strait of Hormuz will be the target of another attack, with at least one more supertanker struck by a naval mine.",
+   "due": "2026-11-26",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Israeli airstrikes in the Gaza Strip will continue to target residential areas, resulting in at least 10 casualties by the end of Thursday, 26 November 2026, with the conflict involving Israel and Palestine.",
+   "due": "2026-11-26",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Israeli army launches its first military operation in central Gaza Strip and at least one additional area by the end of Thursday, 26 November 2026.",
+   "due": "2026-11-26",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Crimean Bridge remains closed to vehicle traffic, with at least one more strike by Ukrainian drones in the next few weeks.",
+   "due": "2026-11-26",
+   "topic": "other",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the results of the investigation into the 2026 Russian Air Force Antonov An-12 crash near Kemerovo, Russia, will be released, detailing the cause of the crash and any recommendations for safety improvements, by the end of Thursday, 26 November 2026, with the findings indicating a mechanical failure and suggesting stricter maintenance checks for similar aircraft in Russia.",
+   "due": "2026-11-26",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Democratic Party will maintain their majority in the United States Senate after the certification.",
+   "due": "2026-11-26",
+   "topic": "politics",
+   "confidence": "high"
+  },
+  {
+   "text": "I predict that Canada and China will extend their agreement to reduce tariffs on C$400 million in additional Canadian exports by the end of Thursday, 26 November 2026.",
+   "due": "2026-11-26",
+   "topic": "economy",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the resignation of an important Mongolian politician becomes effective after the State Great Khural accepts it, with the decision made on Tuesday, 24 November 2026, and involving at least two of the political parties represented in the parliament.",
+   "due": "2026-11-26",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the agreements between France and Malaysia will be ratified by both countries' legislatures by the end of Thursday, 26 November 2026, with Malaysia's parliament approving the agreements.",
+   "due": "2026-11-26",
+   "topic": "politics",
+   "confidence": "high"
+  }
+ ]
+}
