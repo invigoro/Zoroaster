@@ -1,0 +1,42 @@
+{
+ "date": "2026-11-19",
+ "target": "a burst of edits by 2+ editors (mass editors left out)",
+ "mass_editors": 269,
+ "precision": {
+  "model": {
+   "10": 0.5,
+   "50": 0.26,
+   "100": 0.21,
+   "1000": 0.069
+  },
+  "edits yesterday": {
+   "10": 0.2,
+   "50": 0.08,
+   "100": 0.09,
+   "1000": 0.054
+  }
+ },
+ "hits": [
+  "APEC China 2026",
+  "Ken St. Andre",
+  "Isopoda",
+  "List of assets owned by Skydance",
+  "Total Chess World Championship 2026",
+  "Stojan Radenović",
+  "The Lord of the Rings: The Rings of Power season 3",
+  "Madden (film)",
+  "Voyager 1",
+  "The Hunger Games: Sunrise on the Reaping",
+  "Warner Bros. Television Studios",
+  "Lutz van Dijk",
+  "W. S. Gilbert",
+  "Destinus",
+  "John Hunyadi",
+  "Edith Stein",
+  "Jason Reding Quiñones",
+  "Hiromi Ōta",
+  "John Madden",
+  "Guarding Stars",
+  "List of presidents of Serbia"
+ ]
+}
