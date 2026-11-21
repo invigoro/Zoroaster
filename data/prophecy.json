@@ -1,65 +1,65 @@
 {
- "date": "2026-11-20",
- "generated_at": "2026-11-20T00:40:57+00:00",
+ "date": "2026-11-21",
+ "generated_at": "2026-11-21T00:41:21+00:00",
  "model": "Qwen/Qwen2.5-7B-Instruct",
  "predictions": [
   {
-   "text": "I predict that the film I Play Rocky will begin its limited theatrical release on November 13, 2026, and expand into theaters nationwide on November 20, 2026.",
-   "due": "2026-11-20",
-   "topic": "other",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that Bahrain will launch a retaliatory strike against Iran, targeting a military installation in Qeshm Island.",
-   "due": "2026-11-27",
+   "text": "I predict that the Strait of Hormuz will continue to experience incidents involving naval mines, with at least one more oil tanker being damaged or destroyed by a mine in the area by the end of Saturday, 28 November 2026.",
+   "due": "2026-11-28",
    "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the next targeted residence or office will be in Narayanganj District, Bangladesh, specifically the residence of an important politician or a prominent actor in the conflict.",
-   "due": "2026-11-27",
+   "text": "I predict that attacks will continue in Gopalganj District, targeting properties and offices of a prominent politician and a major bank.",
+   "due": "2026-11-28",
    "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the fighting in Yemen will continue, with the Saudi-led coalition and the Houthis each claiming to have inflicted casualties on the other, and the Saudi-led coalition will launch another offensive in the Marib province.",
-   "due": "2026-11-27",
-   "topic": "conflict",
+   "text": "I predict that the joint declaration will prioritize nuclear war reduction and petroleum production transparency, with a focus on the Asia-Pacific region, by the end of Saturday, 28 November 2026.",
+   "due": "2026-11-28",
+   "topic": "politics",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the minimum wage will remain at ৳12,500 (US$100) in Bangladesh, with ongoing protests and clashes between garment workers and police in Gazipur, Savar, and Ashulia, resulting in around 300 arrests by the end of Friday, 27 November 2026.",
-   "due": "2026-11-27",
+   "text": "I predict that the new minimum wage will be announced in Dhaka, but it will fall short of the protesters' demand of ৳30,000 ($240), with police firing tear gas and stun grenades to disperse demonstrators in Gazipur and Ashulia.",
+   "due": "2026-11-28",
    "topic": "economy",
    "confidence": "medium"
   },
   {
-   "text": "I predict that five Palestinians are killed and ten others are injured in the next round of Israeli airstrikes in Gaza.",
-   "due": "2026-11-27",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the memorandum of understanding signed in Shenzhen, China, will address petroleum production and United Nations reform.",
-   "due": "2026-11-27",
+   "text": "I predict that Honduras and Colombia will hold joint training exercises at Soto Cano Air Base, Honduras, by the end of Saturday, 28 November 2026.",
+   "due": "2026-11-28",
    "topic": "politics",
    "confidence": "medium"
   },
   {
-   "text": "I predict that joint training exercises between the United States and Venezuela will take place in the southern regions of Venezuela.",
-   "due": "2026-11-27",
+   "text": "I predict that the number of participants in Italian protests will surpass 100,000 in at least one protest by the end of Saturday, 28 November 2026.",
+   "due": "2026-11-28",
    "topic": "politics",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the Crimean Bridge will remain closed to vehicle traffic until at least December 1, 2026, with continued strikes by Ukrainian forces targeting the bridge.",
-   "due": "2026-11-27",
-   "topic": "conflict",
+   "text": "I predict that the State Great Khural will hold the presidential election in Mongolia, and a prominent actor will receive the majority of votes.",
+   "due": "2026-11-28",
+   "topic": "politics",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the Houthi attacks continue to affect Saudi oil exports, with the Joint Organisations Data Initiative reporting another rise in exports despite at least one attack on Red Sea ports by the end of Friday, 27 November 2026.",
-   "due": "2026-11-27",
+   "text": "I predict that the recovery efforts in Bayelsa State, Nigeria will continue, and by the end of Saturday, 28 November 2026, at least 30 bodies will have been recovered.",
+   "due": "2026-11-28",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Houthi attacks continue to affect Saudi oil exports, with at least one significant rise in exports reported by the end of Saturday, 28 November 2026.",
+   "due": "2026-11-28",
+   "topic": "economy",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Parliament of Senegal will approve the revised budget by the end of Saturday, 28 November 2026, after negotiations with the government.",
+   "due": "2026-11-28",
    "topic": "economy",
    "confidence": "medium"
   }

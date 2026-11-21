@@ -1,0 +1,40 @@
+{
+ "date": "2026-11-20",
+ "target": "a burst of edits by 2+ editors (mass editors left out)",
+ "mass_editors": 282,
+ "precision": {
+  "model": {
+   "10": 0.3,
+   "50": 0.2,
+   "100": 0.19,
+   "1000": 0.062
+  },
+  "edits yesterday": {
+   "10": 0.1,
+   "50": 0.1,
+   "100": 0.1,
+   "1000": 0.048
+  }
+ },
+ "hits": [
+  "The Hunger Games: Sunrise on the Reaping",
+  "2026 FIFA U-17 World Cup",
+  "Calvin Robinson",
+  "Lance Broadway",
+  "Steps (film)",
+  "Rohingya genocide",
+  "Ice Age: Boiling Point",
+  "John Hunyadi",
+  "Jorrybell Agoto",
+  "President of Serbia",
+  "Initial public offering of Anthropic",
+  "2026 AFL draft",
+  "Voyager 1",
+  "Fiona (hippopotamus)",
+  "Rohingya genocide case",
+  "Grand Theft Auto VI",
+  "Grand Theft Auto",
+  "Jason Reding Quiñones",
+  "Canada's Drag Race season 7"
+ ]
+}

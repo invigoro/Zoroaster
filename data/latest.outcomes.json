@@ -1,42 +1,40 @@
 {
- "date": "2026-11-19",
+ "date": "2026-11-20",
  "target": "a burst of edits by 2+ editors (mass editors left out)",
- "mass_editors": 269,
+ "mass_editors": 282,
  "precision": {
   "model": {
-   "10": 0.5,
-   "50": 0.26,
-   "100": 0.21,
-   "1000": 0.069
+   "10": 0.3,
+   "50": 0.2,
+   "100": 0.19,
+   "1000": 0.062
   },
   "edits yesterday": {
-   "10": 0.2,
-   "50": 0.08,
-   "100": 0.09,
-   "1000": 0.054
+   "10": 0.1,
+   "50": 0.1,
+   "100": 0.1,
+   "1000": 0.048
   }
  },
  "hits": [
-  "APEC China 2026",
-  "Ken St. Andre",
-  "Isopoda",
-  "List of assets owned by Skydance",
-  "Total Chess World Championship 2026",
-  "Stojan Radenović",
-  "The Lord of the Rings: The Rings of Power season 3",
-  "Madden (film)",
-  "Voyager 1",
   "The Hunger Games: Sunrise on the Reaping",
-  "Warner Bros. Television Studios",
-  "Lutz van Dijk",
-  "W. S. Gilbert",
-  "Destinus",
+  "2026 FIFA U-17 World Cup",
+  "Calvin Robinson",
+  "Lance Broadway",
+  "Steps (film)",
+  "Rohingya genocide",
+  "Ice Age: Boiling Point",
   "John Hunyadi",
-  "Edith Stein",
+  "Jorrybell Agoto",
+  "President of Serbia",
+  "Initial public offering of Anthropic",
+  "2026 AFL draft",
+  "Voyager 1",
+  "Fiona (hippopotamus)",
+  "Rohingya genocide case",
+  "Grand Theft Auto VI",
+  "Grand Theft Auto",
   "Jason Reding Quiñones",
-  "Hiromi Ōta",
-  "John Madden",
-  "Guarding Stars",
-  "List of presidents of Serbia"
+  "Canada's Drag Race season 7"
  ]
 }

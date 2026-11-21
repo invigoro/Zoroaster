@@ -1,0 +1,67 @@
+{
+ "date": "2026-11-21",
+ "generated_at": "2026-11-21T00:41:21+00:00",
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "predictions": [
+  {
+   "text": "I predict that the Strait of Hormuz will continue to experience incidents involving naval mines, with at least one more oil tanker being damaged or destroyed by a mine in the area by the end of Saturday, 28 November 2026.",
+   "due": "2026-11-28",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that attacks will continue in Gopalganj District, targeting properties and offices of a prominent politician and a major bank.",
+   "due": "2026-11-28",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the joint declaration will prioritize nuclear war reduction and petroleum production transparency, with a focus on the Asia-Pacific region, by the end of Saturday, 28 November 2026.",
+   "due": "2026-11-28",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the new minimum wage will be announced in Dhaka, but it will fall short of the protesters' demand of ৳30,000 ($240), with police firing tear gas and stun grenades to disperse demonstrators in Gazipur and Ashulia.",
+   "due": "2026-11-28",
+   "topic": "economy",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Honduras and Colombia will hold joint training exercises at Soto Cano Air Base, Honduras, by the end of Saturday, 28 November 2026.",
+   "due": "2026-11-28",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the number of participants in Italian protests will surpass 100,000 in at least one protest by the end of Saturday, 28 November 2026.",
+   "due": "2026-11-28",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the State Great Khural will hold the presidential election in Mongolia, and a prominent actor will receive the majority of votes.",
+   "due": "2026-11-28",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the recovery efforts in Bayelsa State, Nigeria will continue, and by the end of Saturday, 28 November 2026, at least 30 bodies will have been recovered.",
+   "due": "2026-11-28",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Houthi attacks continue to affect Saudi oil exports, with at least one significant rise in exports reported by the end of Saturday, 28 November 2026.",
+   "due": "2026-11-28",
+   "topic": "economy",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Parliament of Senegal will approve the revised budget by the end of Saturday, 28 November 2026, after negotiations with the government.",
+   "due": "2026-11-28",
+   "topic": "economy",
+   "confidence": "medium"
+  }
+ ]
+}
