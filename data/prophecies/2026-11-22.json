@@ -1,0 +1,67 @@
+{
+ "date": "2026-11-22",
+ "generated_at": "2026-11-22T00:41:16+00:00",
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "predictions": [
+  {
+   "text": "I predict that at least 96 people will have been arrested in Bangladesh by the end of Sunday, 29 November 2026, with most of these arrests occurring in the industrial zones of Dhaka, Gazipur, and Narayanganj.",
+   "due": "2026-11-29",
+   "topic": "economy",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the fighting in Yemen will continue, with Saudi-led coalition airstrikes on Hodeidah and other governorates, and Houthi missile attacks on Riyadh, causing minor damage and casualties on both sides.",
+   "due": "2026-11-29",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that drone incursions into the Baltic states and Finland continue, with at least one more incident involving a drone strike in international waters of the Gulf of Finland.",
+   "due": "2026-11-29",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Strait of Hormuz will experience another incident involving an oil tanker, with at least one more tanker damaged or intercepted by the end of Sunday, 29 November 2026, likely near Khasab, Oman.",
+   "due": "2026-11-29",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Mexican special forces will arrest at least two additional suspects in Sinaloa by the end of Sunday, 29 November 2026.",
+   "due": "2026-11-29",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the government of Nigeria will provide compensation to the families of the deceased and support to the survivors by the end of Sunday, 29 November 2026, with the compensation amounting to an unspecified sum and support including counseling services for the rescued individuals.",
+   "due": "2026-11-29",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that agricultural products and machinery see the largest tariff reductions between Indonesia and the European Union.",
+   "due": "2026-11-29",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the upcoming negotiations regarding the oil storage agreement will focus on the conditions for releasing the stored oil and the mechanisms for adjusting the volume of oil stored, with Japan and Saudi Arabia leading the discussions.",
+   "due": "2026-11-29",
+   "topic": "economy",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the joint operations center in Jurf al-Sakhar is partially operational, with Iraqi troops stationed there but not yet joined by Kata'ib Hezbollah forces.",
+   "due": "2026-11-29",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the 2026 Amputee Football World Cup will conclude with a victory for one of the top-ranked teams, likely Brazil or South Africa, but the exact score and match details have not been determined yet.",
+   "due": "2026-11-22",
+   "topic": "sport",
+   "confidence": "low"
+  }
+ ]
+}
