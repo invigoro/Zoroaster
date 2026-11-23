@@ -1,0 +1,55 @@
+{
+ "date": "2026-11-23",
+ "generated_at": "2026-11-23T00:45:36+00:00",
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "predictions": [
+  {
+   "text": "I predict that garment workers' protests will continue in Bangladesh, with clashes between protesters and police occurring in at least three districts, including Gazipur, Savar, and Ashulia, and resulting in at least 100 arrests by the end of Monday, 30 November 2026.",
+   "due": "2026-11-30",
+   "topic": "economy",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that an important politician in Ukraine will announce at least one more attack on a Russian corvette by the end of Monday, 30 November 2026.",
+   "due": "2026-11-30",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that further attacks on properties and offices of political figures and institutions will occur in various districts of Bangladesh, particularly in Narail and Pabna Districts, with at least three more incidents reported by the end of Monday, 30 November 2026.",
+   "due": "2026-11-30",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Gaza war will continue with more casualties in the Gaza Strip, with at least three more Palestinians killed and ten others injured by the end of Monday, 30 November 2026.",
+   "due": "2026-11-30",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that drone incursions into the Baltic states and Finland continue, with at least one more incident involving a drone strike in international waters of the Gulf of Finland.",
+   "due": "2026-11-30",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the regions near the north pole of Mercury will be prioritized for initial detailed analysis.",
+   "due": "2026-11-30",
+   "topic": "science",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the automotive industry sees the most significant tariff reductions between Indonesia and the European Union.",
+   "due": "2026-11-30",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Japan will import approximately 24 million barrels of oil from Saudi Arabia under the new agreement by the end of Monday, 30 November 2026.",
+   "due": "2026-11-30",
+   "topic": "economy",
+   "confidence": "medium"
+  }
+ ]
+}

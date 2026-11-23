@@ -1,0 +1,35 @@
+{
+ "date": "2026-11-22",
+ "target": "a burst of edits by 2+ editors (mass editors left out)",
+ "mass_editors": 315,
+ "precision": {
+  "model": {
+   "10": 0.3,
+   "50": 0.18,
+   "100": 0.14,
+   "1000": 0.054
+  },
+  "edits yesterday": {
+   "10": 0.1,
+   "50": 0.06,
+   "100": 0.05,
+   "1000": 0.039
+  }
+ },
+ "hits": [
+  "2026 Asia Cup Rising Stars",
+  "2026 Las Vegas Grand Prix",
+  "2026 UK Championship",
+  "Steps (film)",
+  "The Hunger Games: Sunrise on the Reaping",
+  "2026 FIFA U-17 World Cup",
+  "Riemann hypothesis",
+  "Levent Alpöge",
+  "2026 Billie Jean King Cup",
+  "Sacramento Republic FC",
+  "List of possible dwarf planets",
+  "Joe Wallach",
+  "The Hunger Games (franchise)",
+  "Calvin Robinson"
+ ]
+}
