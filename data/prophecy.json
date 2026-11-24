@@ -1,54 +1,66 @@
 {
- "date": "2026-11-23",
- "generated_at": "2026-11-23T00:45:36+00:00",
+ "date": "2026-11-24",
+ "generated_at": "2026-11-24T00:43:21+00:00",
  "model": "Qwen/Qwen2.5-7B-Instruct",
  "predictions": [
   {
-   "text": "I predict that garment workers' protests will continue in Bangladesh, with clashes between protesters and police occurring in at least three districts, including Gazipur, Savar, and Ashulia, and resulting in at least 100 arrests by the end of Monday, 30 November 2026.",
-   "due": "2026-11-30",
-   "topic": "economy",
+   "text": "I predict that the Iowa Army Ammunition Plant will conduct a significant operation tomorrow, which was postponed to allow for optimal weather conditions and mitigation measures.",
+   "due": "2026-11-25",
+   "topic": "other",
    "confidence": "medium"
   },
   {
-   "text": "I predict that an important politician in Ukraine will announce at least one more attack on a Russian corvette by the end of Monday, 30 November 2026.",
-   "due": "2026-11-30",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that further attacks on properties and offices of political figures and institutions will occur in various districts of Bangladesh, particularly in Narail and Pabna Districts, with at least three more incidents reported by the end of Monday, 30 November 2026.",
-   "due": "2026-11-30",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the Gaza war will continue with more casualties in the Gaza Strip, with at least three more Palestinians killed and ten others injured by the end of Monday, 30 November 2026.",
-   "due": "2026-11-30",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that drone incursions into the Baltic states and Finland continue, with at least one more incident involving a drone strike in international waters of the Gulf of Finland.",
-   "due": "2026-11-30",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the regions near the north pole of Mercury will be prioritized for initial detailed analysis.",
-   "due": "2026-11-30",
-   "topic": "science",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the automotive industry sees the most significant tariff reductions between Indonesia and the European Union.",
-   "due": "2026-11-30",
+   "text": "I predict that a prominent individual will have their seat recounted and the final outcome of the election will be decided in favor of another prominent individual after the recount.",
+   "due": "2026-11-25",
    "topic": "politics",
    "confidence": "medium"
   },
   {
-   "text": "I predict that Japan will import approximately 24 million barrels of oil from Saudi Arabia under the new agreement by the end of Monday, 30 November 2026.",
-   "due": "2026-11-30",
+   "text": "I predict that another Russian cargo ship will be struck by naval drones off the coast of Benghazi in the Mediterranean Sea.",
+   "due": "2026-12-01",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the minimum wage increase from ৳12,500 to ৳30,000 will pass, but ongoing protests and clashes will continue in Gazipur, Savar, and Ashulia, with at least 100 arrests made.",
+   "due": "2026-12-01",
    "topic": "economy",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that between five and eleven people are killed, five others are injured, and several others are abducted in additional bandit attacks and vigilante responses in Borgu and Zamfara States, Nigeria.",
+   "due": "2026-12-01",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that a 58-year-old student dies during a hunger strike at a university in Rome, Italy, by the end of Tuesday, 1 December 2026.",
+   "due": "2026-12-01",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the bomb threat wave will spread to at least two more German states by the end of Tuesday, 1 December 2026.",
+   "due": "2026-12-01",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Allied Democratic Forces insurgency will continue to target Christians in the Democratic Republic of the Congo, particularly in North Kivu and Ituri provinces, resulting in at least 140 casualties by the end of Tuesday, 1 December 2026.",
+   "due": "2026-12-01",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the specific areas of cooperation between the Democratic Republic of the Congo and Kenya will prioritize trade and infrastructure development, with a focus on improving transportation links between the two countries.",
+   "due": "2026-12-01",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Kurdistan Workers' Party withdraws from additional bases in northern Iraq as part of an ongoing disarmament process aimed at ending its conflict with Turkey.",
+   "due": "2026-12-01",
+   "topic": "conflict",
    "confidence": "medium"
   }
  ]
