@@ -1,41 +1,34 @@
 {
- "date": "2026-11-23",
+ "date": "2026-11-24",
  "target": "a burst of edits by 2+ editors (mass editors left out)",
- "mass_editors": 320,
+ "mass_editors": 321,
  "precision": {
   "model": {
-   "10": 0.4,
-   "50": 0.28,
-   "100": 0.2,
-   "1000": 0.045
+   "10": 0.3,
+   "50": 0.22,
+   "100": 0.13,
+   "1000": 0.048
   },
   "edits yesterday": {
-   "10": 0.0,
-   "50": 0.04,
-   "100": 0.06,
-   "1000": 0.031
+   "10": 0.1,
+   "50": 0.06,
+   "100": 0.1,
+   "1000": 0.034
   }
  },
  "hits": [
-  "2026 UK Championship",
-  "2026 United Nations Climate Change Conference",
-  "Jo Bachay Hain Sang Samait Lo",
-  "Virginia Foxx",
-  "Molly Meldrum",
-  "Grand Slam of Darts",
-  "The Hunger Games: Sunrise on the Reaping",
-  "Tom Jackson (American football, born 1951)",
-  "2026 FIFA U-17 World Cup",
-  "Levent Alpöge",
-  "BepiColombo",
-  "Godzilla Minus One",
-  "Dudu Georgescu",
+  "Mass media",
   "Aakasamlo Oka Tara",
-  "Russian corvette Merkury",
-  "Milad Farahani",
+  "2026 UK Championship",
   "Lead(II) azide",
-  "Calvin Robinson",
+  "2026 Asia Cup Rising Stars",
+  "2026 FIFA U-17 World Cup",
+  "Jo Bachay Hain Sang Samait Lo",
+  "Levent Alpöge",
   "List of possible dwarf planets",
-  "Our Lady of La Vang"
+  "Jimmy Gomez",
+  "Dig (2026 TV series)",
+  "Joseph Zada",
+  "BepiColombo"
  ]
 }

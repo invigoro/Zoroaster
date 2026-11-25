@@ -1,10 +1,10 @@
 {
- "day": "2026-11-24",
- "updated": "2026-11-24T00:43:23+00:00",
+ "day": "2026-11-25",
+ "updated": "2026-11-25T00:42:11+00:00",
  "steps": {
-  "predict 2026-11-24": "ok",
-  "score 2026-11-23": "ok",
-  "prophesy 2026-11-24": "ok",
+  "predict 2026-11-25": "ok",
+  "score 2026-11-24": "ok",
+  "prophesy 2026-11-25": "ok",
   "refresh the forecasts page": "ok",
   "build the site": "ok"
  }
