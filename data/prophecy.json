@@ -1,67 +1,67 @@
 {
- "date": "2026-11-25",
- "generated_at": "2026-11-25T00:42:09+00:00",
+ "date": "2026-11-26",
+ "generated_at": "2026-11-26T00:44:46+00:00",
  "model": "Qwen/Qwen2.5-7B-Instruct",
  "predictions": [
   {
-   "text": "I predict that the film Focker-in-Law will be released in all other countries by Paramount Pictures on November 25, 2026.",
-   "due": "2026-11-25",
+   "text": "I predict that Pakistan International Airlines will move its UK operations to its own Boeing 777 fleet starting from November 26th, 2026.",
+   "due": "2026-11-26",
    "topic": "other",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the detonation of Lead(II) azide at the Iowa Army Ammunition Plant will occur as planned.",
-   "due": "2026-11-25",
-   "topic": "science",
+   "text": "I predict that Thanksgiving services and dinners will be held at St Andrew's Church in Cransley and several local schools, with the high school football tradition continuing to decline but still present in New England.",
+   "due": "2026-11-26",
+   "topic": "culture",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the Shenzhou 24 mission will successfully launch and dock as planned.",
-   "due": "2026-11-25",
-   "topic": "science",
-   "confidence": "high"
-  },
-  {
-   "text": "I predict that Ukraine launches additional drone attacks on Russian targets, potentially targeting critical infrastructure in Lublin Voivodeship or naval vessels in the Gulf of Finland, with at least one strike on a Russian cargo vessel by the end of Wednesday, 2 December 2026.",
-   "due": "2026-12-02",
+   "text": "I predict that the conflict in Yemen will continue with strikes and operations in the Marib, Taiz, and Al-Jawf governorates, resulting in at least 193 casualties on the Houthi side and 144 on the Yemeni government side.",
+   "due": "2026-12-03",
    "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the Colombian conflict will continue with at least one more attack in a rural area of Colombia, causing injuries to at least 21 people.",
-   "due": "2026-12-02",
+   "text": "I predict that the labor unions in Bangladesh will continue their protests in Gazipur, Savar, and Ashulia, with at least 140 garment factories closing again by the end of Thursday, 3 December 2026.",
+   "due": "2026-12-03",
+   "topic": "economy",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Ukraine launches additional drone attacks on Russian targets, possibly targeting more refineries in western Russia.",
+   "due": "2026-12-03",
    "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that at least 30 people are injured and 12 shops are damaged in the aftermath of the Bangladesh July Uprising conflict by the end of Wednesday, 2 December 2026.",
-   "due": "2026-12-02",
-   "topic": "conflict",
-   "confidence": "low"
-  },
-  {
-   "text": "I predict that a prominent military unit will arrest at least five additional suspected criminals in a city in Mexico and another urban area in the country by the end of Wednesday, 2 December 2026.",
-   "due": "2026-12-02",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that a 58-year-old student will die during a hunger strike at Sapienza University in Rome, Italy, while the government responds with arrests in multiple cities across the country.",
-   "due": "2026-12-02",
+   "text": "I predict that thousands of workers across Greece will stage a strike demanding higher wages, restored public-sector bonuses, and increased funding for education and healthcare, disrupting ferry, metro, and air services in Athens and other major cities.",
+   "due": "2026-12-03",
    "topic": "politics",
    "confidence": "medium"
   },
   {
-   "text": "I predict that a prominent politician does not enter Spain and faces no charges by the end of Wednesday, 2 December 2026.",
-   "due": "2026-12-02",
-   "topic": "crime",
-   "confidence": "high"
+   "text": "I predict that the Egyptian government announces new safety measures for fuel tankers on highways, including stricter inspection protocols and improved emergency response times, and these measures will be implemented on all major highways in Egypt by the end of Thursday, 3 December 2026.",
+   "due": "2026-12-03",
+   "topic": "disaster",
+   "confidence": "medium"
   },
   {
-   "text": "I predict that the bomb threat wave will spread to at least two more schools in Germany by the end of Wednesday, 2 December 2026.",
-   "due": "2026-12-02",
-   "topic": "crime",
+   "text": "I predict that the treaty will have been reviewed by two parliamentary committees by the end of Thursday, 3 December 2026.",
+   "due": "2026-12-03",
+   "topic": "politics",
    "confidence": "medium"
+  },
+  {
+   "text": "I predict that the next joint exercise between the Cambodian and Chinese militaries will involve over 3,000 personnel across a new location in Cambodia, focusing on counterterrorism, anti-piracy operations, and humanitarian assistance.",
+   "due": "2026-12-03",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the scientific experiments conducted on the Shenzhou-24 mission will focus on material science and microgravity biology, with initial results showing successful growth of a new type of protein crystal and improved understanding of plant cell division under zero gravity conditions.",
+   "due": "2026-12-03",
+   "topic": "science",
+   "confidence": "high"
   }
  ]
 }

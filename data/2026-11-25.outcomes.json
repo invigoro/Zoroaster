@@ -1,0 +1,37 @@
+{
+ "date": "2026-11-25",
+ "target": "a burst of edits by 2+ editors (mass editors left out)",
+ "mass_editors": 299,
+ "precision": {
+  "model": {
+   "10": 0.4,
+   "50": 0.3,
+   "100": 0.16,
+   "1000": 0.05
+  },
+  "edits yesterday": {
+   "10": 0.1,
+   "50": 0.1,
+   "100": 0.08,
+   "1000": 0.042
+  }
+ },
+ "hits": [
+  "2026 World Championship Qualifier Women",
+  "Jo Bachay Hain Sang Samait Lo",
+  "Focker-in-Law",
+  "Dig (2026 TV series)",
+  "Mass media",
+  "2026 FIFA U-17 World Cup",
+  "Hexed (2026 film)",
+  "Joseph Zada",
+  "World Chess Championship 2026",
+  "Raise the Colours (organisation)",
+  "Vaibhav Sooryavanshi",
+  "Lead(II) azide",
+  "A. Samad Said",
+  "The Further Mis-Adventures of Cliff Booth",
+  "Max Balegde",
+  "Shenzhou 24"
+ ]
+}
