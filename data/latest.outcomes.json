@@ -1,37 +1,46 @@
 {
- "date": "2026-11-25",
+ "date": "2026-11-26",
  "target": "a burst of edits by 2+ editors (mass editors left out)",
- "mass_editors": 299,
+ "mass_editors": 261,
  "precision": {
   "model": {
-   "10": 0.4,
-   "50": 0.3,
-   "100": 0.16,
-   "1000": 0.05
+   "10": 0.6,
+   "50": 0.34,
+   "100": 0.25,
+   "1000": 0.061
   },
   "edits yesterday": {
-   "10": 0.1,
-   "50": 0.1,
-   "100": 0.08,
-   "1000": 0.042
+   "10": 0.2,
+   "50": 0.18,
+   "100": 0.16,
+   "1000": 0.043
   }
  },
  "hits": [
-  "2026 World Championship Qualifier Women",
-  "Jo Bachay Hain Sang Samait Lo",
   "Focker-in-Law",
-  "Dig (2026 TV series)",
-  "Mass media",
-  "2026 FIFA U-17 World Cup",
-  "Hexed (2026 film)",
-  "Joseph Zada",
-  "World Chess Championship 2026",
-  "Raise the Colours (organisation)",
-  "Vaibhav Sooryavanshi",
-  "Lead(II) azide",
-  "A. Samad Said",
-  "The Further Mis-Adventures of Cliff Booth",
+  "2026 World Championship Qualifier Women",
+  "Ezra Frech",
   "Max Balegde",
-  "Shenzhou 24"
+  "World Chess Championship 2026",
+  "Hexed (2026 film)",
+  "Norse Atlantic Airways",
+  "Bea Millan-Windorski",
+  "2026 FIFA U-17 World Cup",
+  "The Further Mis-Adventures of Cliff Booth",
+  "Jo Bachay Hain Sang Samait Lo",
+  "Mike McCarthy",
+  "Zyri",
+  "Thanksgiving (United States)",
+  "Kitty Hart-Moxon",
+  "Macy's Thanksgiving Day Parade",
+  "Lilo & Scratch",
+  "Renu Setna",
+  "Mass media",
+  "Veruschka",
+  "Blade Runner 2099",
+  "Andy Taylor (guitarist)",
+  "Jonno Duniam",
+  "Way of the Warrior Kid",
+  "Hershey (film)"
  ]
 }

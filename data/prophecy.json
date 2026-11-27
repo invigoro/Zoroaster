@@ -1,67 +1,67 @@
 {
- "date": "2026-11-26",
- "generated_at": "2026-11-26T00:44:46+00:00",
+ "date": "2026-11-27",
+ "generated_at": "2026-11-27T00:45:27+00:00",
  "model": "Qwen/Qwen2.5-7B-Instruct",
  "predictions": [
   {
-   "text": "I predict that Pakistan International Airlines will move its UK operations to its own Boeing 777 fleet starting from November 26th, 2026.",
-   "due": "2026-11-26",
-   "topic": "other",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that Thanksgiving services and dinners will be held at St Andrew's Church in Cransley and several local schools, with the high school football tradition continuing to decline but still present in New England.",
-   "due": "2026-11-26",
-   "topic": "culture",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the conflict in Yemen will continue with strikes and operations in the Marib, Taiz, and Al-Jawf governorates, resulting in at least 193 casualties on the Houthi side and 144 on the Yemeni government side.",
-   "due": "2026-12-03",
+   "text": "I predict that the Strait of Hormuz will continue to experience tensions with occasional incidents involving oil tankers, and there will be at least one more incident reported by the end of Friday, 4 December 2026, likely involving an oil tanker or shipping vessel.",
+   "due": "2026-12-04",
    "topic": "conflict",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the labor unions in Bangladesh will continue their protests in Gazipur, Savar, and Ashulia, with at least 140 garment factories closing again by the end of Thursday, 3 December 2026.",
-   "due": "2026-12-03",
+   "text": "I predict that the labor unions in Bangladesh will continue to protest in Gazipur and Savar, with at least 140 garment factories remaining closed, and clashes with police will occur on the Dhaka–Mymensingh Highway.",
+   "due": "2026-12-04",
    "topic": "economy",
    "confidence": "medium"
   },
   {
-   "text": "I predict that Ukraine launches additional drone attacks on Russian targets, possibly targeting more refineries in western Russia.",
-   "due": "2026-12-03",
-   "topic": "conflict",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that thousands of workers across Greece will stage a strike demanding higher wages, restored public-sector bonuses, and increased funding for education and healthcare, disrupting ferry, metro, and air services in Athens and other major cities.",
-   "due": "2026-12-03",
-   "topic": "politics",
-   "confidence": "medium"
-  },
-  {
-   "text": "I predict that the Egyptian government announces new safety measures for fuel tankers on highways, including stricter inspection protocols and improved emergency response times, and these measures will be implemented on all major highways in Egypt by the end of Thursday, 3 December 2026.",
-   "due": "2026-12-03",
+   "text": "I predict that the charges against a prominent driver in the 2026 fuel tanker incident will be upheld by Egyptian courts by the end of Friday, 4 December 2026.",
+   "due": "2026-12-04",
    "topic": "disaster",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the treaty will have been reviewed by two parliamentary committees by the end of Thursday, 3 December 2026.",
-   "due": "2026-12-03",
+   "text": "I predict that thousands of workers across Greece will stage a strike demanding higher wages, restored public-sector bonuses, and increased funding for education and healthcare, disrupting ferry, metro, and air services in Athens and other major cities.",
+   "due": "2026-12-04",
    "topic": "politics",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the next joint exercise between the Cambodian and Chinese militaries will involve over 3,000 personnel across a new location in Cambodia, focusing on counterterrorism, anti-piracy operations, and humanitarian assistance.",
-   "due": "2026-12-03",
+   "text": "I predict that the number of platoons deployed in Gopalganj will be between 56 and 108 by the end of Friday, 4 December 2026.",
+   "due": "2026-12-04",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that there will be another landmine explosion in Khan Shaykhun, Idlib Governorate, Syria.",
+   "due": "2026-12-04",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that at least 18 additional golf courses will close, mostly in Beijing.",
+   "due": "2026-12-04",
    "topic": "politics",
    "confidence": "medium"
   },
   {
-   "text": "I predict that the scientific experiments conducted on the Shenzhou-24 mission will focus on material science and microgravity biology, with initial results showing successful growth of a new type of protein crystal and improved understanding of plant cell division under zero gravity conditions.",
-   "due": "2026-12-03",
-   "topic": "science",
-   "confidence": "high"
+   "text": "I predict that the United States Army will continue to detonate hazardous materials at the Iowa Army Ammunition Plant in Middletown, Iowa, and by the end of Friday, 4 December 2026, they will have completed the detonation of nearly 5 tons of lead azide without incident.",
+   "due": "2026-12-04",
+   "topic": "health",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Bissau-Guinean military government announces the presidential and legislative elections will be held in March 2029 and April 2029 respectively.",
+   "due": "2026-12-04",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that Italy will win both of their singles matches and the doubles match against South Korea, advancing to the next round of the Davis Cup Finals.",
+   "due": "2026-11-29",
+   "topic": "sport",
+   "confidence": "medium"
   }
  ]
 }
