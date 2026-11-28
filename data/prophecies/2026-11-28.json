@@ -1,0 +1,67 @@
+{
+ "date": "2026-11-28",
+ "generated_at": "2026-11-28T00:42:38+00:00",
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "predictions": [
+  {
+   "text": "I predict that the Las Mujeres Ya No No Lloran World Tour will have some shows cancelled or postponed.",
+   "due": "2026-11-28",
+   "topic": "other",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Gaza war will continue with more Israeli airstrikes targeting areas in Gaza City, resulting in several more Palestinian casualties.",
+   "due": "2026-12-05",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that a drone attack occurs in an urban area in Colombia, specifically in the city of Cúcuta.",
+   "due": "2026-12-05",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the closure of around 400 garment factories in Bangladesh will continue, with clashes between workers and police occurring in Gopalganj and other districts, leading to the arrest of several protesters by the end of Saturday, 5 December 2026.",
+   "due": "2026-12-05",
+   "topic": "crime",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the individual arrested for the 2026 Giza fuel tanker explosion in Egypt will be found guilty by the Egyptian court by the end of Saturday, 5 December 2026, and will face a prison sentence.",
+   "due": "2026-12-05",
+   "topic": "disaster",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Islamist insurgency in Niger will continue with at least two more attacks in different regions of the country, resulting in a total of at least 11 more casualties on the security forces side.",
+   "due": "2026-12-05",
+   "topic": "conflict",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Opportunity Party will support the National Party, forming a coalition government with 65 seats, by the end of Saturday, 5 December 2026.",
+   "due": "2026-12-05",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the United States will authorize SpaceX to deploy up to one million satellites for its Starmind space-based data center network in the first phase.",
+   "due": "2026-12-05",
+   "topic": "science",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that at least 18 golf courses will have closed by the end of the week, with many in Beijing.",
+   "due": "2026-12-05",
+   "topic": "politics",
+   "confidence": "medium"
+  },
+  {
+   "text": "I predict that the Herder–farmer conflicts in Nigeria will result in at least 30 people killed in total since the start of the conflict by the end of Saturday, 5 December 2026.",
+   "due": "2026-12-05",
+   "topic": "conflict",
+   "confidence": "medium"
+  }
+ ]
+}

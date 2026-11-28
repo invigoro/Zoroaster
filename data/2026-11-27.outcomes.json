@@ -1,0 +1,39 @@
+{
+ "date": "2026-11-27",
+ "target": "a burst of edits by 2+ editors (mass editors left out)",
+ "mass_editors": 289,
+ "precision": {
+  "model": {
+   "10": 0.3,
+   "50": 0.26,
+   "100": 0.18,
+   "1000": 0.066
+  },
+  "edits yesterday": {
+   "10": 0.0,
+   "50": 0.06,
+   "100": 0.08,
+   "1000": 0.043
+  }
+ },
+ "hits": [
+  "Focker-in-Law",
+  "Hohhot Shengle International Airport",
+  "2028 Libertarian Party presidential primaries",
+  "2026–27 Biathlon World Cup",
+  "2026 FIFA U-17 World Cup",
+  "Macy's Thanksgiving Day Parade",
+  "2026 Davis Cup Finals",
+  "2026 Serbian presidential election",
+  "NFL on Thanksgiving Day",
+  "Fool Night",
+  "The Hunting Wives",
+  "Max Balegde",
+  "Strobe Talbott",
+  "Bea Millan-Windorski",
+  "Ingvar Jónsson",
+  "Nigel Starmer-Smith",
+  "Yellowjackets season 4",
+  "2027 FIBA Basketball World Cup qualification (Asia)"
+ ]
+}
